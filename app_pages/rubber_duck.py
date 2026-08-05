@@ -704,15 +704,6 @@ def run() -> None:
     else:
         render_issue_selector()
 
-    st.divider()
-
-    st.button(
-        "Return to FidSync",
-        key="duck_return_bottom",
-        use_container_width=True,
-        on_click=return_to_previous_page,
-    )
-
 
 if __name__ == "__main__":
     run()
