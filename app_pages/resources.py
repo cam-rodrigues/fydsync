@@ -113,16 +113,27 @@ def run():
             ),
         },
         "The Wall Street Journal": {
-            "title": "Tiny Note",
+            "title": "Opening...",
             "message": (
                 "Hope you remembered your subscription."
             ),
         },
         "Fidelity": {
-            "title": "Opening...",
+            "title": "Tiny Note",
             "message": (
                 "Hope today treats your portfolio kindly."
             ),
+        },
+        "Forbes": {
+            "title": "Developer Sticky Note",
+            "message": (
+                "Billionaire energy detected."
+            ),
+        },
+        "IRS": {
+            "title": "Tiny Note",
+            "message": (
+                "This page pairs well with coffee."
         },
         "Morningstar": {
             "title": "Developer Sticky Note",
