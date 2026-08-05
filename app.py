@@ -43,6 +43,42 @@ BREAK_REMINDER_MESSAGES = [
     ("Quick reset", "The work will still be here after a short break.", "⏸️"),
 ]
 
+TIME_MESSAGES = {
+    "early": [
+        "Early start detected. Coffee may be required.",
+        "You are beating the market to work today.",
+        "The spreadsheets appreciate your punctuality.",
+    ],
+    "morning": [
+        "Good morning. The markets are open.",
+        "Fresh coffee. Fresh data.",
+        "Morning research mode activated.",
+    ],
+    "afternoon": [
+        "Afternoon research session underway.",
+        "Hope lunch treated you well.",
+        "Spreadsheet endurance test: continuing.",
+    ],
+    "evening": [
+        "Working late? Do not forget to take a break.",
+        "After-hours mode activated.",
+        "The markets may be closed, but the spreadsheets are not.",
+    ],
+    "friday": [
+        "Friday detected. The weekend is almost priced in.",
+        "Friday afternoon. Productivity may fluctuate.",
+        "Markets close soon. So should your laptop.",
+    ],
+}
+
+RARE_STARTUP_MESSAGES = [
+    "Somewhere, a workbook named FINAL_final_v9_REAL.xlsx still exists.",
+    "Merged cells remain the leading cause of sadness.",
+    "No spreadsheets were harmed during startup.",
+    "The financial crystal ball is still unavailable.",
+    "Everything eventually becomes a CSV.",
+]
+
 
 # =========================================================
 # Page configuration
@@ -71,6 +107,8 @@ def initialize_app_state() -> None:
         "break_reminder_interval_minutes": BREAK_REMINDER_MINUTES,
         "last_break_reminder": datetime.now(),
         "break_reminder_count": 0,
+        "time_greeting_shown": False,
+        "rare_startup_message_checked": False,
     }
 
     for key, value in defaults.items():
@@ -135,6 +173,48 @@ def handle_system_check() -> None:
         )
 
 
+def show_time_greeting() -> None:
+    """Show one time-based greeting per browser session."""
+
+    if st.session_state.time_greeting_shown:
+        return
+
+    now = datetime.now()
+
+    if now.weekday() == 4:
+        message_group = "friday"
+    elif now.hour < 8:
+        message_group = "early"
+    elif now.hour < 12:
+        message_group = "morning"
+    elif now.hour < 17:
+        message_group = "afternoon"
+    else:
+        message_group = "evening"
+
+    st.toast(
+        random.choice(TIME_MESSAGES[message_group]),
+        icon="🕒",
+    )
+
+    st.session_state.time_greeting_shown = True
+
+
+def maybe_show_rare_startup_message() -> None:
+    """Give each session one small chance to receive a rare message."""
+
+    if st.session_state.rare_startup_message_checked:
+        return
+
+    st.session_state.rare_startup_message_checked = True
+
+    if random.random() < 0.01:
+        st.toast(
+            random.choice(RARE_STARTUP_MESSAGES),
+            icon="✨",
+        )
+
+
 def reset_break_timer() -> None:
     """Restart the break-reminder timer from the current moment."""
 
@@ -173,6 +253,8 @@ st_autorefresh(
 )
 
 check_break_reminder()
+show_time_greeting()
+maybe_show_rare_startup_message()
 
 
 # =========================================================
