@@ -7,23 +7,43 @@ import streamlit as st
 
 DUCK_ISSUES = [
     "There's an error",
-    "Python isn't listening",
-    "Something is behaving strangely",
+    "My changes aren't showing up",
+    "The app keeps doing the wrong thing",
+    "Something looks weird",
+    "It's painfully slow",
+    "The numbers don't make sense",
+    "I honestly have no idea",
 ]
 
 
 DUCK_INTROS = {
     "There's an error": (
-        "Errors are rude, but they usually leave evidence. Let's start with "
+        "Errors are rude, but they usually leave evidence. Let's begin with "
         "the part of the traceback that points to your own code."
     ),
-    "Python isn't listening": (
-        "This usually means the code changed, but the app is running a "
-        "different file, an older version, or a stored value."
+    "My changes aren't showing up": (
+        "The code may be correct while the app is still running another file, "
+        "an older version, cached output, or a stored Session State value."
     ),
-    "Something is behaving strangely": (
-        "Strange behavior is easier to solve once we separate what you "
-        "expected from what the app actually did."
+    "The app keeps doing the wrong thing": (
+        "The app is following some instruction perfectly. Our job is to find "
+        "the instruction that does not match what you intended."
+    ),
+    "Something looks weird": (
+        "Visual problems are usually caused by layout, styling, container "
+        "width, or one rule overriding another. Let's isolate the layer."
+    ),
+    "It's painfully slow": (
+        "Slow code needs timing evidence. We will find the expensive step "
+        "instead of guessing which part is responsible."
+    ),
+    "The numbers don't make sense": (
+        "Incorrect results usually begin earlier than they first become "
+        "visible. Let's check the data one transformation at a time."
+    ),
+    "I honestly have no idea": (
+        "That is a valid starting point. We do not need the diagnosis yet; "
+        "we only need one repeatable observation."
     ),
 }
 
@@ -35,7 +55,7 @@ DUCK_ADVICE = {
         "Check the named line for a misspelled variable, missing comma, "
         "unmatched quote, incorrect indentation, or a value with the wrong type.",
         "Add one st.write() directly before the failing line. Display both the "
-        "value and type, then run the same action again.",
+        "value and its type, then repeat the same action.",
         "Temporarily comment out the newest code. Restore it a few lines at a "
         "time until the error returns.",
         "Compare the broken version with the last version that worked. Focus on "
@@ -43,7 +63,7 @@ DUCK_ADVICE = {
         "Write down the exception type, file name, line number, and exact action "
         "that causes it. That turns the error into a reproducible case.",
     ],
-    "Python isn't listening": [
+    "My changes aren't showing up": [
         "Save the file and confirm you edited the exact file loaded by the page "
         "router. Then restart the Streamlit app.",
         "Check the filename, capitalization, and folder. A duplicate file can "
@@ -56,20 +76,92 @@ DUCK_ADVICE = {
         "the same change as your local copy.",
         "Open a private browser window or clear the relevant Session State value "
         "to separate code problems from stored browser-session behavior.",
+        "Temporarily disable the relevant cache decorator. If the change appears, "
+        "the app was reusing an older cached result.",
     ],
-    "Something is behaving strangely": [
-        "Write one sentence describing what you expected and one describing what "
-        "actually happened. The difference is the useful clue.",
-        "Change only one thing before testing again. Multiple simultaneous fixes "
-        "make it impossible to know which one mattered.",
-        "Use st.write() immediately before the strange behavior to inspect the "
-        "values Streamlit is actually receiving.",
-        "Reduce the feature to the smallest example that still behaves incorrectly. "
-        "Remove layout, styling, and unrelated data first.",
-        "Check whether a rerun, widget key, callback, or Session State assignment "
-        "is resetting the value after you change it.",
-        "Repeat the same action in a private window. If the behavior changes, the "
-        "problem is probably stored state or browser caching rather than the code.",
+    "The app keeps doing the wrong thing": [
+        "Write one sentence describing what should happen and one describing "
+        "what actually happens. Make the difference as specific as possible.",
+        "Follow the action from the widget to its callback and then to each "
+        "Session State assignment. Look for a later line that changes it again.",
+        "Add one st.write() immediately before the incorrect behavior. Display "
+        "the exact inputs the app is using at that moment.",
+        "Check every condition involved in the behavior. Print which branch of "
+        "the if/elif/else block actually runs.",
+        "Perform the action once and watch for a Streamlit rerun. A value may be "
+        "correct briefly and then reset during the next run.",
+        "Remove unrelated callbacks and state updates until the smallest version "
+        "of the feature still performs the wrong action.",
+        "Check for reused widget keys. Two widgets sharing a key can produce "
+        "behavior that appears unrelated to either widget.",
+    ],
+    "Something looks weird": [
+        "Temporarily remove custom CSS. If the layout becomes normal, add the "
+        "rules back one section at a time.",
+        "Inspect the page at a narrower and wider browser size. The issue may be "
+        "a fixed width, overflowing content, or columns becoming too cramped.",
+        "Check for repeated margins, padding, dividers, captions, or empty "
+        "containers. The visual problem may simply be stacked spacing.",
+        "Use the browser inspector to find which CSS rule is controlling the "
+        "element. Look for a rule that is crossed out or unexpectedly inherited.",
+        "Test the page in both light and dark mode. Hard-coded text or background "
+        "colors can disappear or clash in one mode.",
+        "Replace the suspicious section with plain st.write() content. If that "
+        "looks correct, rebuild the styling around the working structure.",
+        "Check whether the same button, heading, or divider is rendered in more "
+        "than one conditional branch.",
+    ],
+    "It's painfully slow": [
+        "Time the major steps separately. Record how long loading, cleaning, "
+        "calculating, charting, and exporting each take.",
+        "Check whether a large file, API call, or database query runs again on "
+        "every Streamlit rerun.",
+        "Cache expensive read-only work with st.cache_data, but do not cache code "
+        "that must reflect immediate changes or user-specific state.",
+        "Look for loops that repeatedly filter, append to, or rebuild a dataframe. "
+        "Try to perform the operation once on the full column instead.",
+        "Display the dataframe shape before expensive operations. You may be "
+        "processing far more rows or columns than expected.",
+        "Temporarily remove charts, formatting, and export creation. Add them back "
+        "one at a time to identify the slow layer.",
+        "Check whether clicking a download button rebuilds the file. Prepare the "
+        "download data only when its inputs change, not on every rerun.",
+    ],
+    "The numbers don't make sense": [
+        "Choose one incorrect row and calculate the expected result manually. "
+        "Use that row as the test case for every step.",
+        "Display the row count and key totals before and after each merge, filter, "
+        "groupby, or pivot. Find the first step where they change unexpectedly.",
+        "Check the column data types. Numbers stored as text can sort, compare, "
+        "and calculate incorrectly.",
+        "Inspect missing values, zeros, duplicates, and negative numbers in the "
+        "columns used by the calculation.",
+        "Check whether percentages are represented as 5, 0.05, or the text '5%'. "
+        "A scale mismatch can make a correct formula look wildly wrong.",
+        "Verify the merge keys and merge type. Duplicate keys can multiply rows "
+        "and inflate totals without producing an error.",
+        "Round only for display. Rounding during intermediate calculations can "
+        "create differences that grow across many rows.",
+        "Compare the source value, cleaned value, and final value side by side for "
+        "one record to identify where the number first changes.",
+    ],
+    "I honestly have no idea": [
+        "Repeat the problem and write down the exact clicks or inputs required to "
+        "make it happen. Reproducibility is the first clue.",
+        "Describe the last moment when the app still behaves normally. Then note "
+        "the first moment when something feels wrong.",
+        "Ask which category is closest: an error, an invisible change, a wrong "
+        "action, a visual issue, slowness, or incorrect data.",
+        "Undo or comment out only the most recent change, then test again. Do not "
+        "change anything else during that test.",
+        "Add one checkpoint at the beginning of the feature and one at the end. "
+        "Confirm whether the code reaches both places.",
+        "Try the same action with the smallest possible input. A simpler example "
+        "often reveals whether the issue is code, data, or state.",
+        "Restart the app and repeat the problem in a private browser window. This "
+        "separates persistent code problems from temporary session behavior.",
+        "Explain the feature out loud from input to output. The step you cannot "
+        "explain clearly is probably the next place to inspect.",
     ],
 }
 
@@ -107,13 +199,13 @@ DUCK_CONVERSATION = [
     ),
     (
         "Debugging glasses activated.",
-        "Read the traceback as though someone else sent it to you. What would you "
+        "Read the evidence as though someone else sent it to you. What would you "
         "tell them to verify first?",
     ),
     (
         "Emergency protocol.",
         "Save the file. Restart Streamlit. Confirm the path. Reproduce the issue. "
-        "Read the traceback. Then take one sip of water.",
+        "Check the evidence. Then take one sip of water.",
     ),
     (
         "Advanced bug confirmed.",
@@ -130,23 +222,13 @@ DUCK_CONVERSATION = [
 DUCK_REACTIONS = ["🦆", "🤔🦆", "😐🦆", "🧐🦆", "🥴🦆", "👑🦆"]
 
 
-DUCK_TITLES = [
-    (0, "Rubber Duck"),
-    (2, "Senior Duck"),
-    (4, "Principal Duck"),
-    (7, "Distinguished Duck"),
-    (11, "Legendary Duck"),
-    (17, "Duck of Infinite Patience"),
-]
-
-
 DUCK_STATUS_NAMES = {
     "🦆": "Calm",
     "🤔🦆": "Thinking",
     "😐🦆": "Slightly Concerned",
     "🧐🦆": "Reviewing the Evidence",
     "🥴🦆": "Questioning Reality",
-    "👑🦆": "Debug Master",
+    "👑🦆": "Still Committed",
 }
 
 
@@ -203,6 +285,7 @@ def reset_duck() -> None:
     st.session_state.duck_struggle_count = 0
     st.session_state.duck_resolved = False
     st.session_state.pop("duck_issue_choice", None)
+    st.session_state.pop("duck_issue_change", None)
 
 
 def return_to_previous_page() -> None:
@@ -229,16 +312,6 @@ def get_duck_reaction(struggle_count: int) -> str:
     if struggle_count >= 2:
         return DUCK_REACTIONS[1]
     return DUCK_REACTIONS[0]
-
-
-def get_duck_title(struggle_count: int) -> str:
-    """Return the duck's increasingly senior title."""
-
-    current_title = DUCK_TITLES[0][1]
-    for threshold, title in DUCK_TITLES:
-        if struggle_count >= threshold:
-            current_title = title
-    return current_title
 
 
 def get_struggling_label(struggle_count: int) -> str:
@@ -449,7 +522,7 @@ def apply_styles() -> None:
             }
 
             div[data-testid="stRadio"] label {
-                padding: 0.45rem 0;
+                padding: 0.35rem 0;
             }
 
             .stButton > button {
@@ -466,20 +539,19 @@ def apply_styles() -> None:
 def render_header(struggle_count: int) -> None:
     """Render the compact page header."""
 
-    duck_title = get_duck_title(struggle_count)
     reaction = get_duck_reaction(struggle_count)
 
     st.markdown(
         f"""
         <div class="duck-hero">
             <div class="duck-icon">{reaction}</div>
-            <div class="duck-title">{duck_title}</div>
+            <div class="duck-title">Rubber Duck Debugger</div>
             <div class="duck-subtitle">
-                Explain the kind of problem you are seeing. The duck will give
-                you one specific test at a time and change its approach when
-                the problem is still broken.
+                Choose the closest problem below. The duck will give you one
+                specific test at a time and change its approach when the problem
+                is still broken.
             </div>
-            <div class="duck-version">Highly Experimental · v0.4</div>
+            <div class="duck-version">Highly Experimental · v0.5</div>
         </div>
         """,
         unsafe_allow_html=True,
@@ -490,7 +562,7 @@ def render_issue_selector() -> None:
     """Render the initial issue selector."""
 
     st.markdown("### What kind of problem are you dealing with?")
-    st.caption("Select the closest match. You can change it at any time.")
+    st.caption("Select the closest match. You can change it later.")
 
     issue_choice = st.radio(
         "Problem type",
@@ -524,7 +596,6 @@ def render_status(struggle_count: int) -> None:
     """Render a small status strip above the active debugging content."""
 
     reaction = get_duck_reaction(struggle_count)
-    title = get_duck_title(struggle_count)
     status_name = DUCK_STATUS_NAMES[reaction]
 
     st.markdown(
@@ -532,8 +603,7 @@ def render_status(struggle_count: int) -> None:
         <div class="duck-status-bar">
             <div class="duck-status-left">
                 <span>{reaction}</span>
-                <span class="duck-status-name">{title}</span>
-                <span>· {status_name}</span>
+                <span class="duck-status-name">{status_name}</span>
             </div>
             <div class="duck-attempt">Attempt {struggle_count + 1}</div>
         </div>
@@ -690,6 +760,18 @@ def render_success() -> None:
         )
 
 
+def render_bottom_return() -> None:
+    """Render the page return button outside the resolved screen."""
+
+    st.divider()
+    st.button(
+        "Return to FidSync",
+        key="duck_return_bottom",
+        use_container_width=True,
+        on_click=return_to_previous_page,
+    )
+
+
 def run() -> None:
     """Render the hidden Rubber Duck Debugger page."""
 
@@ -701,8 +783,10 @@ def run() -> None:
         render_success()
     elif st.session_state.duck_active_issue:
         render_active_session(st.session_state.duck_active_issue)
+        render_bottom_return()
     else:
         render_issue_selector()
+        render_bottom_return()
 
 
 if __name__ == "__main__":
