@@ -635,7 +635,7 @@ def run():
             file_name="fund_criteria_results.xlsx",
             mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
             use_container_width=True,
-            help="Ctrl+S's cooler cousin.",
+            help="No USB drive required.",
         )
 
 
