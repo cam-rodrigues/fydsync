@@ -8,6 +8,7 @@ import xlsxwriter
 from xlsxwriter.utility import xl_col_to_name
 from datetime import datetime
 import random
+import hashlib
 
 
 METRIC_NAMES = [
@@ -432,104 +433,118 @@ def run():
         st.info("Upload an MPI fund scorecard PDF to begin.")
         return
 
-    rows = []
+    pdf_bytes = pdf_file.getvalue()
+    pdf_key = hashlib.sha256(pdf_bytes).hexdigest()
 
-    try:
-        with pdfplumber.open(pdf_file) as pdf:
-            total_pages = len(pdf.pages)
-            status_text = st.empty()
-            status_text.caption(random_loading_message(TICKER_LOADING_MESSAGES))
-            progress = st.progress(0, text="Preparing fund lookup...")
-            ticker_lookup = build_ticker_lookup(pdf)
+    # Streamlit reruns the script after button clicks. Keep the processed
+    # dataframe in session state so downloading does not parse the PDF again.
+    if st.session_state.get("processed_pdf_key") != pdf_key:
+        rows = []
 
-            if not any("Enhanced Commodity" in name for name in ticker_lookup):
-                ticker_lookup["WisdomTree Enhanced Commodity Stgy Fd"] = "WTES"
+        try:
+            with pdfplumber.open(BytesIO(pdf_bytes)) as pdf:
+                total_pages = len(pdf.pages)
+                status_text = st.empty()
+                status_text.caption(random_loading_message(TICKER_LOADING_MESSAGES))
+                progress = st.progress(0, text="Preparing fund lookup...")
+                ticker_lookup = build_ticker_lookup(pdf)
 
-            for i, page in enumerate(pdf.pages):
-                txt = page.extract_text() or ""
+                if not any("Enhanced Commodity" in name for name in ticker_lookup):
+                    ticker_lookup["WisdomTree Enhanced Commodity Stgy Fd"] = "WTES"
 
-                if not txt.strip():
+                for i, page in enumerate(pdf.pages):
+                    txt = page.extract_text() or ""
+
+                    if not txt.strip():
+                        progress.progress(
+                            (i + 1) / total_pages,
+                            text=f"Page {i + 1} of {total_pages}",
+                        )
+                        status_text.caption(
+                            f"{random_loading_message(PARSING_LOADING_MESSAGES)} "
+                            f"Skipping page {i + 1}: no readable text found."
+                        )
+                        continue
+
+                    blocks = re.split(
+                        r"\n(?=[^\n]*?(?:Fund\s+)?(?:Meets Watchlist Criteria|has been placed on watchlist))",
+                        txt,
+                        flags=re.IGNORECASE,
+                    )
+
+                    for block in blocks:
+                        if not block.strip():
+                            continue
+
+                        metrics = extract_metrics(block)
+                        if not metrics:
+                            continue
+
+                        fund_name = get_fund_name(block, ticker_lookup)
+                        ticker = resolve_ticker(fund_name, ticker_lookup)
+                        placed_on_watchlist = bool(
+                            re.search(r"placed on watchlist", block, flags=re.IGNORECASE)
+                        )
+
+                        rows.append({
+                            "Fund Name": fund_name,
+                            "Ticker": ticker,
+                            "Meets Criteria": "No" if placed_on_watchlist else "Yes",
+                            **metrics,
+                        })
+
                     progress.progress(
                         (i + 1) / total_pages,
                         text=f"Page {i + 1} of {total_pages}",
                     )
                     status_text.caption(
-                        f"{random_loading_message(PARSING_LOADING_MESSAGES)} "
-                        f"Skipping page {i + 1}: no readable text found."
-                    )
-                    continue
-
-                blocks = re.split(
-                    r"\n(?=[^\n]*?(?:Fund\s+)?(?:Meets Watchlist Criteria|has been placed on watchlist))",
-                    txt,
-                    flags=re.IGNORECASE,
-                )
-
-                for block in blocks:
-                    if not block.strip():
-                        continue
-
-                    metrics = extract_metrics(block)
-                    if not metrics:
-                        continue
-
-                    fund_name = get_fund_name(block, ticker_lookup)
-                    ticker = resolve_ticker(fund_name, ticker_lookup)
-                    placed_on_watchlist = bool(
-                        re.search(r"placed on watchlist", block, flags=re.IGNORECASE)
+                        random_loading_message(PARSING_LOADING_MESSAGES)
                     )
 
-                    rows.append({
-                        "Fund Name": fund_name,
-                        "Ticker": ticker,
-                        "Meets Criteria": "No" if placed_on_watchlist else "Yes",
-                        **metrics,
-                    })
+                progress.empty()
+                status_text.empty()
 
-                progress.progress(
-                    (i + 1) / total_pages,
-                    text=f"Page {i + 1} of {total_pages}",
-                )
+        except Exception as error:
+            st.error("The PDF could not be processed.")
+            with st.expander("Technical details"):
+                st.code(str(error))
+            return
 
-                # Rotate the playful loading message every page while keeping
-                # the actual page progress visible in the progress bar.
-                status_text.caption(
-                    random_loading_message(PARSING_LOADING_MESSAGES)
-                )
+        cleanup_status = st.empty()
+        cleanup_status.caption(random_loading_message(CLEANUP_LOADING_MESSAGES))
 
-            progress.empty()
-            status_text.empty()
+        df = pd.DataFrame(rows)
 
-    except Exception as error:
-        st.error("The PDF could not be processed.")
-        with st.expander("Technical details"):
-            st.code(str(error))
-        return
+        if df.empty:
+            cleanup_status.empty()
+            st.warning(
+                "No fund entries were found. The PDF may be scanned, use a different layout, "
+                "or not contain recognizable Pass/Review labels."
+            )
+            return
 
-    cleanup_status = st.empty()
-    cleanup_status.caption(random_loading_message(CLEANUP_LOADING_MESSAGES))
+        ordered_columns = ["Fund Name", "Ticker", "Meets Criteria"] + [
+            metric for metric in METRIC_NAMES if metric in df.columns
+        ]
+        df = df.reindex(columns=ordered_columns)
+        df = df.drop_duplicates().reset_index(drop=True)
 
-    df = pd.DataFrame(rows)
+        metric_columns = [column for column in df.columns if column not in STATUS_COLUMNS]
+        if metric_columns:
+            df[metric_columns] = df[metric_columns].fillna("Not Reported")
 
-    if df.empty:
         cleanup_status.empty()
-        st.warning(
-            "No fund entries were found. The PDF may be scanned, use a different layout, "
-            "or not contain recognizable Pass/Review labels."
-        )
-        return
 
-    ordered_columns = ["Fund Name", "Ticker", "Meets Criteria"] + [
-        metric for metric in METRIC_NAMES if metric in df.columns
-    ]
-    df = df.reindex(columns=ordered_columns)
-    df = df.drop_duplicates().reset_index(drop=True)
+        st.session_state.processed_pdf_key = pdf_key
+        st.session_state.processed_pdf_df = df
 
-    metric_columns = [column for column in df.columns if column not in STATUS_COLUMNS]
-    if metric_columns:
-        df[metric_columns] = df[metric_columns].fillna("Not Reported")
-
-    cleanup_status.empty()
+        # A new upload invalidates any previously prepared downloads.
+        st.session_state.pop("export_pdf_key", None)
+        st.session_state.pop("export_csv", None)
+        st.session_state.pop("export_excel", None)
+    else:
+        df = st.session_state.processed_pdf_df.copy()
+        metric_columns = [column for column in df.columns if column not in STATUS_COLUMNS]
 
     total_funds = len(df)
     meets_count = int((df["Meets Criteria"] == "Yes").sum())
@@ -588,13 +603,18 @@ def run():
     with st.expander("Download Results", expanded=False):
         st.caption("Downloads include all detected funds, not only the currently filtered rows.")
 
-        export_status = st.empty()
-        export_status.caption(random_loading_message(EXPORT_LOADING_MESSAGES))
+        if st.session_state.get("export_pdf_key") != pdf_key:
+            export_status = st.empty()
+            export_status.caption(random_loading_message(EXPORT_LOADING_MESSAGES))
 
-        csv = df.to_csv(index=False).encode("utf-8")
-        excel_data = create_excel_export(df)
+            st.session_state.export_csv = df.to_csv(index=False).encode("utf-8")
+            st.session_state.export_excel = create_excel_export(df)
+            st.session_state.export_pdf_key = pdf_key
 
-        export_status.empty()
+            export_status.empty()
+
+        csv = st.session_state.export_csv
+        excel_data = st.session_state.export_excel
 
         download_col_1, download_col_2 = st.columns(2)
         download_col_1.download_button(
