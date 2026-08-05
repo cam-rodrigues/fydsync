@@ -1,10 +1,22 @@
 import html
+from urllib.parse import quote
+
 import streamlit as st
 
 
+def get_logo_url(website_url):
+    """Generate a favicon URL for a website."""
+    encoded_url = quote(website_url, safe="")
+
+    return (
+        "https://www.google.com/s2/favicons"
+        f"?domain_url={encoded_url}&sz=128"
+    )
+
+
 def run():
-    # Remove this line if set_page_config() is already called
-    # in your app's main entry file.
+    # Remove this if set_page_config() is already called
+    # in your main Streamlit file.
     st.set_page_config(
         page_title="Resources",
         page_icon="🔗",
@@ -12,197 +24,168 @@ def run():
     )
 
     # -------------------------------------------------------------------------
-    # Resource data
+    # Resources
     # -------------------------------------------------------------------------
     categories = {
         "Financial News": [
             {
                 "name": "Bloomberg",
                 "url": "https://www.bloomberg.com",
-                "logo": "https://logo.clearbit.com/bloomberg.com",
             },
             {
                 "name": "Yahoo Finance",
                 "url": "https://finance.yahoo.com",
-                "logo": "https://logo.clearbit.com/yahoo.com",
             },
             {
                 "name": "CNBC",
                 "url": "https://www.cnbc.com",
-                "logo": "https://logo.clearbit.com/cnbc.com",
             },
             {
                 "name": "MarketWatch",
                 "url": "https://www.marketwatch.com",
-                "logo": "https://logo.clearbit.com/marketwatch.com",
             },
             {
                 "name": "Barron's",
                 "url": "https://www.barrons.com",
-                "logo": "https://logo.clearbit.com/barrons.com",
             },
             {
                 "name": "Reuters",
                 "url": "https://www.reuters.com/finance",
-                "logo": "https://logo.clearbit.com/reuters.com",
             },
             {
                 "name": "The Wall Street Journal",
                 "url": "https://www.wsj.com",
-                "logo": "https://logo.clearbit.com/wsj.com",
             },
             {
                 "name": "Forbes",
                 "url": "https://www.forbes.com",
-                "logo": "https://logo.clearbit.com/forbes.com",
             },
             {
                 "name": "Financial Times",
                 "url": "https://www.ft.com",
-                "logo": "https://logo.clearbit.com/ft.com",
             },
         ],
+
         "Market Data & Research": [
             {
                 "name": "Morningstar",
                 "url": "https://www.morningstar.com",
-                "logo": "https://logo.clearbit.com/morningstar.com",
             },
             {
                 "name": "TradingView",
                 "url": "https://www.tradingview.com",
-                "logo": "https://logo.clearbit.com/tradingview.com",
             },
             {
                 "name": "Seeking Alpha",
                 "url": "https://seekingalpha.com",
-                "logo": "https://logo.clearbit.com/seekingalpha.com",
             },
             {
                 "name": "Zacks",
                 "url": "https://www.zacks.com",
-                "logo": "https://logo.clearbit.com/zacks.com",
             },
             {
                 "name": "Finviz",
                 "url": "https://finviz.com",
-                "logo": "https://logo.clearbit.com/finviz.com",
             },
             {
                 "name": "Barchart",
                 "url": "https://www.barchart.com",
-                "logo": "https://logo.clearbit.com/barchart.com",
             },
             {
                 "name": "YCharts",
                 "url": "https://ycharts.com",
-                "logo": "https://logo.clearbit.com/ycharts.com",
             },
             {
                 "name": "Macrotrends",
                 "url": "https://www.macrotrends.net",
-                "logo": "https://logo.clearbit.com/macrotrends.net",
             },
         ],
+
         "Investment Firms": [
             {
                 "name": "Fidelity",
                 "url": "https://www.fidelity.com",
-                "logo": "https://logo.clearbit.com/fidelity.com",
             },
             {
                 "name": "Vanguard",
                 "url": "https://investor.vanguard.com",
-                "logo": "https://logo.clearbit.com/vanguard.com",
             },
             {
                 "name": "Charles Schwab",
                 "url": "https://www.schwab.com",
-                "logo": "https://logo.clearbit.com/schwab.com",
             },
             {
                 "name": "J.P. Morgan",
                 "url": "https://www.jpmorgan.com",
-                "logo": "https://logo.clearbit.com/jpmorgan.com",
             },
             {
                 "name": "Envestnet",
                 "url": "https://www.envestnet.com",
-                "logo": "https://logo.clearbit.com/envestnet.com",
             },
             {
                 "name": "T. Rowe Price",
                 "url": "https://www.troweprice.com",
-                "logo": "https://logo.clearbit.com/troweprice.com",
             },
             {
                 "name": "Edward Jones",
                 "url": "https://www.edwardjones.com",
-                "logo": "https://logo.clearbit.com/edwardjones.com",
             },
         ],
+
         "Government & Regulatory": [
             {
                 "name": "SEC",
                 "url": "https://www.sec.gov",
-                "logo": "https://logo.clearbit.com/sec.gov",
             },
             {
                 "name": "FINRA",
                 "url": "https://www.finra.org",
-                "logo": "https://logo.clearbit.com/finra.org",
             },
             {
                 "name": "FDIC",
                 "url": "https://www.fdic.gov",
-                "logo": "https://logo.clearbit.com/fdic.gov",
             },
             {
                 "name": "Federal Reserve",
                 "url": "https://www.federalreserve.gov",
-                "logo": "https://logo.clearbit.com/federalreserve.gov",
             },
             {
                 "name": "CFPB",
                 "url": "https://www.consumerfinance.gov",
-                "logo": "https://logo.clearbit.com/consumerfinance.gov",
             },
             {
                 "name": "IRS",
                 "url": "https://www.irs.gov",
-                "logo": "https://logo.clearbit.com/irs.gov",
             },
         ],
+
         "Education & Tools": [
             {
                 "name": "Investopedia",
                 "url": "https://www.investopedia.com",
-                "logo": "https://logo.clearbit.com/investopedia.com",
             },
             {
                 "name": "NerdWallet",
                 "url": "https://www.nerdwallet.com",
-                "logo": "https://logo.clearbit.com/nerdwallet.com",
             },
             {
                 "name": "eMoney",
                 "url": "https://emoneyadvisor.com",
-                "logo": "https://logo.clearbit.com/emoneyadvisor.com",
             },
             {
                 "name": "Khan Academy",
-                "url": "https://www.khanacademy.org/economics-finance-domain",
-                "logo": "https://logo.clearbit.com/khanacademy.org",
+                "url": (
+                    "https://www.khanacademy.org/"
+                    "economics-finance-domain"
+                ),
             },
             {
                 "name": "SmartAsset",
                 "url": "https://smartasset.com",
-                "logo": "https://logo.clearbit.com/smartasset.com",
             },
             {
                 "name": "Bankrate",
                 "url": "https://www.bankrate.com",
-                "logo": "https://logo.clearbit.com/bankrate.com",
             },
         ],
     }
@@ -216,23 +199,23 @@ def run():
             /* Main page spacing */
             .stMainBlockContainer {
                 max-width: 1500px;
-                padding-top: 1.5rem;
+                padding-top: 1.4rem;
                 padding-bottom: 3rem;
             }
 
-            /* Page heading */
+            /* Header */
             .resources-eyebrow {
-                color: #64748b;
-                font-size: 0.75rem;
-                font-weight: 700;
-                letter-spacing: 0.11em;
-                margin-bottom: 0.35rem;
+                color: #58708e;
+                font-size: 0.7rem;
+                font-weight: 750;
+                letter-spacing: 0.13em;
+                margin-bottom: 0.45rem;
                 text-transform: uppercase;
             }
 
             .resources-title {
-                color: #172a46;
-                font-size: clamp(2rem, 4vw, 3rem);
+                color: #102d50;
+                font-size: clamp(2.1rem, 4vw, 3rem);
                 font-weight: 750;
                 letter-spacing: -0.04em;
                 line-height: 1.05;
@@ -240,72 +223,86 @@ def run():
             }
 
             .resources-description {
-                color: #64748b;
-                font-size: 1rem;
-                line-height: 1.6;
-                margin: 0.7rem 0 1.75rem;
-                max-width: 680px;
+                color: #65788e;
+                font-size: 0.95rem;
+                line-height: 1.65;
+                margin: 0.75rem 0 1.8rem;
+                max-width: 700px;
             }
 
-            /* Streamlit input styling */
+            /* Search field */
             div[data-testid="stTextInput"] input {
-                border: 1px solid #d8e1eb;
+                background: #f6f9fc;
+                border: 1px solid #d4dfeb;
                 border-radius: 10px;
+                color: #173555;
+                min-height: 42px;
             }
 
+            div[data-testid="stTextInput"] input:focus {
+                border-color: #7892ad;
+                box-shadow: 0 0 0 1px #7892ad;
+            }
+
+            /* Category dropdown */
             div[data-testid="stSelectbox"] > div > div {
+                background: #f6f9fc;
+                border-color: #d4dfeb;
                 border-radius: 10px;
+                min-height: 42px;
             }
 
             /* Category sections */
             .resource-section {
-                margin-top: 2.2rem;
+                margin-top: 2.6rem;
             }
 
             .resource-section-header {
                 align-items: center;
                 display: flex;
                 justify-content: space-between;
-                margin-bottom: 0.9rem;
+                margin-bottom: 1rem;
             }
 
             .resource-section-title {
-                color: #20334f;
-                font-size: 1.08rem;
-                font-weight: 700;
-                letter-spacing: -0.015em;
+                color: #102d50;
+                font-size: 1rem;
+                font-weight: 750;
+                letter-spacing: -0.01em;
                 margin: 0;
             }
 
             .resource-count {
-                background: #eef3f8;
+                background: #eaf0f6;
                 border-radius: 999px;
-                color: #65758a;
-                font-size: 0.72rem;
-                font-weight: 650;
+                color: #5d7188;
+                font-size: 0.7rem;
+                font-weight: 700;
                 padding: 0.25rem 0.55rem;
             }
 
-            /* Card grid */
+            /* Resource grid */
             .resource-grid {
                 display: grid;
-                gap: 0.9rem;
+                gap: 0.85rem;
                 grid-template-columns: repeat(
                     auto-fill,
-                    minmax(175px, 1fr)
+                    minmax(165px, 1fr)
                 );
             }
 
+            /* Individual card */
             .resource-card {
                 align-items: center;
                 background: #ffffff;
-                border: 1px solid #dce4ed;
-                border-radius: 14px;
+                border: 1px solid #d7e1ec;
+                border-radius: 13px;
                 color: inherit;
                 display: flex;
                 flex-direction: column;
-                min-height: 142px;
-                padding: 1.15rem 0.9rem 0.95rem;
+                justify-content: center;
+                min-height: 135px;
+                padding: 1.05rem 0.8rem 0.9rem;
                 position: relative;
                 text-align: center;
                 text-decoration: none !important;
@@ -316,39 +313,43 @@ def run():
             }
 
             .resource-card:hover {
-                border-color: #8da4be;
-                box-shadow: 0 10px 25px rgba(31, 51, 75, 0.10);
+                border-color: #879fba;
+                box-shadow: 0 8px 22px rgba(28, 54, 82, 0.10);
                 transform: translateY(-3px);
             }
 
+            /* Logo container */
             .resource-logo-area {
                 align-items: center;
                 display: flex;
-                height: 66px;
+                height: 58px;
                 justify-content: center;
-                margin-bottom: 0.65rem;
+                margin-bottom: 0.55rem;
                 width: 100%;
             }
 
+            /* Square favicon */
             .resource-logo {
                 display: block;
-                max-height: 48px;
-                max-width: 118px;
+                height: 46px;
                 object-fit: contain;
+                width: 46px;
             }
 
+            /* Website name */
             .resource-name {
-                color: #273950;
-                font-size: 0.86rem;
-                font-weight: 650;
-                line-height: 1.25;
+                color: #173555;
+                font-size: 0.82rem;
+                font-weight: 700;
+                line-height: 1.3;
             }
 
+            /* External-link arrow */
             .resource-arrow {
-                color: #8fa0b3;
-                font-size: 0.8rem;
+                color: #98a9bb;
+                font-size: 0.75rem;
                 position: absolute;
-                right: 0.7rem;
+                right: 0.65rem;
                 top: 0.55rem;
                 transition:
                     color 160ms ease,
@@ -356,52 +357,53 @@ def run():
             }
 
             .resource-card:hover .resource-arrow {
-                color: #273950;
+                color: #173555;
                 transform: translate(2px, -2px);
             }
 
-            /* Empty search state */
+            /* Empty search result */
             .resource-empty {
-                background: #f8fafc;
-                border: 1px dashed #cbd5e1;
-                border-radius: 14px;
-                color: #64748b;
+                background: #f7f9fc;
+                border: 1px dashed #bdcad8;
+                border-radius: 13px;
+                color: #65788e;
+                margin-top: 2rem;
                 padding: 2.5rem 1rem;
                 text-align: center;
             }
 
-            /* Bottom request card */
+            /* Bottom request box */
             .resource-request {
                 align-items: center;
-                background: #f5f8fc;
-                border: 1px solid #dce5ef;
-                border-radius: 14px;
+                background: #f4f7fb;
+                border: 1px solid #d9e2ec;
+                border-radius: 13px;
                 display: flex;
-                gap: 0.9rem;
+                gap: 1rem;
                 justify-content: space-between;
-                margin-top: 2.5rem;
-                padding: 1.1rem 1.25rem;
+                margin-top: 2.75rem;
+                padding: 1.15rem 1.3rem;
             }
 
             .resource-request-title {
-                color: #273950;
-                font-size: 0.92rem;
-                font-weight: 700;
+                color: #173555;
+                font-size: 0.9rem;
+                font-weight: 750;
                 margin-bottom: 0.2rem;
             }
 
             .resource-request-text {
-                color: #69798c;
-                font-size: 0.82rem;
-                line-height: 1.45;
+                color: #6a7c90;
+                font-size: 0.8rem;
+                line-height: 1.5;
             }
 
             .resource-request-icon {
                 align-items: center;
                 background: #ffffff;
-                border: 1px solid #dce5ef;
+                border: 1px solid #d8e2ec;
                 border-radius: 10px;
-                color: #536b85;
+                color: #526b85;
                 display: flex;
                 flex: 0 0 38px;
                 font-size: 1rem;
@@ -409,19 +411,26 @@ def run():
                 justify-content: center;
             }
 
-            @media (max-width: 640px) {
+            /* Mobile layout */
+            @media (max-width: 700px) {
                 .resource-grid {
-                    grid-template-columns: repeat(2, minmax(0, 1fr));
+                    grid-template-columns: repeat(
+                        2,
+                        minmax(0, 1fr)
+                    );
                 }
 
                 .resource-card {
-                    min-height: 128px;
-                    padding-left: 0.6rem;
-                    padding-right: 0.6rem;
+                    min-height: 125px;
                 }
 
                 .resource-logo {
-                    max-width: 95px;
+                    height: 40px;
+                    width: 40px;
+                }
+
+                .resource-request {
+                    align-items: flex-start;
                 }
             }
         </style>
@@ -433,8 +442,14 @@ def run():
     # -------------------------------------------------------------------------
     st.html(
         """
-        <div class="resources-eyebrow">Trusted links</div>
-        <h1 class="resources-title">Resources</h1>
+        <div class="resources-eyebrow">
+            Trusted links
+        </div>
+
+        <h1 class="resources-title">
+            Resources
+        </h1>
+
         <p class="resources-description">
             A curated collection of financial news, market research,
             investment, regulatory, and educational resources.
@@ -443,9 +458,12 @@ def run():
     )
 
     # -------------------------------------------------------------------------
-    # Search and category filters
+    # Search and filter controls
     # -------------------------------------------------------------------------
-    search_column, category_column = st.columns([2, 1], gap="medium")
+    search_column, category_column = st.columns(
+        [2, 1],
+        gap="medium",
+    )
 
     with search_column:
         search_query = st.text_input(
@@ -456,15 +474,18 @@ def run():
 
     with category_column:
         selected_category = st.selectbox(
-            "Filter by category",
-            options=["All categories", *categories.keys()],
+            "Filter resources by category",
+            options=[
+                "All categories",
+                *categories.keys(),
+            ],
             label_visibility="collapsed",
         )
 
     normalized_query = search_query.strip().lower()
 
     # -------------------------------------------------------------------------
-    # Build the filtered resource list
+    # Filter resources
     # -------------------------------------------------------------------------
     visible_categories = {}
 
@@ -475,29 +496,40 @@ def run():
         ):
             continue
 
-        filtered_sites = [
-            site
-            for site in sites
-            if not normalized_query
-            or normalized_query in site["name"].lower()
-            or normalized_query in category.lower()
-        ]
+        filtered_sites = []
+
+        for site in sites:
+            matches_name = (
+                normalized_query in site["name"].lower()
+            )
+
+            matches_category = (
+                normalized_query in category.lower()
+            )
+
+            if (
+                not normalized_query
+                or matches_name
+                or matches_category
+            ):
+                filtered_sites.append(site)
 
         if filtered_sites:
             visible_categories[category] = filtered_sites
 
     # -------------------------------------------------------------------------
-    # Render cards
+    # Render resources
     # -------------------------------------------------------------------------
     if not visible_categories:
         st.html(
             """
             <div class="resource-empty">
                 No resources match that search.
-                Try a different website name or category.
+                Try another website name or category.
             </div>
             """
         )
+
     else:
         sections_html = ""
 
@@ -506,8 +538,16 @@ def run():
 
             for site in sites:
                 site_name = html.escape(site["name"])
-                site_url = html.escape(site["url"], quote=True)
-                logo_url = html.escape(site["logo"], quote=True)
+
+                site_url = html.escape(
+                    site["url"],
+                    quote=True,
+                )
+
+                logo_url = html.escape(
+                    get_logo_url(site["url"]),
+                    quote=True,
+                )
 
                 cards_html += f"""
                     <a
@@ -517,13 +557,15 @@ def run():
                         rel="noopener noreferrer"
                         aria-label="Open {site_name}"
                     >
-                        <span class="resource-arrow">↗</span>
+                        <span class="resource-arrow">
+                            ↗
+                        </span>
 
                         <div class="resource-logo-area">
                             <img
                                 class="resource-logo"
                                 src="{logo_url}"
-                                alt="{site_name} logo"
+                                alt="{site_name} icon"
                                 loading="lazy"
                             >
                         </div>
@@ -534,11 +576,13 @@ def run():
                     </a>
                 """
 
+            category_name = html.escape(category)
+
             sections_html += f"""
                 <section class="resource-section">
                     <div class="resource-section-header">
                         <h2 class="resource-section-title">
-                            {html.escape(category)}
+                            {category_name}
                         </h2>
 
                         <span class="resource-count">
@@ -566,12 +610,19 @@ def run():
                 </div>
 
                 <div class="resource-request-text">
-                    Submit a user request and the site can be reviewed
-                    for inclusion.
+                    Submit a user request and the site can be
+                    reviewed for inclusion.
                 </div>
             </div>
 
-            <div class="resource-request-icon">＋</div>
+            <div class="resource-request-icon">
+                ＋
+            </div>
         </div>
         """
     )
+
+
+# Use this only if this file is run directly.
+if __name__ == "__main__":
+    run()
