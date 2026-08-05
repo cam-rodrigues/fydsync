@@ -1,5 +1,4 @@
 import html
-import json
 import math
 from urllib.parse import quote
 
@@ -98,8 +97,8 @@ def run():
     # -------------------------------------------------------------------------
     # Easter-egg messages
     # -------------------------------------------------------------------------
-    # Only sites listed here receive the joke loading screen.
-    # All other cards open normally.
+    # Only sites listed here receive a hidden hover joke.
+    # Hover over the site's logo to reveal it.
     easter_eggs = {
         "Bloomberg": {
             "title": "Loading Bloomberg...",
@@ -107,59 +106,50 @@ def run():
                 "Just kidding.<br>"
                 "It’s probably behind a paywall anyway."
             ),
-            "delay": 1900,
         },
         "Yahoo Finance": {
             "title": "Opening Yahoo Finance...",
             "message": (
                 "Still somehow everyone’s second monitor."
             ),
-            "delay": 1500,
         },
         "MarketWatch": {
             "title": "Opening MarketWatch...",
             "message": (
                 "Watching the markets so you don’t have to."
             ),
-            "delay": 1500,
         },
         "Barron's": {
             "title": "Loading premium insights...",
             "message": (
                 "And, quite possibly, a premium paywall."
             ),
-            "delay": 1750,
         },
         "The Wall Street Journal": {
             "title": "Opening The Wall Street Journal...",
             "message": (
                 "Hope you remembered your subscription."
             ),
-            "delay": 1750,
         },
         "Morningstar": {
             "title": "Opening Morningstar...",
             "message": "Morning, star.",
-            "delay": 1350,
         },
         "TradingView": {
             "title": "Opening TradingView...",
             "message": "Candles detected.",
-            "delay": 1350,
         },
         "SEC": {
             "title": "Contacting the SEC...",
             "message": (
                 "No insider trading while you’re here."
             ),
-            "delay": 1650,
         },
         "IRS": {
             "title": "Opening the IRS...",
             "message": (
                 "They’re probably looking for you too."
             ),
-            "delay": 1650,
         },
     }
 
@@ -328,39 +318,33 @@ def run():
 
             easter_egg = easter_eggs.get(site["name"])
 
+            card_attributes = (
+                f'href="{site_url}" '
+                'target="_blank" '
+                'rel="noopener noreferrer"'
+            )
+
             if easter_egg:
-                title_json = html.escape(
-                    json.dumps(easter_egg["title"]),
-                    quote=True,
-                )
-                message_json = html.escape(
-                    json.dumps(easter_egg["message"]),
-                    quote=True,
-                )
-                url_json = html.escape(
-                    json.dumps(site["url"]),
-                    quote=True,
+                joke_title = html.escape(easter_egg["title"])
+                joke_message = html.escape(
+                    easter_egg["message"].replace("<br>", " ")
                 )
 
-                click_handler = (
-                    "event.preventDefault();"
-                    f"openWithToast({url_json},"
-                    f"{title_json},"
-                    f"{message_json},"
-                    f"{int(easter_egg['delay'])});"
-                )
-
-                card_attributes = (
-                    'href="#" '
-                    f'onclick="{click_handler}"'
-                )
+                joke_html = f"""
+                    <div class="resource-joke" role="tooltip">
+                        <div class="resource-joke-label">
+                            FidSync field note
+                        </div>
+                        <div class="resource-joke-title">
+                            {joke_title}
+                        </div>
+                        <div class="resource-joke-message">
+                            {joke_message}
+                        </div>
+                    </div>
+                """
             else:
-                card_attributes = (
-                    f'href="{site_url}" '
-                    'target="_blank" '
-                    'rel="noopener noreferrer"'
-                )
-
+                joke_html = ""
             cards_html += f"""
                 <a
                     class="resource-card"
@@ -376,6 +360,7 @@ def run():
                             alt="{site_name} icon"
                             loading="lazy"
                         >
+                        {joke_html}
                     </div>
 
                     <span class="resource-name">
@@ -512,7 +497,71 @@ def run():
                 height: 58px;
                 justify-content: center;
                 margin-bottom: 0.55rem;
+                position: relative;
                 width: 100%;
+            }}
+
+            .resource-joke {{
+                background: rgba(16, 45, 80, 0.98);
+                border: 1px solid rgba(255, 255, 255, 0.12);
+                border-radius: 11px;
+                bottom: calc(100% + 12px);
+                box-shadow: 0 12px 28px rgba(16, 37, 66, 0.22);
+                color: white;
+                left: 50%;
+                max-width: 245px;
+                min-width: 210px;
+                opacity: 0;
+                padding: 0.75rem 0.85rem;
+                pointer-events: none;
+                position: absolute;
+                text-align: left;
+                transform: translate(-50%, 8px);
+                transition:
+                    opacity 150ms ease,
+                    transform 150ms ease;
+                visibility: hidden;
+                z-index: 50;
+            }}
+
+            .resource-joke::after {{
+                border-left: 7px solid transparent;
+                border-right: 7px solid transparent;
+                border-top: 7px solid rgba(16, 45, 80, 0.98);
+                content: "";
+                left: 50%;
+                position: absolute;
+                top: 100%;
+                transform: translateX(-50%);
+            }}
+
+            .resource-logo-area:hover .resource-joke,
+            .resource-card:focus-visible .resource-joke {{
+                opacity: 1;
+                transform: translate(-50%, 0);
+                visibility: visible;
+            }}
+
+            .resource-joke-label {{
+                color: #b9cde5;
+                font-size: 0.58rem;
+                font-weight: 800;
+                letter-spacing: 0.08em;
+                margin-bottom: 0.3rem;
+                text-transform: uppercase;
+            }}
+
+            .resource-joke-title {{
+                font-size: 0.77rem;
+                font-weight: 750;
+                line-height: 1.3;
+            }}
+
+            .resource-joke-message {{
+                color: #d8e4f2;
+                font-size: 0.72rem;
+                line-height: 1.4;
+                margin-top: 0.2rem;
             }}
 
             .resource-logo {{
@@ -583,96 +632,6 @@ def run():
                 justify-content: center;
             }}
 
-            /* Toast overlay */
-            .toast-backdrop {{
-                align-items: flex-start;
-                background: rgba(16, 37, 66, 0.08);
-                display: flex;
-                inset: 0;
-                justify-content: flex-end;
-                opacity: 0;
-                padding: 1rem;
-                pointer-events: none;
-                position: fixed;
-                transition: opacity 180ms ease;
-                z-index: 9998;
-            }}
-
-            .toast-backdrop.visible {{
-                opacity: 1;
-            }}
-
-            .resource-toast {{
-                background: rgba(255, 255, 255, 0.98);
-                border: 1px solid #d7e1ec;
-                border-radius: 14px;
-                box-shadow:
-                    0 18px 50px rgba(16, 37, 66, 0.20);
-                max-width: 360px;
-                opacity: 0;
-                overflow: hidden;
-                transform: translateY(-10px);
-                transition:
-                    opacity 180ms ease,
-                    transform 180ms ease;
-                width: min(360px, calc(100vw - 2rem));
-            }}
-
-            .toast-backdrop.visible .resource-toast {{
-                opacity: 1;
-                transform: translateY(0);
-            }}
-
-            .toast-content {{
-                padding: 1rem 1.05rem 0.95rem;
-            }}
-
-            .toast-label {{
-                color: #73869a;
-                font-size: 0.64rem;
-                font-weight: 800;
-                letter-spacing: 0.1em;
-                margin-bottom: 0.4rem;
-                text-transform: uppercase;
-            }}
-
-            .toast-title {{
-                color: #102d50;
-                font-size: 0.95rem;
-                font-weight: 750;
-                line-height: 1.35;
-            }}
-
-            .toast-message {{
-                color: #64748b;
-                font-size: 0.82rem;
-                line-height: 1.5;
-                margin-top: 0.35rem;
-            }}
-
-            .toast-progress-track {{
-                background: #e8eef5;
-                height: 4px;
-                overflow: hidden;
-            }}
-
-            .toast-progress {{
-                background:
-                    linear-gradient(90deg, #315f91, #789fc8);
-                height: 100%;
-                transform: scaleX(0);
-                transform-origin: left;
-            }}
-
-            @keyframes toast-progress {{
-                from {{
-                    transform: scaleX(0);
-                }}
-                to {{
-                    transform: scaleX(1);
-                }}
-            }}
-
             @media (max-width: 700px) {{
                 .resource-grid {{
                     grid-template-columns:
@@ -719,90 +678,7 @@ def run():
             </div>
         </main>
 
-        <div
-            class="toast-backdrop"
-            id="toastBackdrop"
-            aria-live="polite"
-            aria-hidden="true"
-        >
-            <div class="resource-toast">
-                <div class="toast-content">
-                    <div class="toast-label">
-                        FidSync field note
-                    </div>
 
-                    <div
-                        class="toast-title"
-                        id="toastTitle"
-                    ></div>
-
-                    <div
-                        class="toast-message"
-                        id="toastMessage"
-                    ></div>
-                </div>
-
-                <div class="toast-progress-track">
-                    <div
-                        class="toast-progress"
-                        id="toastProgress"
-                    ></div>
-                </div>
-            </div>
-        </div>
-
-        <script>
-            let activeToastTimer = null;
-
-            function openWithToast(url, title, message, delay) {{
-                /*
-                 * Open a blank tab immediately while the click still counts
-                 * as a user gesture. Browsers may block a delayed window.open().
-                 */
-                const destinationTab = window.open(
-                    "about:blank",
-                    "_blank"
-                );
-
-                const backdrop =
-                    document.getElementById("toastBackdrop");
-                const titleElement =
-                    document.getElementById("toastTitle");
-                const messageElement =
-                    document.getElementById("toastMessage");
-                const progressElement =
-                    document.getElementById("toastProgress");
-
-                if (activeToastTimer) {{
-                    window.clearTimeout(activeToastTimer);
-                }}
-
-                titleElement.textContent = title;
-                messageElement.innerHTML = message;
-
-                progressElement.style.animation = "none";
-                void progressElement.offsetWidth;
-                progressElement.style.animation =
-                    `toast-progress ${{delay}}ms linear forwards`;
-
-                backdrop.classList.add("visible");
-                backdrop.setAttribute("aria-hidden", "false");
-
-                activeToastTimer = window.setTimeout(() => {{
-                    backdrop.classList.remove("visible");
-                    backdrop.setAttribute("aria-hidden", "true");
-
-                    if (destinationTab) {{
-                        destinationTab.location.href = url;
-                    }} else {{
-                        /*
-                         * Fallback if the browser blocked the blank tab.
-                         */
-                        window.open(url, "_blank");
-                    }}
-                }}, delay);
-            }}
-        </script>
     </body>
     </html>
     """
