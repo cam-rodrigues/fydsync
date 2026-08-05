@@ -136,6 +136,26 @@ DUCK_REACTIONS = [
 ]
 
 
+DUCK_TITLES = [
+    (0, "Rubber Duck"),
+    (2, "Senior Duck"),
+    (4, "Principal Duck"),
+    (7, "Distinguished Duck"),
+    (11, "Legendary Duck"),
+    (17, "Duck of Infinite Patience"),
+]
+
+
+DUCK_STATUS_NAMES = {
+    "🦆": "Calm",
+    "🤔🦆": "Thinking",
+    "🧐🦆": "Reviewing the Evidence",
+    "😐🦆": "Slightly Concerned",
+    "🥴🦆": "Questioning Reality",
+    "👑🦆": "Debug Master",
+}
+
+
 STRUGGLING_LABELS = [
     "I'm Still Struggling",
     "Still Broken",
@@ -197,6 +217,18 @@ def get_duck_reaction(struggle_count: int) -> str:
     if struggle_count >= 2:
         return DUCK_REACTIONS[1]
     return DUCK_REACTIONS[0]
+
+
+def get_duck_title(struggle_count: int) -> str:
+    """Return the duck's increasingly senior title."""
+
+    current_title = DUCK_TITLES[0][1]
+
+    for threshold, title in DUCK_TITLES:
+        if struggle_count >= threshold:
+            current_title = title
+
+    return current_title
 
 
 def get_struggling_label(struggle_count: int) -> str:
@@ -274,6 +306,39 @@ def apply_styles() -> None:
                 text-transform: uppercase;
             }
 
+            .duck-status-bar {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 1rem;
+                margin: 0 0 1.2rem 0;
+                padding: 0.65rem 0.9rem;
+                background-color: #f7fafd;
+                border: 1px solid #d6e2ee;
+                border-radius: 0.7rem;
+                color: #50657b;
+                font-size: 0.82rem;
+                line-height: 1.4;
+            }
+
+            .duck-status-left {
+                display: flex;
+                align-items: center;
+                gap: 0.45rem;
+                min-width: 0;
+            }
+
+            .duck-status-name {
+                color: #102542;
+                font-weight: 750;
+            }
+
+            .duck-attempt {
+                flex-shrink: 0;
+                color: #365574;
+                font-weight: 700;
+            }
+
             .duck-dialogue {
                 margin: 0.8rem 0 1rem 0;
                 padding: 1.15rem 1.2rem;
@@ -320,13 +385,6 @@ def apply_styles() -> None:
                 font-weight: 750;
             }
 
-            div[data-testid="stMetric"] {
-                background: #ffffff;
-                border: 1px solid #dce3ec;
-                border-radius: 0.75rem;
-                padding: 0.85rem 1rem;
-            }
-
             .stButton > button {
                 border-radius: 0.6rem;
                 font-weight: 650;
@@ -340,10 +398,12 @@ def apply_styles() -> None:
 def render_header(struggle_count: int) -> None:
     """Render the page header."""
 
+    duck_title = get_duck_title(struggle_count)
+
     header_html = (
         '<div class="duck-hero">'
         f'<div class="duck-icon">{get_duck_reaction(struggle_count)}</div>'
-        '<div class="duck-title">Duck Debugger</div>'
+        f'<div class="duck-title">{duck_title}</div>'
         '<div class="duck-subtitle">'
         'Choose the closest description below. The duck will keep changing '
         'its approach until something works.'
@@ -437,19 +497,25 @@ def run() -> None:
         )
         struggle_count = st.session_state.duck_struggle_count
 
-        mood_col, attempt_col = st.columns(2)
+        duck_reaction = get_duck_reaction(struggle_count)
+        duck_status_name = DUCK_STATUS_NAMES[duck_reaction]
+        duck_title = get_duck_title(struggle_count)
 
-        with mood_col:
-            st.metric(
-                "Duck Status",
-                get_duck_reaction(struggle_count),
-            )
+        status_html = (
+            '<div class="duck-status-bar">'
+            '<div class="duck-status-left">'
+            f'<span>{duck_reaction}</span>'
+            f'<span class="duck-status-name">{duck_title}</span>'
+            f'<span>· {duck_status_name}</span>'
+            '</div>'
+            f'<div class="duck-attempt">Attempt {struggle_count + 1}</div>'
+            '</div>'
+        )
 
-        with attempt_col:
-            st.metric(
-                "Attempt",
-                struggle_count + 1,
-            )
+        st.markdown(
+            status_html,
+            unsafe_allow_html=True,
+        )
 
         if struggle_count == 0:
             dialogue_title = "Initial Assessment"
