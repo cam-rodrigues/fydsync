@@ -631,14 +631,11 @@ def render_search_section():
                 use_container_width=True,
             )
 
-    clear_clicked = st.button(
+    st.button(
         "Clear Search",
         use_container_width=False,
+        on_click=clear_search,
     )
-
-    if clear_clicked:
-        clear_search()
-        st.rerun()
 
     if search_clicked:
         ticker = ticker_input.strip().upper()
