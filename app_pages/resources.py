@@ -123,7 +123,7 @@ def run():
         "Morningstar": {
             "title": "Developer Sticky Note",
             "message": "Today's productivity is proudly powered by coffee.",
-
+        },
     }
 
     # -------------------------------------------------------------------------
