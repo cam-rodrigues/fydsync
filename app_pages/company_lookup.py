@@ -16,6 +16,12 @@ import yfinance as yf
 
 DEFAULT_HISTORY_DAYS = 180
 
+SOLITAIRE_URL = "https://play-solitaire.com/"
+
+HIDDEN_LOOKUP_ALIASES = {
+    "SOLITARE": "SOLITAIRE",
+}
+
 KNOWN_LIMITATIONS = """
 - The ticker must be valid and supported by Yahoo Finance.
 - Use dashes rather than dots for tickers such as `BRK-B`.
@@ -272,6 +278,30 @@ HIDDEN_LOOKUPS = {
         "description": (
             "Belmont University Holdings provides educational services, "
             "networking opportunities, and an impressive number of hills."
+        ),
+    },
+
+    "SOLITAIRE": {
+        "title": "Solitaire Holdings",
+        "subtitle": "Workplace Wellness · NASDAQ: CARDS",
+        "message": "Productivity has been temporarily suspended.",
+        "metrics": {
+            "Current Price": "One Break",
+            "Market Cap": "52 Cards",
+            "P/E Ratio": "Patience / Efficiency",
+            "Dividend Yield": "Temporary Joy",
+        },
+        "details": {
+            "Headquarters": "Windows XP",
+            "Primary Asset": "A Well-Shuffled Deck",
+            "Risk Factor": "One More Game",
+            "Analyst Rating": "Touch Grass",
+        },
+        "description": (
+            "Analysis indicates that you have been staring at financial data "
+            "for too long. FidSync recommends stepping away from the screen, "
+            "stretching, drinking some water, and touching some grass. "
+            "Management has approved one game of Solitaire."
         ),
     },
 }
@@ -1002,6 +1032,7 @@ def render_search_section():
 
     if search_clicked:
         ticker = ticker_input.strip().upper()
+        ticker = HIDDEN_LOOKUP_ALIASES.get(ticker, ticker)
 
         if not ticker:
             st.warning("Enter a ticker symbol before searching.")
@@ -1670,6 +1701,23 @@ def render_hidden_lookup(ticker):
 
     with description_tab:
         st.write(lookup["description"])
+
+    if ticker == "SOLITAIRE":
+        st.warning(
+            "You have been staring at the screen for too long. "
+            "Go touch some grass."
+        )
+
+        st.link_button(
+            "Definitely Do Not Open Solitaire",
+            SOLITAIRE_URL,
+            use_container_width=True,
+        )
+
+        st.caption(
+            "FidSync accepts no responsibility for productivity lost "
+            "after clicking this button."
+        )
 
     return True
 
