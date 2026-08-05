@@ -567,7 +567,7 @@ st.sidebar.markdown(
 
 nav_button(
     "Fund Scorecard Test",
-    "app_pages/fund_metric_upgrade_test",
+    "fund_metric_upgrade_test.py",
 )
 
 
