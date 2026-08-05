@@ -131,7 +131,7 @@ def run():
             ),
         },
         "Forbes": {
-            "title": "Psst...,
+            "title": "Psst...,"
             "message": (
                 "Billionaire energy detected."
             ),
