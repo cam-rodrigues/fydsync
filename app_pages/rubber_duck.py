@@ -170,7 +170,7 @@ def initialize_duck_state() -> None:
     """Initialize the debugger's session-state values."""
 
     defaults = {
-        "duck_active_issue": DUCK_ISSUES[0],
+        "duck_active_issue": "",
         "duck_advice_index": 0,
         "duck_struggle_count": 0,
         "duck_resolved": False,
@@ -185,7 +185,7 @@ def initialize_duck_state() -> None:
 def reset_duck() -> None:
     """Reset the debugger safely."""
 
-    st.session_state.duck_active_issue = DUCK_ISSUES[0]
+    st.session_state.duck_active_issue = ""
     st.session_state.duck_advice_index = 0
     st.session_state.duck_struggle_count = 0
     st.session_state.duck_resolved = False
@@ -431,18 +431,25 @@ def run() -> None:
     issue_choice = st.radio(
         "Problem type",
         DUCK_ISSUES,
+        index=None,
         key="duck_issue_choice",
         label_visibility="collapsed",
     )
 
-    if issue_choice != st.session_state.duck_active_issue:
+    if issue_choice is None:
+        st.info(
+            "Choose one of the three options above and the duck will begin."
+        )
+
+    elif issue_choice != st.session_state.duck_active_issue:
         st.session_state.duck_active_issue = issue_choice
         st.session_state.duck_advice_index = 0
         st.session_state.duck_struggle_count = 0
         st.session_state.duck_resolved = False
         st.session_state.duck_achievement_shown = False
+        st.rerun()
 
-    if st.session_state.duck_resolved:
+    elif st.session_state.duck_resolved:
         st.success("🦆 The duck knew you could do it.")
 
         st.markdown("## Case closed.")
