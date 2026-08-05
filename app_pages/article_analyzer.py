@@ -1,5 +1,6 @@
 # app_pages/article_analyzer.py
 
+from collections import Counter
 from datetime import datetime
 from urllib.parse import urlparse
 import os
@@ -107,6 +108,80 @@ SOURCE_MESSAGES = {
     ),
     "apnews.com": (
         "Associated Press detected. Straight-to-the-point mode activated."
+    ),
+}
+
+
+HEADLINE_MESSAGES = {
+    "breaking": (
+        "Breaking news detected. The headline seems very sure of itself."
+    ),
+    "exclusive": (
+        "Exclusive detected. Access appears emotionally restricted."
+    ),
+    "shocking": (
+        "Shocking headline detected. Proceed with measured skepticism."
+    ),
+    "you won't believe": (
+        "Clickbait probability elevated."
+    ),
+    "you wont believe": (
+        "Clickbait probability elevated."
+    ),
+    "must see": (
+        "Urgency language detected."
+    ),
+    "crash": (
+        "Market drama detected."
+    ),
+    "surge": (
+        "Upward-arrow energy detected."
+    ),
+    "skyrocket": (
+        "Rocket terminology detected. Gravity still applies."
+    ),
+    "plunge": (
+        "Downward-arrow energy detected."
+    ),
+    "secret": (
+        "A secret has been placed directly in the headline."
+    ),
+    "urgent": (
+        "Urgency detected. Breathing remains permitted."
+    ),
+}
+
+
+PDF_FILENAME_MESSAGES = {
+    "final_final": (
+        "The final version has been located. Allegedly."
+    ),
+    "final-final": (
+        "The final version has been located. Allegedly."
+    ),
+    "final v": (
+        "Final-version numbering detected."
+    ),
+    "draft": (
+        "Draft detected. Expectations adjusted."
+    ),
+    "v7": (
+        "Version seven detected. Progress has occurred."
+    ),
+    "v8": (
+        "Version eight detected. This must be the real final version."
+    ),
+    "confidential": (
+        "Confidential filename detected. Handle carefully."
+    ),
+    "report": (
+        "Report mode activated."
+    ),
+    "copy": (
+        "A copy of a copy may have entered the archive."
+    ),
+    "untitled": (
+        "Untitled document detected. Naming remains optional."
     ),
 }
 
@@ -251,6 +326,64 @@ HIDDEN_ARTICLE_COMMANDS = {
         ),
         "message": "Caffeine-powered analysis activated.",
     },
+
+    "LOREM": {
+        "title": "Placeholder Journalism Reaches New Heights",
+        "authors": "Lorem Ipsum",
+        "publish_date": "Since Approximately 1500",
+        "source": "The Typesetting Desk",
+        "text": (
+            "Lorem ipsum dolor sit amet, consectetur adipiscing elit. "
+            "Industry observers confirmed that placeholder text remains "
+            "widely used despite containing very little actionable "
+            "information. Analysts praised its visual consistency while "
+            "acknowledging that readers rarely learn anything from it."
+        ),
+        "message": "Placeholder mode activated.",
+    },
+
+    "TERMSANDCONDITIONS": {
+        "title": "Terms and Conditions Successfully Ignored",
+        "authors": "Everyone",
+        "publish_date": "Immediately Before Clicking Accept",
+        "source": "The Bottom of the Page",
+        "text": (
+            "Users confirmed that they had read and understood all applicable "
+            "terms and conditions despite scrolling directly to the final "
+            "checkbox. Researchers found that average reading speed increased "
+            "dramatically when the accept button became visible."
+        ),
+        "message": "Legal reading speed set to maximum.",
+    },
+
+    "CLICKBAIT": {
+        "title": "You Won't Believe What Happened Next",
+        "authors": "Engagement Optimization Department",
+        "publish_date": "Right Now",
+        "source": "A Suspiciously Urgent Website",
+        "text": (
+            "Readers were told that they would not believe what happened next. "
+            "What happened next was a paragraph containing information that "
+            "could have been communicated directly in the headline. The "
+            "publisher confirmed that seventeen additional slides were "
+            "available."
+        ),
+        "message": "Clickbait containment procedures activated.",
+    },
+
+    "TLDR": {
+        "title": "Article Considered Too Long",
+        "authors": "The Summary Department",
+        "publish_date": "Eventually",
+        "source": "The Final Paragraph",
+        "text": (
+            "The article was long. The summary was shorter. Important details "
+            "were located somewhere in the middle. Readers requested a more "
+            "concise version and were informed that this was the concise "
+            "version."
+        ),
+        "message": "Maximum concision mode activated.",
+    },
 }
 
 
@@ -265,6 +398,54 @@ ANALYZER_THOUGHTS = [
     "The article has been reduced to a more manageable amount of article.",
     "Several paragraphs were apparently necessary to say that.",
 ]
+
+
+RARE_COMPLETION_MESSAGES = [
+    "The editor has been notified.",
+    "Paragraphs successfully contained.",
+    "No footnotes escaped.",
+    "Article domestication complete.",
+    "The document has agreed to cooperate.",
+    "All available words have been counted.",
+]
+
+
+IGNORED_COMMON_WORDS = {
+    "about",
+    "after",
+    "again",
+    "against",
+    "before",
+    "being",
+    "between",
+    "because",
+    "could",
+    "during",
+    "first",
+    "from",
+    "have",
+    "into",
+    "more",
+    "other",
+    "over",
+    "said",
+    "should",
+    "their",
+    "there",
+    "these",
+    "those",
+    "through",
+    "under",
+    "very",
+    "were",
+    "what",
+    "when",
+    "where",
+    "which",
+    "while",
+    "with",
+    "would",
+}
 
 
 # =========================================================
@@ -488,6 +669,81 @@ def get_source_message(url):
     return None
 
 
+def get_headline_message(title):
+    """Return a message for certain headline words or phrases."""
+
+    normalized_title = (title or "").lower()
+
+    for keyword, message in HEADLINE_MESSAGES.items():
+        if keyword in normalized_title:
+            return message
+
+    return None
+
+
+def get_pdf_filename_message(filename):
+    """Return a message based on a PDF filename."""
+
+    normalized_filename = (filename or "").lower()
+
+    for keyword, message in PDF_FILENAME_MESSAGES.items():
+        if keyword in normalized_filename:
+            return message
+
+    return None
+
+
+def get_length_message(word_count):
+    """Return a subtle observation based on article length."""
+
+    if word_count >= 5000:
+        return "This article has become a small book."
+
+    if word_count >= 3000:
+        return "Long-form journalism detected. Snacks may be required."
+
+    if 0 < word_count <= 100:
+        return "Brief article detected. Extremely brief."
+
+    return None
+
+
+def get_headline_ratio_message(title, article_text):
+    """Compare headline length against article-body length."""
+
+    title_length = len(title or "")
+    body_length = len(article_text or "")
+
+    if title_length >= 80 and body_length < 800:
+        return "The headline may be doing most of the work here."
+
+    return None
+
+
+def get_most_common_word(text):
+    """Return the most common meaningful word and its count."""
+
+    words = re.findall(
+        r"\b[a-zA-Z]{5,}\b",
+        (text or "").lower(),
+    )
+
+    filtered_words = [
+        word
+        for word in words
+        if word not in IGNORED_COMMON_WORDS
+    ]
+
+    if not filtered_words:
+        return None, 0
+
+    word, count = Counter(
+        filtered_words
+    ).most_common(1)[0]
+
+    return word, count
+
+
 def detect_hidden_article_command(
     input_mode,
     article_input,
@@ -599,6 +855,7 @@ def export_summary_to_pdf(
 
     pdf = FPDF()
     pdf.add_page()
+
     pdf.set_auto_page_break(
         auto=True,
         margin=15,
@@ -707,6 +964,9 @@ def initialize_session_state():
         "article_achievements": [],
         "article_pending_achievements": [],
         "article_greeting_shown": False,
+        "article_last_headline_message_count": 0,
+        "article_last_rare_message_count": 0,
+        "article_last_filename_message_count": 0,
     }
 
     for key, value in default_values.items():
@@ -798,14 +1058,23 @@ def record_article_analysis(
             "used URL, pasted-text, and PDF inputs.",
         )
 
-    word_count = get_text_statistics(
+    statistics = get_text_statistics(
         article_text
-    )["Words"]
+    )
+
+    word_count = statistics["Words"]
+    comma_count = article_text.count(",")
 
     if word_count >= 3000:
         unlock_article_achievement(
             "Long Read",
             "analyzed an article containing at least 3,000 words.",
+        )
+
+    if comma_count >= 100:
+        unlock_article_achievement(
+            "Comma Enthusiast",
+            "analyzed an article containing at least 100 commas.",
         )
 
     if st.session_state.article_hidden_command:
@@ -861,6 +1130,56 @@ def render_analyzer_greeting():
     st.session_state.article_greeting_shown = True
 
 
+def maybe_show_headline_message():
+    """Show a headline reaction once per completed analysis."""
+
+    current_count = (
+        st.session_state.article_analysis_count
+    )
+
+    if (
+        current_count
+        == st.session_state.article_last_headline_message_count
+    ):
+        return
+
+    message = get_headline_message(
+        st.session_state.article_title
+    )
+
+    if message:
+        st.toast(message)
+
+    st.session_state.article_last_headline_message_count = (
+        current_count
+    )
+
+
+def maybe_show_rare_completion_message():
+    """Occasionally show a rare completion message once per analysis."""
+
+    current_count = (
+        st.session_state.article_analysis_count
+    )
+
+    if (
+        current_count
+        == st.session_state.article_last_rare_message_count
+    ):
+        return
+
+    if random.random() < 0.08:
+        st.toast(
+            random.choice(
+                RARE_COMPLETION_MESSAGES
+            )
+        )
+
+    st.session_state.article_last_rare_message_count = (
+        current_count
+    )
+
+
 def maybe_render_analyzer_thought():
     """Display an occasional FidSync observation."""
 
@@ -895,7 +1214,6 @@ def apply_page_styles():
                 padding-bottom: 3rem;
             }
 
-            /* Page header */
             .analyzer-header {
                 padding: 2.2rem 2.4rem;
                 margin-bottom: 1.5rem;
@@ -943,7 +1261,6 @@ def apply_page_styles():
                 line-height: 1.65;
             }
 
-            /* Section titles */
             .section-heading {
                 margin-top: 1.25rem;
                 margin-bottom: 0.2rem;
@@ -960,7 +1277,6 @@ def apply_page_styles():
                 line-height: 1.55;
             }
 
-            /* Input area */
             .input-instructions {
                 padding: 0.9rem 1rem;
                 margin-bottom: 1rem;
@@ -973,7 +1289,6 @@ def apply_page_styles():
                 line-height: 1.55;
             }
 
-            /* Metrics */
             [data-testid="stMetric"] {
                 min-height: 105px;
                 padding: 0.95rem 1rem;
@@ -997,7 +1312,6 @@ def apply_page_styles():
                 font-weight: 750;
             }
 
-            /* Inputs */
             [data-testid="stWidgetLabel"] p {
                 color: #102542;
                 font-weight: 650;
@@ -1018,7 +1332,6 @@ def apply_page_styles():
                     0 0 0 1px #2b6cb0;
             }
 
-            /* Buttons */
             .stButton > button {
                 min-height: 2.65rem;
                 border-radius: 0.55rem;
@@ -1039,7 +1352,6 @@ def apply_page_styles():
                 color: white;
             }
 
-            /* Summary result */
             .summary-card-label {
                 margin-bottom: 0.5rem;
                 color: #2b6cb0;
@@ -1049,7 +1361,6 @@ def apply_page_styles():
                 text-transform: uppercase;
             }
 
-            /* Download button */
             [data-testid="stDownloadButton"] > button {
                 min-height: 2.65rem;
                 background-color: #2b6cb0;
@@ -1066,7 +1377,6 @@ def apply_page_styles():
                 color: white;
             }
 
-            /* Disclaimer */
             .analyzer-disclaimer {
                 margin-top: 1.5rem;
                 padding: 0.9rem 1rem;
@@ -1227,6 +1537,9 @@ def process_article_input(
             st.session_state.article_text,
         )
 
+        maybe_show_headline_message()
+        maybe_show_rare_completion_message()
+
         return
 
     if input_mode == "Paste URL":
@@ -1328,25 +1641,11 @@ def process_article_input(
                 "may not contain enough context."
             )
 
-        st.session_state.article_text = (
-            pasted_text
-        )
-
-        st.session_state.article_title = (
-            "Pasted Article"
-        )
-
-        st.session_state.article_authors = (
-            "Not provided"
-        )
-
-        st.session_state.article_publish_date = (
-            "Not provided"
-        )
-
-        st.session_state.article_source = (
-            "Pasted text"
-        )
+        st.session_state.article_text = pasted_text
+        st.session_state.article_title = "Pasted Article"
+        st.session_state.article_authors = "Not provided"
+        st.session_state.article_publish_date = "Not provided"
+        st.session_state.article_source = "Pasted text"
 
     elif input_mode == "Upload PDF":
         if article_input is None:
@@ -1374,9 +1673,7 @@ def process_article_input(
                 )
                 return
 
-            st.session_state.article_text = (
-                extracted_text
-            )
+            st.session_state.article_text = extracted_text
 
             st.session_state.article_title = (
                 os.path.splitext(
@@ -1384,17 +1681,16 @@ def process_article_input(
                 )[0]
             )
 
-            st.session_state.article_authors = (
-                "Not detected"
-            )
+            st.session_state.article_authors = "Not detected"
+            st.session_state.article_publish_date = "Not detected"
+            st.session_state.article_source = article_input.name
 
-            st.session_state.article_publish_date = (
-                "Not detected"
-            )
-
-            st.session_state.article_source = (
+            filename_message = get_pdf_filename_message(
                 article_input.name
             )
+
+            if filename_message:
+                st.toast(filename_message)
 
         except Exception as error:
             st.session_state.article_error = str(
@@ -1422,6 +1718,9 @@ def process_article_input(
         input_mode,
         st.session_state.article_text,
     )
+
+    maybe_show_headline_message()
+    maybe_show_rare_completion_message()
 
 
 # =========================================================
@@ -1503,6 +1802,31 @@ def render_results():
         st.session_state.article_source
         or "Not provided"
     )
+
+    length_message = get_length_message(
+        statistics["Words"]
+    )
+
+    if length_message:
+        st.caption(length_message)
+
+    headline_ratio_message = get_headline_ratio_message(
+        title,
+        article_text,
+    )
+
+    if headline_ratio_message:
+        st.caption(headline_ratio_message)
+
+    common_word, common_count = get_most_common_word(
+        article_text
+    )
+
+    if common_word and common_count >= 15:
+        st.caption(
+            f'This article is especially committed to the word '
+            f'"{common_word}" ({common_count} uses).'
+        )
 
     with st.container(border=True):
         st.markdown("#### Article details")
@@ -1589,7 +1913,23 @@ def render_results():
             f"Approximately {retained_percentage}% of extracted text"
         )
 
+        if statistics["Words"] >= 3000:
+            if st.button(
+                "I still do not want to read all that",
+                use_container_width=False,
+            ):
+                shorter_summary = summary[:250].rstrip()
+
+                if len(summary) > 250:
+                    shorter_summary += "..."
+
+                st.info(shorter_summary)
+
     with source_tab:
+        st.caption(
+            "You chose the full text. Respect."
+        )
+
         st.text_area(
             "Extracted article text",
             value=article_text,
@@ -1598,12 +1938,15 @@ def render_results():
         )
 
     with details_tab:
+        comma_count = article_text.count(",")
+
         details_dataframe = pd.DataFrame(
             {
                 "Measurement": [
                     "Word count",
                     "Character count",
                     "Sentence count",
+                    "Comma count",
                     "Estimated reading time",
                     "Summary character limit",
                     "Input analyses this session",
@@ -1612,6 +1955,7 @@ def render_results():
                     f"{statistics['Words']:,}",
                     f"{statistics['Characters']:,}",
                     f"{statistics['Sentences']:,}",
+                    f"{comma_count:,}",
                     statistics["Reading Time"],
                     f"{SUMMARY_CHARACTER_LIMIT:,}",
                     (
