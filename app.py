@@ -4,6 +4,7 @@ from datetime import datetime
 import importlib.util
 import os
 import random
+import time
 
 import streamlit as st
 
@@ -69,6 +70,24 @@ RARE_STARTUP_MESSAGES = [
 ]
 
 
+FAKE_ERROR_MESSAGES = [
+    "ERROR",
+    "CRITICAL ERROR",
+    "PANIC",
+    "Unexpected Spreadsheet Behavior",
+    "Financial Reality Distortion Detected",
+]
+
+FAKE_RECOVERY_MESSAGES = [
+    "Just kidding. Everything is fine.",
+    "False alarm.",
+    "The spreadsheets survived.",
+    "Crisis successfully avoided.",
+    "No data was harmed.",
+    "Carry on.",
+]
+
+
 # =========================================================
 # Page configuration
 # =========================================================
@@ -94,6 +113,7 @@ def initialize_app_state() -> None:
         "app_diagnostics_unlocked": False,
         "time_greeting_shown": False,
         "rare_startup_message_checked": False,
+        "fake_error_checked": False,
     }
 
     for key, value in defaults.items():
@@ -200,8 +220,26 @@ def maybe_show_rare_startup_message() -> None:
         )
 
 
+
+def maybe_show_fake_error() -> None:
+    """Very rarely show a fake error for fun."""
+
+    if st.session_state.fake_error_checked:
+        return
+
+    st.session_state.fake_error_checked = True
+
+    if random.random() < 0.005:
+        placeholder = st.empty()
+        placeholder.error(random.choice(FAKE_ERROR_MESSAGES))
+        time.sleep(1)
+        placeholder.success(random.choice(FAKE_RECOVERY_MESSAGES))
+        time.sleep(1)
+        placeholder.empty()
+
 show_time_greeting()
 maybe_show_rare_startup_message()
+maybe_show_fake_error()
 
 
 # =========================================================
