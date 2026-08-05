@@ -7,6 +7,7 @@ from io import BytesIO
 import xlsxwriter
 from xlsxwriter.utility import xl_col_to_name
 from datetime import datetime
+import random
 
 
 METRIC_NAMES = [
@@ -23,6 +24,85 @@ METRIC_NAMES = [
 ]
 
 STATUS_COLUMNS = {"Fund Name", "Ticker", "Meets Criteria"}
+
+
+LOADING_MESSAGES = [
+    "Pricing optimism...",
+    "Finding missing decimals...",
+    "Looking for the merged cell...",
+    "Checking if it's actually a typo...",
+    "Consulting Warren Buffett...",
+    "Counting zeros...",
+    "Reading footnotes...",
+    "Pretending this is instant...",
+    "Summoning Yahoo Finance...",
+    "Reassuring the cache...",
+    "Politely asking Excel to cooperate...",
+    "Reconciling reality with spreadsheets...",
+    "Adjusting for market drama...",
+    "Verifying suspiciously round numbers...",
+    "Organizing the chaos...",
+    "Finding funds that forgot their ticker...",
+    "Doing math so you don't have to...",
+    "Checking for hidden surprises...",
+    "Making the PDF slightly less mysterious...",
+    "Untangling formatting decisions...",
+    "Searching for lost commas...",
+    "Reviewing the review flags...",
+    "Following the breadcrumbs...",
+    "Reading between the rows...",
+    "Making sense of the scorecards...",
+    "Negotiating with the PDF...",
+    "Waiting for page numbers to behave...",
+    "Calibrating financial jargon...",
+    "Dusting off the spreadsheets...",
+    "Double-checking everything twice...",
+]
+
+TICKER_LOADING_MESSAGES = [
+    "Matching funds to tickers...",
+    "Looking up symbols...",
+    "Finding funds that forgot their ticker...",
+    "Summoning Yahoo Finance...",
+    "Checking the fine print for ticker clues...",
+    "Translating fund names into symbols...",
+]
+
+PARSING_LOADING_MESSAGES = [
+    "Reading footnotes...",
+    "Checking if it's actually a typo...",
+    "Negotiating with the PDF...",
+    "Looking for the merged cell...",
+    "Finding missing decimals...",
+    "Counting zeros...",
+    "Reading between the rows...",
+    "Making the PDF slightly less mysterious...",
+    "Searching for lost commas...",
+    "Waiting for page numbers to behave...",
+]
+
+CLEANUP_LOADING_MESSAGES = [
+    "Organizing the chaos...",
+    "Reviewing the review flags...",
+    "Reconciling reality with spreadsheets...",
+    "Verifying suspiciously round numbers...",
+    "Double-checking everything twice...",
+    "Calibrating financial jargon...",
+]
+
+EXPORT_LOADING_MESSAGES = [
+    "Teaching Excel some manners...",
+    "Formatting cells...",
+    "Adding just enough color...",
+    "Politely asking Excel to cooperate...",
+    "Reassuring the cache...",
+    "Almost ready...",
+]
+
+
+def random_loading_message(pool=None):
+    return random.choice(pool or LOADING_MESSAGES)
+
 
 
 def clean_text(value):
@@ -358,7 +438,8 @@ def run():
         with pdfplumber.open(pdf_file) as pdf:
             total_pages = len(pdf.pages)
             status_text = st.empty()
-            progress = st.progress(0)
+            status_text.caption(random_loading_message(TICKER_LOADING_MESSAGES))
+            progress = st.progress(0, text="Preparing fund lookup...")
             ticker_lookup = build_ticker_lookup(pdf)
 
             if not any("Enhanced Commodity" in name for name in ticker_lookup):
@@ -368,8 +449,14 @@ def run():
                 txt = page.extract_text() or ""
 
                 if not txt.strip():
-                    progress.progress((i + 1) / total_pages)
-                    status_text.caption(f"Skipping page {i + 1} of {total_pages}: no readable text found.")
+                    progress.progress(
+                        (i + 1) / total_pages,
+                        text=f"Page {i + 1} of {total_pages}",
+                    )
+                    status_text.caption(
+                        f"{random_loading_message(PARSING_LOADING_MESSAGES)} "
+                        f"Skipping page {i + 1}: no readable text found."
+                    )
                     continue
 
                 blocks = re.split(
@@ -399,8 +486,16 @@ def run():
                         **metrics,
                     })
 
-                progress.progress((i + 1) / total_pages)
-                status_text.caption(f"Processed page {i + 1} of {total_pages}")
+                progress.progress(
+                    (i + 1) / total_pages,
+                    text=f"Page {i + 1} of {total_pages}",
+                )
+
+                # Rotate the playful loading message every page while keeping
+                # the actual page progress visible in the progress bar.
+                status_text.caption(
+                    random_loading_message(PARSING_LOADING_MESSAGES)
+                )
 
             progress.empty()
             status_text.empty()
@@ -411,9 +506,13 @@ def run():
             st.code(str(error))
         return
 
+    cleanup_status = st.empty()
+    cleanup_status.caption(random_loading_message(CLEANUP_LOADING_MESSAGES))
+
     df = pd.DataFrame(rows)
 
     if df.empty:
+        cleanup_status.empty()
         st.warning(
             "No fund entries were found. The PDF may be scanned, use a different layout, "
             "or not contain recognizable Pass/Review labels."
@@ -429,6 +528,8 @@ def run():
     metric_columns = [column for column in df.columns if column not in STATUS_COLUMNS]
     if metric_columns:
         df[metric_columns] = df[metric_columns].fillna("Not Reported")
+
+    cleanup_status.empty()
 
     total_funds = len(df)
     meets_count = int((df["Meets Criteria"] == "Yes").sum())
@@ -487,8 +588,13 @@ def run():
     with st.expander("Download Results", expanded=False):
         st.caption("Downloads include all detected funds, not only the currently filtered rows.")
 
+        export_status = st.empty()
+        export_status.caption(random_loading_message(EXPORT_LOADING_MESSAGES))
+
         csv = df.to_csv(index=False).encode("utf-8")
         excel_data = create_excel_export(df)
+
+        export_status.empty()
 
         download_col_1, download_col_2 = st.columns(2)
         download_col_1.download_button(
