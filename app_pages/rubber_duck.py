@@ -14,126 +14,120 @@ DUCK_ISSUES = [
 
 DUCK_INTROS = {
     "There's an error": (
-        "Oh no. Errors are rude, but they are usually trying to tell us "
-        "exactly where the problem is."
+        "Errors are rude, but they usually leave evidence. Let's start with "
+        "the part of the traceback that points to your own code."
     ),
     "Python isn't listening": (
-        "Hmm. Python may be listening to a different file, an older version, "
-        "or instructions that are not running where you think they are."
+        "This usually means the code changed, but the app is running a "
+        "different file, an older version, or a stored value."
     ),
     "Something is behaving strangely": (
-        "Suspicious. Let's slow this down and figure out what the app is "
-        "actually doing."
+        "Strange behavior is easier to solve once we separate what you "
+        "expected from what the app actually did."
     ),
 }
 
 
 DUCK_ADVICE = {
     "There's an error": [
-        "Read the traceback from the bottom upward and find the first line "
-        "that points to your own file.",
-        "Check the exact line named in the traceback for a misspelled "
-        "variable, missing comma, unmatched quote, or indentation issue.",
-        "Add one st.write() immediately before the failing line so you can "
-        "see the value and type Python is receiving.",
-        "Comment out the newest code and restore it a few lines at a time "
-        "until the error returns.",
-        "Compare the broken version with the last version that worked. The "
-        "smallest difference is usually the useful clue.",
-        "Copy the technical error into a note and identify the exception "
-        "type, file name, and line number.",
+        "Read the traceback from the bottom upward. Find the first line that "
+        "points to a file you wrote, then inspect that exact line.",
+        "Check the named line for a misspelled variable, missing comma, "
+        "unmatched quote, incorrect indentation, or a value with the wrong type.",
+        "Add one st.write() directly before the failing line. Display both the "
+        "value and type, then run the same action again.",
+        "Temporarily comment out the newest code. Restore it a few lines at a "
+        "time until the error returns.",
+        "Compare the broken version with the last version that worked. Focus on "
+        "the smallest difference instead of rereading the entire file.",
+        "Write down the exception type, file name, line number, and exact action "
+        "that causes it. That turns the error into a reproducible case.",
     ],
     "Python isn't listening": [
-        "Save the file, confirm you edited the exact file the router loads, "
-        "and reboot the Streamlit app.",
-        "Check the filename and capitalization. A second copy in another "
-        "folder can make your changes appear invisible.",
-        "Add st.success('NEW CODE IS RUNNING') temporarily to verify which "
-        "file Streamlit is loading.",
-        "Make sure the function containing your new code is actually being "
-        "called.",
-        "Open the deployed file on GitHub and confirm the latest commit "
-        "contains your changes.",
-        "Try a fresh browser session. Session State or caching may be holding "
-        "onto an older value.",
+        "Save the file and confirm you edited the exact file loaded by the page "
+        "router. Then restart the Streamlit app.",
+        "Check the filename, capitalization, and folder. A duplicate file can "
+        "make correct changes appear invisible.",
+        "Temporarily add st.success('NEW CODE IS RUNNING') near the top of the "
+        "page to verify which file Streamlit is loading.",
+        "Confirm the function containing your new code is actually called. Code "
+        "inside an unused function will never appear.",
+        "Check the deployed file or latest GitHub commit and confirm it contains "
+        "the same change as your local copy.",
+        "Open a private browser window or clear the relevant Session State value "
+        "to separate code problems from stored browser-session behavior.",
     ],
     "Something is behaving strangely": [
-        "Write down what you expected to happen and what actually happened. "
-        "The difference is your first clue.",
-        "Change only one thing at a time. Multiple fixes make it harder to "
-        "tell which change mattered.",
-        "Inspect the values immediately before the strange behavior using "
-        "st.write().",
-        "Reduce the problem to the smallest possible example that still "
-        "behaves incorrectly.",
-        "Check whether a Streamlit rerun or Session State value is resetting "
-        "the widget.",
-        "Test the same action in a private window to separate code problems "
-        "from browser-session problems.",
+        "Write one sentence describing what you expected and one describing what "
+        "actually happened. The difference is the useful clue.",
+        "Change only one thing before testing again. Multiple simultaneous fixes "
+        "make it impossible to know which one mattered.",
+        "Use st.write() immediately before the strange behavior to inspect the "
+        "values Streamlit is actually receiving.",
+        "Reduce the feature to the smallest example that still behaves incorrectly. "
+        "Remove layout, styling, and unrelated data first.",
+        "Check whether a rerun, widget key, callback, or Session State assignment "
+        "is resetting the value after you change it.",
+        "Repeat the same action in a private window. If the behavior changes, the "
+        "problem is probably stored state or browser caching rather than the code.",
     ],
 }
 
 
 DUCK_CONVERSATION = [
     (
-        "Okay...",
-        "Let's try something simpler. What was the last thing you changed "
-        "before it broke?"
+        "Let's narrow it down.",
+        "What was the last thing you changed before the problem appeared? Start "
+        "there, even if the change seems unrelated.",
     ),
     (
-        "Hmm...",
-        "Can you make the bug happen with the smallest possible example? "
-        "Removing extra code is progress, even before the bug is fixed."
+        "Smaller is better.",
+        "Can you reproduce the problem with less code? Removing unrelated pieces "
+        "is progress, even before the bug is fixed.",
     ),
     (
-        "I have a question.",
-        "Are you completely sure the file you are editing is the file that "
-        "is actually running?"
+        "File check.",
+        "Are you completely sure the file you are editing is the file that is "
+        "actually running? The duck has been fooled by duplicate files before.",
     ),
     (
         "New theory.",
-        "Add one print() or st.write(). Not five. One. Then run it again."
+        "Add one print() or st.write(). Not five. One useful checkpoint, then run "
+        "the exact same action again.",
     ),
     (
-        "At this point...",
-        "The duck would like to respectfully blame caching. Not officially. "
-        "But emotionally."
+        "Caching has entered the conversation.",
+        "The duck would like to blame caching. Not officially, but with growing "
+        "confidence.",
     ),
     (
-        "...",
-        "The duck has stopped pretending this is a quick fix. We are in this "
-        "together now."
+        "This is no longer a quick fix.",
+        "That is fine. A stubborn bug is still just a sequence of smaller facts "
+        "you have not isolated yet.",
     ),
     (
         "Debugging glasses activated.",
-        "Read the traceback again, but this time pretend it was written for "
-        "someone else. What would you tell them to check first?"
+        "Read the traceback as though someone else sent it to you. What would you "
+        "tell them to verify first?",
     ),
     (
         "Emergency protocol.",
-        "Save the file. Restart Streamlit. Confirm the file path. Read the "
-        "traceback. Then take one sip of water."
+        "Save the file. Restart Streamlit. Confirm the path. Reproduce the issue. "
+        "Read the traceback. Then take one sip of water.",
     ),
     (
-        "Diagnosis update.",
-        "This bug appears to be advanced. That still does not make it "
-        "invincible."
+        "Advanced bug confirmed.",
+        "Advanced does not mean invincible. It means the next test needs to be "
+        "more specific than the last one.",
     ),
     (
         "Morale report.",
-        "Developer morale: 12%. Duck morale: 98%. Continue carefully."
+        "Developer morale is under review. Duck morale remains suspiciously high.",
     ),
 ]
 
 
-DUCK_REACTIONS = [
-    "🦆",
-    "🤔🦆",
-    "🧐🦆",
-    "😐🦆",
-    "🥴🦆",
-    "👑🦆",
-]
+DUCK_REACTIONS = ["🦆", "🤔🦆", "😐🦆", "🧐🦆", "🥴🦆", "👑🦆"]
 
 
 DUCK_TITLES = [
@@ -149,32 +143,32 @@ DUCK_TITLES = [
 DUCK_STATUS_NAMES = {
     "🦆": "Calm",
     "🤔🦆": "Thinking",
-    "🧐🦆": "Reviewing the Evidence",
     "😐🦆": "Slightly Concerned",
+    "🧐🦆": "Reviewing the Evidence",
     "🥴🦆": "Questioning Reality",
     "👑🦆": "Debug Master",
 }
 
 
 STRUGGLING_LABELS = [
-    "I'm Still Struggling",
+    "Try Another Idea",
     "Still Broken",
-    "Nope",
-    "The Bug Won",
+    "No Change",
     "Duck, Please",
-    "Nothing Changed",
+    "We Need a New Theory",
+    "Escalate This Bug",
 ]
 
 
 def initialize_duck_state() -> None:
-    """Initialize the debugger's session-state values."""
+    """Initialize all session-state values used by the debugger."""
 
     defaults = {
-        "duck_active_issue": "",
-        "duck_advice_index": 0,
+        "duck_active_issue": None,
+        "duck_advice_order": [],
+        "duck_advice_position": 0,
         "duck_struggle_count": 0,
         "duck_resolved": False,
-        "duck_achievement_shown": False,
     }
 
     for key, value in defaults.items():
@@ -182,14 +176,32 @@ def initialize_duck_state() -> None:
             st.session_state[key] = value
 
 
-def reset_duck() -> None:
-    """Reset the debugger safely."""
+def build_advice_order(issue: str) -> list[int]:
+    """Return a shuffled list of advice indexes for the selected issue."""
 
-    st.session_state.duck_active_issue = ""
-    st.session_state.duck_advice_index = 0
+    order = list(range(len(DUCK_ADVICE[issue])))
+    random.shuffle(order)
+    return order
+
+
+def start_issue(issue: str) -> None:
+    """Start a fresh debugging session for the selected issue."""
+
+    st.session_state.duck_active_issue = issue
+    st.session_state.duck_advice_order = build_advice_order(issue)
+    st.session_state.duck_advice_position = 0
     st.session_state.duck_struggle_count = 0
     st.session_state.duck_resolved = False
-    st.session_state.duck_achievement_shown = False
+
+
+def reset_duck() -> None:
+    """Reset the debugger to its untouched state."""
+
+    st.session_state.duck_active_issue = None
+    st.session_state.duck_advice_order = []
+    st.session_state.duck_advice_position = 0
+    st.session_state.duck_struggle_count = 0
+    st.session_state.duck_resolved = False
     st.session_state.pop("duck_issue_choice", None)
 
 
@@ -207,13 +219,13 @@ def get_duck_reaction(struggle_count: int) -> str:
     """Return a more dramatic duck as the struggle count grows."""
 
     if struggle_count >= 15:
-        return DUCK_REACTIONS[-1]
+        return DUCK_REACTIONS[5]
     if struggle_count >= 10:
         return DUCK_REACTIONS[4]
     if struggle_count >= 7:
-        return DUCK_REACTIONS[2]
-    if struggle_count >= 5:
         return DUCK_REACTIONS[3]
+    if struggle_count >= 4:
+        return DUCK_REACTIONS[2]
     if struggle_count >= 2:
         return DUCK_REACTIONS[1]
     return DUCK_REACTIONS[0]
@@ -223,85 +235,107 @@ def get_duck_title(struggle_count: int) -> str:
     """Return the duck's increasingly senior title."""
 
     current_title = DUCK_TITLES[0][1]
-
     for threshold, title in DUCK_TITLES:
         if struggle_count >= threshold:
             current_title = title
-
     return current_title
 
 
 def get_struggling_label(struggle_count: int) -> str:
-    """Return a changing label for the struggle button."""
+    """Return a changing label for the next-advice button."""
 
-    index = min(
-        struggle_count,
-        len(STRUGGLING_LABELS) - 1,
-    )
+    index = min(struggle_count, len(STRUGGLING_LABELS) - 1)
     return STRUGGLING_LABELS[index]
 
 
+def get_current_advice(issue: str) -> str:
+    """Return the current suggestion from the shuffled advice order."""
+
+    order = st.session_state.duck_advice_order
+    if not order:
+        order = build_advice_order(issue)
+        st.session_state.duck_advice_order = order
+
+    position = st.session_state.duck_advice_position % len(order)
+    advice_index = order[position]
+    return DUCK_ADVICE[issue][advice_index]
+
+
+def advance_duck() -> None:
+    """Move to another suggestion and increase the attempt count."""
+
+    issue = st.session_state.duck_active_issue
+    st.session_state.duck_struggle_count += 1
+    st.session_state.duck_advice_position += 1
+
+    if (
+        issue
+        and st.session_state.duck_advice_position
+        >= len(st.session_state.duck_advice_order)
+    ):
+        st.session_state.duck_advice_order = build_advice_order(issue)
+        st.session_state.duck_advice_position = 0
+
+
 def apply_styles() -> None:
-    """Apply page styling."""
+    """Apply page-specific styling without changing the app sidebar."""
 
     st.markdown(
         """
         <style>
             .block-container {
-                max-width: 900px;
-                padding-top: 2rem;
-                padding-bottom: 3rem;
+                max-width: 860px;
+                padding-top: 1.6rem;
+                padding-bottom: 2.5rem;
             }
 
             .duck-hero {
-                padding: 2.2rem 2rem;
-                margin-bottom: 1.4rem;
+                position: relative;
+                overflow: hidden;
+                padding: 1.7rem 1.6rem;
+                margin-bottom: 1.25rem;
                 text-align: center;
                 background:
                     radial-gradient(
-                        circle at top right,
-                        rgba(117, 158, 203, 0.22),
-                        transparent 38%
+                        circle at 84% 12%,
+                        rgba(147, 184, 225, 0.27),
+                        transparent 31%
                     ),
-                    linear-gradient(
-                        135deg,
-                        #102542 0%,
-                        #213b5c 100%
-                    );
+                    linear-gradient(135deg, #102542 0%, #213b5c 100%);
                 border: 1px solid #2d496b;
-                border-radius: 1rem;
-                box-shadow: 0 8px 24px rgba(16, 37, 66, 0.12);
+                border-radius: 0.95rem;
+                box-shadow: 0 10px 28px rgba(16, 37, 66, 0.12);
             }
 
             .duck-icon {
-                margin-bottom: 0.55rem;
-                font-size: 5.2rem;
+                margin-bottom: 0.35rem;
+                font-size: 4rem;
                 line-height: 1;
             }
 
             .duck-title {
                 color: #ffffff !important;
                 -webkit-text-fill-color: #ffffff !important;
-                font-size: 2rem;
+                font-size: 1.75rem;
                 font-weight: 760;
                 line-height: 1.2;
             }
 
             .duck-subtitle {
-                max-width: 650px;
-                margin: 0.7rem auto 0;
+                max-width: 620px;
+                margin: 0.55rem auto 0;
                 color: #d8e4f2 !important;
                 -webkit-text-fill-color: #d8e4f2 !important;
-                font-size: 0.96rem;
-                line-height: 1.6;
+                font-size: 0.92rem;
+                line-height: 1.55;
             }
 
             .duck-version {
                 margin-top: 0.5rem;
                 color: #9fb7d2 !important;
                 -webkit-text-fill-color: #9fb7d2 !important;
-                font-size: 0.71rem;
-                font-weight: 650;
+                font-size: 0.67rem;
+                font-weight: 700;
                 letter-spacing: 0.07rem;
                 text-transform: uppercase;
             }
@@ -310,21 +344,21 @@ def apply_styles() -> None:
                 display: flex;
                 align-items: center;
                 justify-content: space-between;
-                gap: 1rem;
-                margin: 0 0 1.2rem 0;
-                padding: 0.65rem 0.9rem;
+                gap: 0.85rem;
+                margin: 0.9rem 0 0.85rem;
+                padding: 0.6rem 0.8rem;
                 background-color: #f7fafd;
                 border: 1px solid #d6e2ee;
-                border-radius: 0.7rem;
+                border-radius: 0.65rem;
                 color: #50657b;
-                font-size: 0.82rem;
-                line-height: 1.4;
+                font-size: 0.79rem;
+                line-height: 1.35;
             }
 
             .duck-status-left {
                 display: flex;
                 align-items: center;
-                gap: 0.45rem;
+                gap: 0.4rem;
                 min-width: 0;
             }
 
@@ -340,54 +374,88 @@ def apply_styles() -> None:
             }
 
             .duck-dialogue {
-                margin: 0.8rem 0 1rem 0;
-                padding: 1.15rem 1.2rem;
-                background: linear-gradient(135deg, #f7fafd, #edf3fa);
+                margin: 0 0 0.9rem;
+                padding: 1rem 1.05rem;
+                background: linear-gradient(135deg, #f8fbfe, #edf3fa);
                 border: 1px solid #cfdae8;
                 border-left: 4px solid #2b6cb0;
-                border-radius: 0.75rem;
+                border-radius: 0.7rem;
             }
 
             .duck-dialogue-title {
-                margin-bottom: 0.35rem;
+                margin-bottom: 0.28rem;
                 color: #102542;
-                font-size: 0.98rem;
-                font-weight: 750;
+                font-size: 0.93rem;
+                font-weight: 760;
             }
 
             .duck-dialogue-text {
                 color: #50657b;
-                font-size: 0.9rem;
-                line-height: 1.6;
+                font-size: 0.88rem;
+                line-height: 1.55;
+            }
+
+            .duck-next-step {
+                margin: 0.75rem 0 0.45rem;
+                padding: 1rem 1.05rem;
+                background-color: #ffffff;
+                border: 1px solid #cbd9e7;
+                border-radius: 0.72rem;
+                box-shadow: 0 4px 14px rgba(16, 37, 66, 0.06);
+            }
+
+            .duck-next-label {
+                margin-bottom: 0.32rem;
+                color: #2b6cb0;
+                font-size: 0.69rem;
+                font-weight: 800;
+                letter-spacing: 0.07rem;
+                text-transform: uppercase;
+            }
+
+            .duck-next-text {
+                color: #253b52;
+                font-size: 0.95rem;
+                font-weight: 600;
+                line-height: 1.55;
             }
 
             .duck-achievement {
-                margin-top: 1rem;
-                padding: 1rem;
+                margin: 0.9rem 0;
+                padding: 0.85rem;
                 text-align: center;
                 background-color: #fff9e8;
                 border: 1px solid #ead9a7;
-                border-radius: 0.75rem;
+                border-radius: 0.7rem;
             }
 
             .duck-achievement-title {
                 color: #755c14;
-                font-size: 0.72rem;
-                font-weight: 750;
+                font-size: 0.68rem;
+                font-weight: 800;
                 letter-spacing: 0.07rem;
                 text-transform: uppercase;
             }
 
             .duck-achievement-name {
-                margin-top: 0.25rem;
+                margin-top: 0.2rem;
                 color: #4f431f;
-                font-size: 1.05rem;
+                font-size: 0.98rem;
                 font-weight: 750;
             }
 
+            div[data-testid="stRadio"] > div {
+                gap: 0.45rem;
+            }
+
+            div[data-testid="stRadio"] label {
+                padding: 0.45rem 0;
+            }
+
             .stButton > button {
-                border-radius: 0.6rem;
-                font-weight: 650;
+                min-height: 2.7rem;
+                border-radius: 0.58rem;
+                font-weight: 680;
             }
         </style>
         """,
@@ -396,37 +464,33 @@ def apply_styles() -> None:
 
 
 def render_header(struggle_count: int) -> None:
-    """Render the page header."""
+    """Render the compact page header."""
 
     duck_title = get_duck_title(struggle_count)
-
-    header_html = (
-        '<div class="duck-hero">'
-        f'<div class="duck-icon">{get_duck_reaction(struggle_count)}</div>'
-        f'<div class="duck-title">{duck_title}</div>'
-        '<div class="duck-subtitle">'
-        'Choose the closest description below. The duck will keep changing '
-        'its approach until something works.'
-        '</div>'
-        '<div class="duck-version">Highly Experimental · v0.3</div>'
-        '</div>'
-    )
+    reaction = get_duck_reaction(struggle_count)
 
     st.markdown(
-        header_html,
+        f"""
+        <div class="duck-hero">
+            <div class="duck-icon">{reaction}</div>
+            <div class="duck-title">{duck_title}</div>
+            <div class="duck-subtitle">
+                Explain the kind of problem you are seeing. The duck will give
+                you one specific test at a time and change its approach when
+                the problem is still broken.
+            </div>
+            <div class="duck-version">Highly Experimental · v0.4</div>
+        </div>
+        """,
         unsafe_allow_html=True,
     )
 
 
-def run() -> None:
-    """Render the hidden Rubber Duck Debugger page."""
+def render_issue_selector() -> None:
+    """Render the initial issue selector."""
 
-    initialize_duck_state()
-    apply_styles()
-    render_header(st.session_state.duck_struggle_count)
-
-    st.markdown("### What's going wrong?")
-    st.caption("Choose the option that most closely matches the problem.")
+    st.markdown("### What kind of problem are you dealing with?")
+    st.caption("Select the closest match. You can change it at any time.")
 
     issue_choice = st.radio(
         "Problem type",
@@ -437,174 +501,208 @@ def run() -> None:
     )
 
     if issue_choice is None:
-        st.info(
-            "Choose one of the three options above and the duck will begin."
-        )
-
-    elif issue_choice != st.session_state.duck_active_issue:
-        st.session_state.duck_active_issue = issue_choice
-        st.session_state.duck_advice_index = 0
-        st.session_state.duck_struggle_count = 0
-        st.session_state.duck_resolved = False
-        st.session_state.duck_achievement_shown = False
-        st.rerun()
-
-    elif st.session_state.duck_resolved:
-        st.success("🦆 The duck knew you could do it.")
-
-        st.markdown("## Case closed.")
-
-        st.write(
-            "Debugging is not about never getting stuck. "
-            "It is about getting unstuck."
-        )
-
         st.markdown(
             """
             <div class="duck-dialogue">
-                <div class="duck-dialogue-title">
-                    Final Report
-                </div>
+                <div class="duck-dialogue-title">The duck is ready.</div>
                 <div class="duck-dialogue-text">
-                    Bug status: resolved.<br>
-                    Duck satisfaction: 100%.<br>
-                    Developer confidence: +15.<br>
-                    Patience: +50.<br>
-                    Coffee consumed: unknown.
+                    Nothing has started yet. Choose one option above when you
+                    are ready to begin debugging.
                 </div>
             </div>
             """,
             unsafe_allow_html=True,
         )
+        return
 
-        button_col1, button_col2 = st.columns(2)
+    if issue_choice != st.session_state.duck_active_issue:
+        start_issue(issue_choice)
+        st.rerun()
 
-        with button_col1:
-            if st.button(
-                "Debug Another Problem",
-                key="duck_debug_another",
-                use_container_width=True,
-            ):
-                reset_duck()
-                st.rerun()
 
-        with button_col2:
-            st.button(
-                "Return to FidSync",
-                key="duck_return_success",
-                use_container_width=True,
-                on_click=return_to_previous_page,
-            )
+def render_status(struggle_count: int) -> None:
+    """Render a small status strip above the active debugging content."""
 
+    reaction = get_duck_reaction(struggle_count)
+    title = get_duck_title(struggle_count)
+    status_name = DUCK_STATUS_NAMES[reaction]
+
+    st.markdown(
+        f"""
+        <div class="duck-status-bar">
+            <div class="duck-status-left">
+                <span>{reaction}</span>
+                <span class="duck-status-name">{title}</span>
+                <span>· {status_name}</span>
+            </div>
+            <div class="duck-attempt">Attempt {struggle_count + 1}</div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
+def render_active_session(issue: str) -> None:
+    """Render the active debugging workflow."""
+
+    struggle_count = st.session_state.duck_struggle_count
+    render_status(struggle_count)
+
+    st.caption(f"Current problem: {issue}")
+
+    if struggle_count == 0:
+        dialogue_title = "Initial assessment"
+        dialogue_text = DUCK_INTROS[issue]
     else:
-        advice_list = DUCK_ADVICE[issue_choice]
-        advice_index = (
-            st.session_state.duck_advice_index
-            % len(advice_list)
+        conversation_index = min(
+            struggle_count - 1,
+            len(DUCK_CONVERSATION) - 1,
         )
-        struggle_count = st.session_state.duck_struggle_count
+        dialogue_title, dialogue_text = DUCK_CONVERSATION[conversation_index]
 
-        duck_reaction = get_duck_reaction(struggle_count)
-        duck_status_name = DUCK_STATUS_NAMES[duck_reaction]
-        duck_title = get_duck_title(struggle_count)
+    st.markdown(
+        f"""
+        <div class="duck-dialogue">
+            <div class="duck-dialogue-title">{dialogue_title}</div>
+            <div class="duck-dialogue-text">{dialogue_text}</div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
 
-        status_html = (
-            '<div class="duck-status-bar">'
-            '<div class="duck-status-left">'
-            f'<span>{duck_reaction}</span>'
-            f'<span class="duck-status-name">{duck_title}</span>'
-            f'<span>· {duck_status_name}</span>'
-            '</div>'
-            f'<div class="duck-attempt">Attempt {struggle_count + 1}</div>'
-            '</div>'
+    current_advice = get_current_advice(issue)
+    st.markdown(
+        f"""
+        <div class="duck-next-step">
+            <div class="duck-next-label">Try this next</div>
+            <div class="duck-next-text">{current_advice}</div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+    st.caption("Test only this step, then tell the duck what happened.")
+
+    if struggle_count >= 10:
+        morale = max(3, 100 - (struggle_count * 8))
+        st.progress(
+            morale / 100,
+            text=f"Developer morale: {morale}% · Duck morale: 98%",
         )
 
+    if struggle_count >= 12:
         st.markdown(
-            status_html,
+            """
+            <div class="duck-achievement">
+                <div class="duck-achievement-title">Achievement unlocked</div>
+                <div class="duck-achievement-name">🏆 Persistent Debugger</div>
+            </div>
+            """,
             unsafe_allow_html=True,
         )
 
-        if struggle_count == 0:
-            dialogue_title = "Initial Assessment"
-            dialogue_text = DUCK_INTROS[issue_choice]
-        else:
-            conversation_index = min(
-                struggle_count - 1,
-                len(DUCK_CONVERSATION) - 1,
-            )
-            dialogue_title, dialogue_text = DUCK_CONVERSATION[
-                conversation_index
-            ]
+    fixed_col, struggling_col = st.columns(2)
 
-        dialogue_html = (
-            '<div class="duck-dialogue">'
-            f'<div class="duck-dialogue-title">{dialogue_title}</div>'
-            f'<div class="duck-dialogue-text">{dialogue_text}</div>'
-            '</div>'
+    with fixed_col:
+        if st.button(
+            "It Worked",
+            key="duck_fixed_it",
+            type="primary",
+            use_container_width=True,
+        ):
+            st.session_state.duck_resolved = True
+            st.rerun()
+
+    with struggling_col:
+        if st.button(
+            get_struggling_label(struggle_count),
+            key="duck_still_struggling",
+            use_container_width=True,
+        ):
+            advance_duck()
+            st.rerun()
+
+    if struggle_count >= 2:
+        st.caption(
+            "A stubborn bug does not mean you are doing anything wrong. It only "
+            "means the last test ruled something out."
         )
-        st.markdown(dialogue_html, unsafe_allow_html=True)
 
-        st.info("Try this next:")
-        st.success(advice_list[advice_index])
-        st.caption("Go try it. The duck will keep your place.")
+    with st.expander("Change the problem type"):
+        new_issue = st.radio(
+            "Choose a different problem",
+            DUCK_ISSUES,
+            index=DUCK_ISSUES.index(issue),
+            key="duck_issue_change",
+        )
+        if new_issue != issue:
+            start_issue(new_issue)
+            st.session_state.duck_issue_choice = new_issue
+            st.rerun()
 
-        if struggle_count == 7:
-            st.info("🧐 Debugging glasses activated.")
-        elif struggle_count == 8:
-            st.warning(
-                "Emergency protocol: save, restart, verify the file path, "
-                "read the traceback, and take one sip of water."
-            )
-        elif struggle_count == 9:
-            st.info("✨ This bug appears to be advanced.")
-        elif struggle_count >= 10:
-            morale = max(1, 100 - (struggle_count * 9))
-            st.progress(
-                morale / 100,
-                text=f"Developer morale: {morale}% · Duck morale: 98%",
-            )
 
-        if struggle_count >= 12:
-            st.markdown(
-                """
-                <div class="duck-achievement">
-                    <div class="duck-achievement-title">
-                        Achievement Unlocked
-                    </div>
-                    <div class="duck-achievement-name">
-                        🏆 Persistent Debugger
-                    </div>
-                </div>
-                """,
-                unsafe_allow_html=True,
-            )
+def render_success() -> None:
+    """Render the resolved state."""
 
-        fixed_col, struggling_col = st.columns(2)
+    struggle_count = st.session_state.duck_struggle_count
+    reaction = get_duck_reaction(max(struggle_count, 2))
 
-        with fixed_col:
-            if st.button(
-                "I Fixed It",
-                key="duck_fixed_it",
-                use_container_width=True,
-            ):
-                st.session_state.duck_resolved = True
-                st.rerun()
+    st.success("The problem is fixed. The duck accepts partial credit.")
+    st.markdown("## Case closed")
+    st.write(
+        "Debugging is not about never getting stuck. It is about testing one "
+        "useful theory at a time until the problem has nowhere left to hide."
+    )
 
-        with struggling_col:
-            if st.button(
-                get_struggling_label(struggle_count),
-                key="duck_still_struggling",
-                use_container_width=True,
-            ):
-                st.session_state.duck_advice_index += 1
-                st.session_state.duck_struggle_count += 1
-                st.rerun()
+    st.markdown(
+        f"""
+        <div class="duck-dialogue">
+            <div class="duck-dialogue-title">{reaction} Final report</div>
+            <div class="duck-dialogue-text">
+                Bug status: resolved.<br>
+                Attempts recorded: {struggle_count + 1}.<br>
+                Duck satisfaction: 100%.<br>
+                Developer confidence: restored.<br>
+                Coffee consumed: unknown.
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
 
-        if struggle_count >= 2:
-            st.caption(
-                "The duck is still listening. Stubborn bugs do not mean "
-                "you are doing anything wrong."
-            )
+    another_col, return_col = st.columns(2)
+
+    with another_col:
+        if st.button(
+            "Debug Another Problem",
+            key="duck_debug_another",
+            type="primary",
+            use_container_width=True,
+        ):
+            reset_duck()
+            st.rerun()
+
+    with return_col:
+        st.button(
+            "Return to FidSync",
+            key="duck_return_success",
+            use_container_width=True,
+            on_click=return_to_previous_page,
+        )
+
+
+def run() -> None:
+    """Render the hidden Rubber Duck Debugger page."""
+
+    initialize_duck_state()
+    apply_styles()
+    render_header(st.session_state.duck_struggle_count)
+
+    if st.session_state.duck_resolved:
+        render_success()
+    elif st.session_state.duck_active_issue:
+        render_active_session(st.session_state.duck_active_issue)
+    else:
+        render_issue_selector()
 
     st.divider()
 
