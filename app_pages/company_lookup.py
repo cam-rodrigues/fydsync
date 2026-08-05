@@ -1,6 +1,6 @@
 # app_pages/company_lookup.py
 
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta
 from html import escape
 import random
 import re
@@ -26,24 +26,46 @@ KNOWN_LIMITATIONS = """
 - Yahoo Finance may occasionally delay, restrict, or omit certain fields.
 """
 
+
 SPECIAL_TICKER_MESSAGES = {
-    # Tech
-    "AAPL": "An apple a day keeps the portfolio review underway. 🍎",
-    "MSFT": "Clippy would like to help with this analysis. 📎",
-    "GOOGL": "Searching... probably found 14 million answers.",
-    "META": "The metaverse is still loading...",
-    "AMZN": "Your financial data should arrive in 2 business days.",
-    "NFLX": "One more earnings report won't hurt.",
-    "NVDA": "GPU acceleration detected. Analysis running faster... probably.",
-    "ORCL": "Consulting the oracle...",
-    "IBM": "Still computing after all these years.",
-    "INTC": "Intel inside. Hopefully.",
+    # Technology
+    "AAPL": "An apple a day keeps the portfolio review underway.",
+    "MSFT": "Clippy would like to help with this analysis.",
+    "GOOG": "Searching... approximately 14 million results found.",
+    "GOOGL": "Searching... approximately 14 million results found.",
+    "META": "The metaverse is still loading.",
+    "AMZN": "Your market data has arrived with free two-day shipping.",
+    "NFLX": "Still watching the earnings report?",
+    "NVDA": "GPU acceleration detected.",
     "AMD": "Performance mode enabled.",
-    "CSCO": "Packets successfully routed.",
-    "CRM": "Relationship status: Customer.",
+    "INTC": "Intel inside. Hopefully.",
+    "IBM": "Still computing after all these years.",
+    "ORCL": "Consulting the oracle.",
     "ADBE": "This analysis has been creatively enhanced.",
+    "CRM": "Relationship status: Customer.",
     "UBER": "Your market data has arrived.",
     "LYFT": "Taking the scenic route through Wall Street.",
+
+    # Automotive
+    "F": "Built Ford Tough.",
+    "GM": "General Motors. Specific lookup.",
+    "TSLA": "Volatility mode enabled.",
+    "RIVN": "Adventure mode charging.",
+    "TM": "Reliability mode activated.",
+
+    # Entertainment and media
+    "DIS": "The magic is in the fundamentals.",
+    "WBD": "Roll the opening credits.",
+    "SONY": "Now playing: Market Analysis.",
+    "SPOT": "Now playing: Bull Market Blues.",
+    "ROKU": "Streaming market data.",
+
+    # Finance
+    "JPM": "Jamie probably already knows.",
+    "BRK-B": "Warren would tell you to zoom out.",
+    "V": "Approved.",
+    "MA": "Transaction complete.",
+    "AXP": "Membership has its privileges.",
 
     # Retail
     "WMT": "Rollback pricing not included.",
@@ -53,50 +75,230 @@ SPECIAL_TICKER_MESSAGES = {
     "LOW": "Weekend project mode activated.",
     "BBY": "Geek Squad approves this search.",
 
-    # Automotive
-    "F": "Built Ford Tough.",
-    "GM": "General Motors, specific lookup.",
-    "TSLA": "Volatility mode enabled.",
-    "RIVN": "Adventure mode charging...",
-    "TM": "Reliability score: Legendary.",
-
-    # Entertainment
-    "DIS": "✨ The magic is in the fundamentals.",
-    "WBD": "Roll the opening credits.",
-    "SONY": "Now playing: Market Analysis.",
-
-    # Finance
-    "JPM": "Jamie probably already knows.",
-    "BRK-B": "Warren would tell you to zoom out.",
-    "V": "Approved.",
-    "MA": "Transaction complete.",
-    "AXP": "Membership has its privileges.",
-
-    # Food
+    # Food and beverages
     "MCD": "Would you like fries with those shares?",
-    "SBUX": "Warning: Coffee may improve investing decisions.",
-    "KO": "Open happiness... and financial statements.",
+    "SBUX": "Coffee may improve investment research.",
+    "KO": "Open happiness... and the financial statements.",
     "PEP": "Diversification tastes refreshing.",
     "DPZ": "Pizza is on the way. Probably not.",
 
-    # Misc
-    "NKE": "Just buy... research first.",
-    "LULU": "Stretching valuation...",
+    # Consumer and miscellaneous
+    "NKE": "Just buy... after doing the research.",
+    "LULU": "Stretching valuation.",
     "CROX": "Comfort over style.",
-    "SPOT": "Now playing: Bull Market Blues.",
-    "ROKU": "Streaming market data.",
     "EA": "It's in the earnings.",
+    "PLTR": "Seeing everything... allegedly.",
+
+    # Cryptocurrency
+    "BTC-USD": "HODL mode detected.",
+    "DOGE-USD": "Such analysis. Very finance.",
 }
-# Professional messages appear more frequently than the joke messages.
+
+
+HIDDEN_LOOKUPS = {
+    "GUITARCENTER": {
+        "title": "Guitar Center Holdings",
+        "subtitle": "Musical Retail · NASDAQ: GTRS",
+        "message": (
+            "You walked in for strings and somehow left with another guitar."
+        ),
+        "metrics": {
+            "Current Price": "$2,699.99",
+            "Market Cap": "Your Paycheck",
+            "P/E Ratio": "Loud",
+            "Dividend Yield": "Store Credit",
+        },
+        "details": {
+            "Headquarters": "The Guitar Room You Promised You Did Not Need",
+            "Cash on Hand": "$14.23",
+            "Guitars Owned": "12",
+            "Guitars Needed": "13",
+        },
+        "description": (
+            "Guitar Center specializes in convincing musicians that one more "
+            "instrument will finally complete their collection."
+        ),
+    },
+
+    "STONKS": {
+        "title": "Stonks Incorporated",
+        "subtitle": "Advanced Financial Strategy · NYSE: STONKS",
+        "message": "Analysis complete. The line moved to the right.",
+        "metrics": {
+            "Current Price": "$420.69",
+            "Market Cap": "Very Large",
+            "P/E Ratio": "Trust Me",
+            "Dividend Yield": "Memes",
+        },
+        "details": {
+            "Sector": "Internet Economics",
+            "Risk Level": "Yes",
+            "Analyst Rating": "Probably",
+            "Strategy": "Buy High, Panic Later",
+        },
+        "description": (
+            "Stonks Incorporated provides highly confident financial opinions "
+            "supported by arrows, screenshots, and almost no context."
+        ),
+    },
+
+    "MONOPOLY": {
+        "title": "Monopoly Property Group",
+        "subtitle": "Real Estate · NYSE: MPLY",
+        "message": "Please collect $200 before continuing.",
+        "metrics": {
+            "Current Price": "$200.00",
+            "Market Cap": "The Entire Board",
+            "P/E Ratio": "Do Not Pass Go",
+            "Dividend Yield": "Rent",
+        },
+        "details": {
+            "CEO": "Rich Uncle Pennybags",
+            "Headquarters": "Boardwalk",
+            "Primary Competitor": "Whoever Owns Park Place",
+            "Cash Position": "Colorful Paper",
+        },
+        "description": (
+            "Monopoly Property Group acquires residential and commercial "
+            "properties while aggressively opposing free parking."
+        ),
+    },
+
+    "COFFEE": {
+        "title": "Caffeine Capital",
+        "subtitle": "Productivity Infrastructure · NASDAQ: JAVA",
+        "message": "Motivation loading.",
+        "metrics": {
+            "Current Price": "$5.75",
+            "Market Cap": "One Large Cold Brew",
+            "P/E Ratio": "Per Espresso",
+            "Dividend Yield": "Refills",
+        },
+        "details": {
+            "Operating Hours": "Immediately",
+            "Primary Asset": "Iced Coffee",
+            "Risk Factor": "No Coffee",
+            "Productivity": "Temporarily Improved",
+        },
+        "description": (
+            "Caffeine Capital provides short-term productivity solutions "
+            "followed by highly predictable afternoon volatility."
+        ),
+    },
+
+    "ABOUT": {
+        "title": "About FidSync",
+        "subtitle": "Internal Platform · Beta",
+        "message": "You found the hidden platform profile.",
+        "metrics": {
+            "Version": "Beta",
+            "Status": "Operational",
+            "Data Retention": "0 Files",
+            "Crystal Ball": "Unreliable",
+        },
+        "details": {
+            "Framework": "Streamlit",
+            "Language": "Python",
+            "Primary Fuel": "Spreadsheets",
+            "Secondary Fuel": "Coffee",
+        },
+        "description": (
+            "FidSync is an internal financial research and workflow toolkit "
+            "built to organize data, reduce repetitive work, and occasionally "
+            "hide unnecessary Easter eggs."
+        ),
+    },
+
+    "NOTION": {
+        "title": "Notion Productivity Systems",
+        "subtitle": "Organizational Technology · NASDAQ: TODO",
+        "message": "A new database has been created for this database.",
+        "metrics": {
+            "Productivity": "3%",
+            "Databases": "482",
+            "Tasks Completed": "Maybe",
+            "Templates": "Too Many",
+        },
+        "details": {
+            "Current Task": "Redesigning the Task Tracker",
+            "Time Organizing": "4 Hours",
+            "Time Working": "12 Minutes",
+            "Primary Asset": "Aesthetic Dashboards",
+        },
+        "description": (
+            "Notion Productivity Systems helps users spend significant time "
+            "building the perfect workspace before beginning any actual work."
+        ),
+    },
+
+    "EXCEL": {
+        "title": "Excel Financial Infrastructure",
+        "subtitle": "Spreadsheet Technology · NASDAQ: XLSX",
+        "message": "Excel has accepted your sacrifice.",
+        "metrics": {
+            "Rows Remaining": "1,048,576",
+            "Columns": "16,384",
+            "Broken Links": "Unknown",
+            "Circular References": "Probably",
+        },
+        "details": {
+            "Primary Function": "Keeping Finance Running",
+            "Most Used Feature": "Undo",
+            "Natural Predator": "Merged Cells",
+            "Current Status": "Not Responding",
+        },
+        "description": (
+            "Excel Financial Infrastructure supports the global economy through "
+            "formulas, pivot tables, and workbooks named Final_FINAL_v7."
+        ),
+    },
+
+    "BELMONT": {
+        "title": "Belmont University Holdings",
+        "subtitle": "Higher Education · NASDAQ: BRUIN",
+        "message": "Tuition continues to outperform the market.",
+        "metrics": {
+            "Tuition": "Up",
+            "Sleep": "Down",
+            "Assignments": "Due",
+            "Parking": "Unavailable",
+        },
+        "details": {
+            "Primary Asset": "Campus Construction",
+            "Student Fuel": "Coffee",
+            "Most Valuable Resource": "A Free Practice Room",
+            "Risk Factor": "Group Projects",
+        },
+        "description": (
+            "Belmont University Holdings provides educational services, "
+            "networking opportunities, and an impressive number of hills."
+        ),
+    },
+}
+
+
 LOADING_MESSAGES = [
     "Checking market data...",
     "Checking market data...",
     "Reviewing company fundamentals...",
     "Reviewing company fundamentals...",
-    "Calculating moving averages...",
     "Loading historical pricing...",
-    "Comparing numbers that definitely looked smaller yesterday...",
+    "Calculating moving averages...",
+    "Comparing financial metrics...",
+    "Convincing Yahoo Finance to cooperate...",
+    "Looking for the missing decimal place...",
     "Consulting the financial crystal ball...",
+]
+
+
+FIDSYNC_THOUGHTS = [
+    "This one looks interesting.",
+    "I have seen worse balance sheets.",
+    "That valuation is ambitious.",
+    "Hopefully this is not another SPAC.",
+    "The numbers have been successfully numbered.",
+    "Past performance remains annoyingly unable to predict the future.",
+    "Another ticker enters the spreadsheet.",
 ]
 
 
@@ -104,16 +306,31 @@ LOADING_MESSAGES = [
 # Formatting helpers
 # =========================================================
 
+def is_missing(value):
+    """Safely determine whether a value is missing."""
+
+    if value is None:
+        return True
+
+    try:
+        result = pd.isna(value)
+
+        if isinstance(result, bool):
+            return result
+
+    except (TypeError, ValueError):
+        pass
+
+    return False
+
+
 def format_currency(value, decimals=2):
     """Format a numeric value as currency."""
 
-    if value is None:
+    if is_missing(value):
         return "N/A"
 
     try:
-        if pd.isna(value):
-            return "N/A"
-
         return f"${float(value):,.{decimals}f}"
 
     except (TypeError, ValueError):
@@ -123,13 +340,10 @@ def format_currency(value, decimals=2):
 def format_large_currency(value):
     """Format a large currency amount using abbreviated units."""
 
-    if value is None:
+    if is_missing(value):
         return "N/A"
 
     try:
-        if pd.isna(value):
-            return "N/A"
-
         numeric_value = float(value)
 
     except (TypeError, ValueError):
@@ -150,13 +364,10 @@ def format_large_currency(value):
 def format_number(value, decimals=2):
     """Format a general numeric value."""
 
-    if value is None:
+    if is_missing(value):
         return "N/A"
 
     try:
-        if pd.isna(value):
-            return "N/A"
-
         return f"{float(value):,.{decimals}f}"
 
     except (TypeError, ValueError):
@@ -166,13 +377,10 @@ def format_number(value, decimals=2):
 def format_integer(value):
     """Format a value as a whole number."""
 
-    if value is None:
+    if is_missing(value):
         return "N/A"
 
     try:
-        if pd.isna(value):
-            return "N/A"
-
         return f"{int(float(value)):,}"
 
     except (TypeError, ValueError):
@@ -183,17 +391,13 @@ def format_percentage(value, decimals=2, decimal_input=True):
     """
     Format a percentage.
 
-    Yahoo Finance usually returns percentage values as decimals.
-    When decimal_input is True, the value is multiplied by 100.
+    Yahoo Finance generally returns percentage values as decimals.
     """
 
-    if value is None:
+    if is_missing(value):
         return "N/A"
 
     try:
-        if pd.isna(value):
-            return "N/A"
-
         percentage = float(value)
 
         if decimal_input:
@@ -217,19 +421,11 @@ def safe_text(value, fallback="N/A"):
 
 
 def first_available(*values):
-    """Return the first value that is not None or NaN."""
+    """Return the first value that is not None or missing."""
 
     for value in values:
-        if value is None:
-            continue
-
-        try:
-            if pd.isna(value):
-                continue
-        except (TypeError, ValueError):
-            pass
-
-        return value
+        if not is_missing(value):
+            return value
 
     return None
 
@@ -240,8 +436,8 @@ def validate_ticker(ticker):
     if not ticker:
         return False
 
-    # Supports formats such as:
-    # AAPL, BRK-B, BTC-USD, SHOP.TO, 7203.T, and ^GSPC
+    # Supports AAPL, BRK-B, BTC-USD, SHOP.TO, 7203.T, and ^GSPC.
+    # It also allows hidden alphabetic lookup terms.
     pattern = r"^[A-Z0-9^][A-Z0-9.\-=^]{0,14}$"
 
     return re.fullmatch(pattern, ticker) is not None
@@ -267,15 +463,20 @@ def build_location(info):
 
 
 def calculate_percentage_change(current_value, previous_value):
-    """Calculate the percentage change between two values."""
+    """Calculate percentage change between two values."""
 
-    if current_value is None or previous_value in (None, 0):
+    if is_missing(current_value) or is_missing(previous_value):
         return None
 
     try:
+        previous_value = float(previous_value)
+
+        if previous_value == 0:
+            return None
+
         return (
-            (float(current_value) - float(previous_value))
-            / float(previous_value)
+            (float(current_value) - previous_value)
+            / previous_value
         ) * 100
 
     except (TypeError, ValueError, ZeroDivisionError):
@@ -291,8 +492,8 @@ def retrieve_company_data(ticker):
     """
     Retrieve company information.
 
-    Results are cached for 15 minutes to reduce repeated Yahoo
-    Finance requests during Streamlit reruns.
+    Results are cached for 15 minutes to reduce repeated Yahoo Finance
+    requests during Streamlit reruns.
     """
 
     stock = yf.Ticker(ticker)
@@ -307,7 +508,7 @@ def retrieve_price_history(ticker, start_date, end_date):
 
     stock = yf.Ticker(ticker)
 
-    # yfinance treats the end date as exclusive.
+    # yfinance treats end dates as exclusive.
     inclusive_end_date = end_date + timedelta(days=1)
 
     history = stock.history(
@@ -321,7 +522,6 @@ def retrieve_price_history(ticker, start_date, end_date):
 
     history.index = pd.to_datetime(history.index)
 
-    # Remove timezone information to simplify display and exports.
     if getattr(history.index, "tz", None) is not None:
         history.index = history.index.tz_localize(None)
 
@@ -350,6 +550,12 @@ def initialize_session_state():
         "company_lookup_searched": False,
         "company_lookup_ticker": "",
         "company_lookup_input": "",
+        "company_search_count": 0,
+        "company_search_history": [],
+        "company_achievements": [],
+        "company_pending_achievements": [],
+        "company_greeting_shown": False,
+        "company_hidden_lookup_shown": "",
         "fidsync_easter_egg_shown": False,
     }
 
@@ -359,12 +565,130 @@ def initialize_session_state():
 
 
 def clear_search():
-    """Clear the current ticker search and visible input."""
+    """
+    Clear the current search.
+
+    This function is used as a button callback so the text-input value
+    can be changed safely before Streamlit recreates the widget.
+    """
 
     st.session_state.company_lookup_searched = False
     st.session_state.company_lookup_ticker = ""
     st.session_state.company_lookup_input = ""
+    st.session_state.company_hidden_lookup_shown = ""
     st.session_state.fidsync_easter_egg_shown = False
+
+
+# =========================================================
+# Achievements and Easter egg helpers
+# =========================================================
+
+def unlock_achievement(achievement):
+    """Unlock an achievement only once during the session."""
+
+    if achievement in st.session_state.company_achievements:
+        return False
+
+    st.session_state.company_achievements.append(achievement)
+
+    return True
+
+
+def record_ticker_search(ticker):
+    """Record a search and return newly unlocked achievements."""
+
+    st.session_state.company_search_count += 1
+    st.session_state.company_search_history.append(ticker)
+
+    search_count = st.session_state.company_search_count
+    unique_tickers = set(st.session_state.company_search_history)
+
+    newly_unlocked = []
+
+    if search_count == 1 and unlock_achievement("First Search"):
+        newly_unlocked.append(
+            "First Search — completed your first company lookup."
+        )
+
+    if search_count >= 5 and unlock_achievement("Market Researcher"):
+        newly_unlocked.append(
+            "Market Researcher — completed five searches in one session."
+        )
+
+    if (
+        len(unique_tickers) >= 5
+        and unlock_achievement("Diversified Researcher")
+    ):
+        newly_unlocked.append(
+            "Diversified Researcher — reviewed five different securities."
+        )
+
+    bitcoin_searches = (
+        st.session_state.company_search_history.count("BTC-USD")
+    )
+
+    if bitcoin_searches >= 3 and unlock_achievement("Diamond Hands"):
+        newly_unlocked.append(
+            "Diamond Hands — reviewed Bitcoin three times."
+        )
+
+    if (
+        ticker in HIDDEN_LOOKUPS or ticker == "FIDS"
+    ) and unlock_achievement("Easter Egg Hunter"):
+        newly_unlocked.append(
+            "Easter Egg Hunter — discovered a hidden lookup."
+        )
+
+    return newly_unlocked
+
+
+def show_pending_achievements():
+    """Display and clear newly unlocked achievements."""
+
+    pending = st.session_state.company_pending_achievements
+
+    for achievement in pending:
+        st.toast(f"Achievement unlocked: {achievement}")
+
+    st.session_state.company_pending_achievements = []
+
+
+def render_session_greeting():
+    """Display a time-based message once per session."""
+
+    if st.session_state.company_greeting_shown:
+        return
+
+    current_time = datetime.now()
+    current_hour = current_time.hour
+    weekday = current_time.weekday()
+
+    message = None
+
+    if current_hour < 8:
+        message = "Early market research session detected."
+
+    elif current_hour >= 18:
+        message = "After-hours research mode activated."
+
+    elif weekday == 4:
+        message = "Friday research session. The weekend is almost priced in."
+
+    if message:
+        st.toast(message)
+
+    st.session_state.company_greeting_shown = True
+
+
+def maybe_render_fidsync_thought():
+    """Display an occasional FidSync observation."""
+
+    search_count = st.session_state.company_search_count
+
+    if search_count > 0 and search_count % 4 == 0:
+        st.caption(
+            f'FidSync thinks: "{random.choice(FIDSYNC_THOUGHTS)}"'
+        )
 
 
 # =========================================================
@@ -381,7 +705,6 @@ def apply_page_styles():
                 padding-bottom: 3rem;
             }
 
-            /* Page header */
             .lookup-header {
                 padding: 2.2rem 2.4rem;
                 margin-bottom: 1.5rem;
@@ -427,7 +750,6 @@ def apply_page_styles():
                 line-height: 1.65;
             }
 
-            /* Section headings */
             .section-heading {
                 margin-top: 1.25rem;
                 margin-bottom: 0.2rem;
@@ -444,7 +766,6 @@ def apply_page_styles():
                 line-height: 1.55;
             }
 
-            /* Search instructions */
             .lookup-instructions {
                 padding: 0.9rem 1rem;
                 margin-bottom: 1rem;
@@ -457,7 +778,6 @@ def apply_page_styles():
                 line-height: 1.55;
             }
 
-            /* Inputs */
             [data-testid="stWidgetLabel"] p {
                 color: #102542;
                 font-weight: 650;
@@ -475,7 +795,6 @@ def apply_page_styles():
                 box-shadow: 0 0 0 1px #2b6cb0;
             }
 
-            /* Buttons */
             .stButton > button,
             [data-testid="stFormSubmitButton"] > button {
                 min-height: 2.65rem;
@@ -497,7 +816,6 @@ def apply_page_styles():
                 color: white;
             }
 
-            /* Company title */
             .company-heading {
                 margin-top: 0.6rem;
                 margin-bottom: 0.2rem;
@@ -513,7 +831,6 @@ def apply_page_styles():
                 font-size: 0.88rem;
             }
 
-            /* Metrics */
             [data-testid="stMetric"] {
                 min-height: 108px;
                 padding: 0.95rem 1rem;
@@ -535,7 +852,6 @@ def apply_page_styles():
                 font-weight: 750;
             }
 
-            /* Native bordered containers */
             [data-testid="stVerticalBlockBorderWrapper"] {
                 border-color: #dce3ec;
                 border-radius: 0.75rem;
@@ -543,7 +859,6 @@ def apply_page_styles():
                 box-shadow: 0 2px 8px rgba(16, 37, 66, 0.035);
             }
 
-            /* Tabs */
             button[data-baseweb="tab"] {
                 color: #64748b;
                 font-weight: 600;
@@ -553,7 +868,6 @@ def apply_page_styles():
                 color: #102542;
             }
 
-            /* Expanders */
             [data-testid="stExpander"] {
                 margin-bottom: 0.65rem;
                 background-color: white;
@@ -568,7 +882,6 @@ def apply_page_styles():
                 font-weight: 650;
             }
 
-            /* Download button */
             [data-testid="stDownloadButton"] > button {
                 min-height: 2.65rem;
                 background-color: #2b6cb0;
@@ -584,7 +897,6 @@ def apply_page_styles():
                 color: white;
             }
 
-            /* Hidden FidSync result */
             .fidsync-easter-egg {
                 padding: 1.5rem;
                 margin-top: 1rem;
@@ -612,7 +924,6 @@ def apply_page_styles():
                 font-size: 0.88rem;
             }
 
-            /* Disclaimer */
             .lookup-disclaimer {
                 margin-top: 1.5rem;
                 padding: 0.9rem 1rem;
@@ -705,7 +1016,15 @@ def render_search_section():
 
         st.session_state.company_lookup_ticker = ticker
         st.session_state.company_lookup_searched = True
+        st.session_state.company_hidden_lookup_shown = ""
         st.session_state.fidsync_easter_egg_shown = False
+
+        new_achievements = record_ticker_search(ticker)
+
+        if new_achievements:
+            st.session_state.company_pending_achievements.extend(
+                new_achievements
+            )
 
         st.rerun()
 
@@ -828,7 +1147,7 @@ def render_company_overview(ticker, info):
     with metric_col7:
         dividend_display = (
             format_percentage(dividend_yield)
-            if dividend_yield is not None
+            if not is_missing(dividend_yield)
             else "No Dividend"
         )
 
@@ -1101,13 +1420,13 @@ def render_history_section(ticker):
             available_chart_columns
         ].copy()
 
-        rename_map = {
-            "Close": "Closing Price",
-            "MA20": "20-Day Average",
-            "MA50": "50-Day Average",
-        }
-
-        chart_data = chart_data.rename(columns=rename_map)
+        chart_data = chart_data.rename(
+            columns={
+                "Close": "Closing Price",
+                "MA20": "20-Day Average",
+                "MA50": "50-Day Average",
+            }
+        )
 
         st.line_chart(
             chart_data,
@@ -1125,6 +1444,7 @@ def render_history_section(ticker):
                 history["Volume"],
                 use_container_width=True,
             )
+
         else:
             st.info(
                 "Trading-volume data is not available for this security."
@@ -1208,7 +1528,7 @@ def render_history_section(ticker):
             .encode("utf-8")
         )
 
-        st.download_button(
+        downloaded = st.download_button(
             label="Download Historical Data as CSV",
             data=csv_data,
             file_name=(
@@ -1218,6 +1538,9 @@ def render_history_section(ticker):
             use_container_width=True,
         )
 
+        if downloaded:
+            st.toast("Another spreadsheet enters the collection.")
+
     last_date = history.index[-1].strftime("%B %d, %Y")
 
     st.caption(
@@ -1226,7 +1549,7 @@ def render_history_section(ticker):
 
 
 # =========================================================
-# Easter eggs
+# Hidden lookup renderers
 # =========================================================
 
 def render_fidsync_easter_egg():
@@ -1276,6 +1599,81 @@ def render_fidsync_easter_egg():
         st.write("Financial crystal ball: Unreliable")
 
 
+def render_hidden_lookup(ticker):
+    """Render a fictional profile for a hidden lookup."""
+
+    lookup = HIDDEN_LOOKUPS.get(ticker)
+
+    if not lookup:
+        return False
+
+    if st.session_state.company_hidden_lookup_shown != ticker:
+        st.balloons()
+        st.toast(lookup["message"])
+        st.session_state.company_hidden_lookup_shown = ticker
+
+    title = escape(lookup["title"])
+    subtitle = escape(lookup["subtitle"])
+    ticker_display = escape(ticker)
+
+    st.markdown(
+        (
+            '<div class="company-heading">'
+            f"{title} ({ticker_display})"
+            "</div>"
+        ),
+        unsafe_allow_html=True,
+    )
+
+    st.markdown(
+        (
+            '<div class="company-subheading">'
+            f"{subtitle}"
+            "</div>"
+        ),
+        unsafe_allow_html=True,
+    )
+
+    metric_items = list(lookup["metrics"].items())
+    metric_columns = st.columns(len(metric_items))
+
+    for column, metric_item in zip(metric_columns, metric_items):
+        label, value = metric_item
+
+        with column:
+            st.metric(label, value)
+
+    profile_tab, description_tab = st.tabs(
+        [
+            "Company Profile",
+            "Business Description",
+        ]
+    )
+
+    with profile_tab:
+        with st.container(border=True):
+            detail_items = list(lookup["details"].items())
+            left_column, right_column = st.columns(2)
+
+            for index, detail_item in enumerate(detail_items):
+                label, value = detail_item
+
+                target_column = (
+                    left_column
+                    if index % 2 == 0
+                    else right_column
+                )
+
+                with target_column:
+                    st.markdown(f"**{label}**")
+                    st.write(value)
+
+    with description_tab:
+        st.write(lookup["description"])
+
+    return True
+
+
 # =========================================================
 # Main page
 # =========================================================
@@ -1300,6 +1698,8 @@ def run():
     )
 
     render_search_section()
+    render_session_greeting()
+    show_pending_achievements()
 
     if (
         st.session_state.company_lookup_searched
@@ -1307,10 +1707,15 @@ def run():
     ):
         ticker = st.session_state.company_lookup_ticker
 
-        # Hidden ticker that does not make a Yahoo Finance request.
+        # Hidden FidSync developer profile
         if ticker == "FIDS":
             render_fidsync_easter_egg()
 
+        # Fictional hidden company profiles
+        elif ticker in HIDDEN_LOOKUPS:
+            render_hidden_lookup(ticker)
+
+        # Normal Yahoo Finance search
         else:
             try:
                 with st.spinner(
@@ -1336,6 +1741,8 @@ def run():
 
                     if special_message:
                         st.toast(special_message)
+
+                    maybe_render_fidsync_thought()
 
                     render_history_section(ticker)
 
