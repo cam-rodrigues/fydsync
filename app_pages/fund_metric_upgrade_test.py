@@ -427,6 +427,7 @@ def run():
         "Upload MPI PDF",
         type=["pdf"],
         help="Upload a text-based MPI fund scorecard PDF.",
+        key="fund_metric_upgrade_pdf_uploader",
     )
 
     if not pdf_file:
