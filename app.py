@@ -350,7 +350,7 @@ st.sidebar.markdown(
 )
 
 nav_button(
-    "Home",
+    "Getting Started",
     "Getting_Started.py",
 )
 
