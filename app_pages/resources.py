@@ -113,9 +113,15 @@ def run():
             ),
         },
         "The Wall Street Journal": {
-            "title": "Opening...",
+            "title": "Tiny Note",
             "message": (
                 "Hope you remembered your subscription."
+            ),
+        },
+        "Fidelity": {
+            "title": "Opening...",
+            "message": (
+                "Hope today treats your portfolio kindly."
             ),
         },
         "Morningstar": {
