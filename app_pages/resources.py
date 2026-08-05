@@ -259,6 +259,20 @@ def get_domain(url):
     return domain
 
 
+def compact_html(html):
+    """
+    Remove indentation and blank lines from HTML before sending it to
+    st.markdown. This prevents Streamlit Markdown from displaying nested
+    HTML as raw code blocks.
+    """
+
+    return " ".join(
+        line.strip()
+        for line in dedent(html).splitlines()
+        if line.strip()
+    )
+
+
 def filter_resources(search_term, selected_category):
     """Filter categories and sites using the selected controls."""
 
@@ -365,7 +379,7 @@ def render_resource_category(category, sites):
     )
 
     st.markdown(
-        dedent(f"""
+        compact_html(f"""
         <div class="category-heading-row">
             <div>
                 <div class="category-title">
@@ -561,7 +575,7 @@ RESOURCE_COMPONENT_CSS = """
 
 def apply_page_styles():
     st.markdown(
-        dedent("""
+        compact_html("""
         <style>
             .block-container {
                 max-width: 1200px;
@@ -804,7 +818,7 @@ def run():
     )
 
     st.markdown(
-        dedent("""
+        compact_html("""
         <div class="resources-header">
             <div class="resources-header-label">
                 Research Directory
@@ -828,7 +842,7 @@ def run():
 
     with metric_col1:
         st.markdown(
-            dedent(f"""
+            compact_html(f"""
             <div class="resource-stat-card">
                 <div class="resource-stat-label">
                     Resources
@@ -843,7 +857,7 @@ def run():
 
     with metric_col2:
         st.markdown(
-            dedent(f"""
+            compact_html(f"""
             <div class="resource-stat-card">
                 <div class="resource-stat-label">
                     Categories
@@ -858,7 +872,7 @@ def run():
 
     with metric_col3:
         st.markdown(
-            dedent("""
+            compact_html("""
             <div class="resource-stat-card">
                 <div class="resource-stat-label">
                     Link Behavior
@@ -872,7 +886,7 @@ def run():
 )
 
     st.markdown(
-        dedent("""
+        compact_html("""
         <div class="filter-section">
             <div class="filter-heading">
                 Find a resource
@@ -922,7 +936,7 @@ def run():
 
     if not filtered_categories:
         st.markdown(
-            dedent("""
+            compact_html("""
             <div class="empty-state">
                 <div class="empty-state-title">
                     No resources found
@@ -943,7 +957,7 @@ def run():
             )
 
     st.markdown(
-        dedent("""
+        compact_html("""
         <div class="resources-callout">
             <div>
                 <div class="resources-callout-title">
