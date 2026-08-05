@@ -1,3 +1,5 @@
+# app_pages/rubber_duck.py
+
 import random
 
 import streamlit as st
@@ -21,7 +23,7 @@ DUCK_INTROS = {
         "or instructions that are not running where you think they are."
     ),
     "Something is behaving strangely": (
-        "Suspicious. Let’s slow this down and figure out what the app is "
+        "Suspicious. Let's slow this down and figure out what the app is "
         "actually doing."
     ),
 }
@@ -31,7 +33,7 @@ DUCK_ADVICE = {
     "There's an error": [
         (
             "Read the traceback from the bottom upward and find the first "
-            "line pointing to your own file."
+            "line that points to your own file."
         ),
         (
             "Check the exact line named in the traceback for a misspelled "
@@ -46,11 +48,10 @@ DUCK_ADVICE = {
             "time until the error returns."
         ),
         (
-            "Compare the broken version to the last version that worked. "
-            "The smallest difference is probably the useful clue."
+            "Compare the broken version with the last version that worked. "
+            "The smallest difference is usually the useful clue."
         ),
     ],
-
     "Python isn't listening": [
         (
             "Save the file, confirm you edited the exact file the router "
@@ -73,7 +74,6 @@ DUCK_ADVICE = {
             "contains your changes."
         ),
     ],
-
     "Something is behaving strangely": [
         (
             "Write down what you expected to happen and what actually "
@@ -107,13 +107,15 @@ DUCK_ENCOURAGEMENT = [
 ]
 
 
-def initialize_duck_state():
+def initialize_duck_state() -> None:
+    """Initialize the debugger's session-state values."""
+
     defaults = {
         "duck_active_issue": "",
         "duck_advice_index": 0,
         "duck_struggle_count": 0,
         "duck_resolved": False,
-        "duck_celebrated": False,
+        "duck_encouragement": random.choice(DUCK_ENCOURAGEMENT),
     }
 
     for key, value in defaults.items():
@@ -121,41 +123,45 @@ def initialize_duck_state():
             st.session_state[key] = value
 
 
-def reset_duck():
+def reset_duck() -> None:
+    """Reset the debugger without mutating an instantiated widget."""
+
     st.session_state.duck_active_issue = ""
     st.session_state.duck_advice_index = 0
     st.session_state.duck_struggle_count = 0
     st.session_state.duck_resolved = False
-    st.session_state.duck_celebrated = False
+    st.session_state.duck_encouragement = random.choice(
+        DUCK_ENCOURAGEMENT
+    )
 
-    if "duck_issue_choice" in st.session_state:
-        del st.session_state["duck_issue_choice"]
+    st.session_state.pop("duck_issue_choice", None)
 
 
-def return_to_previous_page():
+def return_to_previous_page() -> None:
+    """Return to whichever FidSync page opened the debugger."""
+
     previous_page = st.session_state.get(
         "duck_previous_page",
         "Getting_Started.py",
     )
 
     st.query_params["page"] = previous_page
-    st.rerun()
 
 
-def run():
-    initialize_duck_state()
+def apply_styles() -> None:
+    """Apply page-specific styling."""
 
     st.markdown(
         """
         <style>
             .block-container {
-                max-width: 850px;
+                max-width: 860px;
                 padding-top: 2rem;
                 padding-bottom: 3rem;
             }
 
-            .duck-header {
-                padding: 2rem;
+            .duck-hero {
+                padding: 2.1rem 2rem;
                 margin-bottom: 1.5rem;
                 text-align: center;
                 background:
@@ -175,7 +181,7 @@ def run():
             }
 
             .duck-icon {
-                margin-bottom: 0.65rem;
+                margin-bottom: 0.6rem;
                 font-size: 5rem;
                 line-height: 1;
             }
@@ -185,41 +191,75 @@ def run():
                 -webkit-text-fill-color: #ffffff !important;
                 font-size: 2rem;
                 font-weight: 750;
+                line-height: 1.2;
             }
 
-            .duck-description {
-                max-width: 600px;
-                margin: 0.65rem auto 0;
+            .duck-subtitle {
+                margin-top: 0.7rem;
                 color: #d8e4f2 !important;
                 -webkit-text-fill-color: #d8e4f2 !important;
                 font-size: 0.95rem;
                 line-height: 1.6;
+            }
+
+            .duck-version {
+                margin-top: 0.45rem;
+                color: #9fb7d2 !important;
+                -webkit-text-fill-color: #9fb7d2 !important;
+                font-size: 0.72rem;
+                font-weight: 650;
+                letter-spacing: 0.06rem;
+                text-transform: uppercase;
+            }
+
+            div[data-testid="stRadio"] {
+                padding: 0.25rem 0 0.5rem 0;
+            }
+
+            div[data-testid="stAlert"] {
+                border-radius: 0.75rem;
+            }
+
+            .stButton > button {
+                border-radius: 0.6rem;
+                font-weight: 650;
             }
         </style>
         """,
         unsafe_allow_html=True,
     )
 
+
+def render_header() -> None:
+    """Render a compact single-line HTML header."""
+
+    header_html = (
+        '<div class="duck-hero">'
+        '<div class="duck-icon">🦆</div>'
+        '<div class="duck-title">Duck Debugger</div>'
+        '<div class="duck-subtitle">'
+        'Choose the closest description of the problem. '
+        'The duck will keep offering suggestions until something works.'
+        '</div>'
+        '<div class="duck-version">Highly Experimental · v0.1</div>'
+        '</div>'
+    )
+
     st.markdown(
-        """
-        <div class="duck-header">
-            <div class="duck-icon">🦆</div>
-
-            <div class="duck-title">
-                Rubber Duck Debugger
-            </div>
-
-            <div class="duck-description">
-                Choose the closest description of the problem. The duck will
-                offer suggestions until something works.
-            </div>
-        </div>
-        """,
+        header_html,
         unsafe_allow_html=True,
     )
 
+
+def run() -> None:
+    """Render the hidden Rubber Duck Debugger page."""
+
+    initialize_duck_state()
+    apply_styles()
+    render_header()
+
     issue_choice = st.radio(
-        "What’s going wrong?",
+        "What's going wrong?",
         DUCK_ISSUES,
         key="duck_issue_choice",
     )
@@ -230,32 +270,35 @@ def run():
             st.session_state.duck_advice_index = 0
             st.session_state.duck_struggle_count = 0
             st.session_state.duck_resolved = False
-            st.session_state.duck_celebrated = False
+            st.session_state.duck_encouragement = random.choice(
+                DUCK_ENCOURAGEMENT
+            )
 
         if st.session_state.duck_resolved:
-            if not st.session_state.duck_celebrated:
-                st.balloons()
-                st.session_state.duck_celebrated = True
-
             st.success("🦆 The duck knew you could do it.")
-            st.caption("The official diagnosis was persistence.")
+            st.caption(
+                "Debugging is not about never getting stuck. "
+                "It is about getting unstuck."
+            )
 
             button_col1, button_col2 = st.columns(2)
 
             with button_col1:
                 if st.button(
                     "Debug Another Problem",
+                    key="duck_debug_another",
                     use_container_width=True,
                 ):
                     reset_duck()
                     st.rerun()
 
             with button_col2:
-                if st.button(
+                st.button(
                     "Return to FidSync",
+                    key="duck_return_success",
                     use_container_width=True,
-                ):
-                    return_to_previous_page()
+                    on_click=return_to_previous_page,
+                )
 
         else:
             advice_list = DUCK_ADVICE[issue_choice]
@@ -271,7 +314,7 @@ def run():
             st.success(advice_list[advice_index])
 
             st.caption(
-                random.choice(DUCK_ENCOURAGEMENT)
+                st.session_state.duck_encouragement
             )
 
             fixed_col, struggling_col = st.columns(2)
@@ -279,6 +322,7 @@ def run():
             with fixed_col:
                 if st.button(
                     "I Fixed It",
+                    key="duck_fixed_it",
                     use_container_width=True,
                 ):
                     st.session_state.duck_resolved = True
@@ -286,11 +330,15 @@ def run():
 
             with struggling_col:
                 if st.button(
-                    "I’m Still Struggling",
+                    "I'm Still Struggling",
+                    key="duck_still_struggling",
                     use_container_width=True,
                 ):
                     st.session_state.duck_advice_index += 1
                     st.session_state.duck_struggle_count += 1
+                    st.session_state.duck_encouragement = random.choice(
+                        DUCK_ENCOURAGEMENT
+                    )
                     st.rerun()
 
             if st.session_state.duck_struggle_count >= 2:
@@ -301,12 +349,12 @@ def run():
 
     st.divider()
 
-    if st.button(
+    st.button(
         "Return to FidSync",
         key="duck_return_bottom",
         use_container_width=True,
-    ):
-        return_to_previous_page()
+        on_click=return_to_previous_page,
+    )
 
 
 if __name__ == "__main__":
