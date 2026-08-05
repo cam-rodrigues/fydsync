@@ -140,8 +140,6 @@ DUCK_ADVICE = {
         "contains the change you expect.",
     ],
     "Something is behaving strangely": [
-        "Write down two sentences: what you expected to happen and what "
-        "actually happened. The difference is your first clue.",
         "Change only one thing at a time. Multiple fixes at once make it hard "
         "to know which change mattered.",
         "Inspect the inputs immediately before the strange behavior with "
