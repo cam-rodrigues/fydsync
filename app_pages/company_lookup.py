@@ -27,14 +27,66 @@ KNOWN_LIMITATIONS = """
 """
 
 SPECIAL_TICKER_MESSAGES = {
-    "AAPL": "An apple a day keeps the portfolio review underway.",
-    "MSFT": "Clippy would like to help with this analysis.",
-    "TSLA": "Volatility mode may be enabled.",
-    "NVDA": "GPU-powered optimism detected.",
-    "BRK-B": "Patience mode activated.",
-    "BTC-USD": "HODL mode detected.",
-}
+    # Tech
+    "AAPL": "An apple a day keeps the portfolio review underway. 🍎",
+    "MSFT": "Clippy would like to help with this analysis. 📎",
+    "GOOGL": "Searching... probably found 14 million answers.",
+    "META": "The metaverse is still loading...",
+    "AMZN": "Your financial data should arrive in 2 business days.",
+    "NFLX": "One more earnings report won't hurt.",
+    "NVDA": "GPU acceleration detected. Analysis running faster... probably.",
+    "ORCL": "Consulting the oracle...",
+    "IBM": "Still computing after all these years.",
+    "INTC": "Intel inside. Hopefully.",
+    "AMD": "Performance mode enabled.",
+    "CSCO": "Packets successfully routed.",
+    "CRM": "Relationship status: Customer.",
+    "ADBE": "This analysis has been creatively enhanced.",
+    "UBER": "Your market data has arrived.",
+    "LYFT": "Taking the scenic route through Wall Street.",
 
+    # Retail
+    "WMT": "Rollback pricing not included.",
+    "TGT": "Bullseye.",
+    "COST": "Membership not required for this lookup.",
+    "HD": "You can fix almost anything with enough trips.",
+    "LOW": "Weekend project mode activated.",
+    "BBY": "Geek Squad approves this search.",
+
+    # Automotive
+    "F": "Built Ford Tough.",
+    "GM": "General Motors, specific lookup.",
+    "TSLA": "Volatility mode enabled.",
+    "RIVN": "Adventure mode charging...",
+    "TM": "Reliability score: Legendary.",
+
+    # Entertainment
+    "DIS": "✨ The magic is in the fundamentals.",
+    "WBD": "Roll the opening credits.",
+    "SONY": "Now playing: Market Analysis.",
+
+    # Finance
+    "JPM": "Jamie probably already knows.",
+    "BRK-B": "Warren would tell you to zoom out.",
+    "V": "Approved.",
+    "MA": "Transaction complete.",
+    "AXP": "Membership has its privileges.",
+
+    # Food
+    "MCD": "Would you like fries with those shares?",
+    "SBUX": "Warning: Coffee may improve investing decisions.",
+    "KO": "Open happiness... and financial statements.",
+    "PEP": "Diversification tastes refreshing.",
+    "DPZ": "Pizza is on the way. Probably not.",
+
+    # Misc
+    "NKE": "Just buy... research first.",
+    "LULU": "Stretching valuation...",
+    "CROX": "Comfort over style.",
+    "SPOT": "Now playing: Bull Market Blues.",
+    "ROKU": "Streaming market data.",
+    "EA": "It's in the earnings.",
+}
 # Professional messages appear more frequently than the joke messages.
 LOADING_MESSAGES = [
     "Checking market data...",
