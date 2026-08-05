@@ -261,7 +261,7 @@ def run():
     with metric_col1:
         st.metric(
             label="Available Tools",
-            value="4",
+            value="6",
         )
 
     with metric_col2:
