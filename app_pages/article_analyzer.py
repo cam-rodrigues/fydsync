@@ -185,7 +185,11 @@ PDF_FILENAME_MESSAGES = {
     ),
 }
 
+SOLITAIRE_URL = "https://play-solitaire.com/"
 
+HIDDEN_COMMAND_ALIASES = {
+    "SOLITARE": "SOLITAIRE",
+}
 HIDDEN_ARTICLE_COMMANDS = {
     "FIDSYNC": {
         "title": "FidSync Internal Memorandum",
@@ -371,6 +375,20 @@ HIDDEN_ARTICLE_COMMANDS = {
         "message": "Clickbait containment procedures activated.",
     },
 
+    "SOLITAIRE": {
+        "title": "Screen-Time Analysis Complete",
+        "authors": "FidSync Wellness Department",
+        "publish_date": "Immediately",
+        "source": "Definitely Serious Research",
+        "text": (
+            "Analysis indicates that you have been staring at financial data "
+            "for too long. FidSync recommends stepping away from the screen, "
+            "stretching, drinking some water, and touching some grass. "
+            "Alternatively, management has approved one game of Solitaire."
+        ),
+        "message": "Productivity has been temporarily suspended.",
+    },
+    
     "TLDR": {
         "title": "Article Considered Too Long",
         "authors": "The Summary Department",
@@ -748,7 +766,7 @@ def detect_hidden_article_command(
     input_mode,
     article_input,
 ):
-    """Detect an exact command entered through pasted text."""
+    """Detect an exact hidden command entered through pasted text."""
 
     if input_mode != "Paste Text":
         return None
@@ -756,6 +774,12 @@ def detect_hidden_article_command(
     command = clean_article_text(
         article_input or ""
     ).upper()
+
+    # Correct supported misspellings or aliases.
+    command = HIDDEN_COMMAND_ALIASES.get(
+        command,
+        command,
+    )
 
     if command in HIDDEN_ARTICLE_COMMANDS:
         return command
@@ -1870,6 +1894,23 @@ def render_results():
 
         with detail_col2:
             st.write(source)
+
+    if st.session_state.article_hidden_command == "SOLITAIRE":
+        st.warning(
+            "You have been staring at the screen for too long. "
+            "Go touch some grass."
+        )
+
+        st.link_button(
+            "Definitely Do Not Open Solitaire",
+            SOLITAIRE_URL,
+            use_container_width=True,
+        )
+
+        st.caption(
+            "FidSync accepts no responsibility for productivity lost "
+            "after clicking this button."
+        )
 
     summary_tab, source_tab, details_tab = st.tabs(
         [
