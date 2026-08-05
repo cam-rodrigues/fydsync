@@ -106,50 +106,55 @@ def run():
                 "The market is still doing market things."
             ),
         },
+        
         "Yahoo Finance": {
-            "title": "Opening Yahoo Finance...",
+            "title": "Psst...",
             "message": (
                 "Quietly carrying half the finance internet."
             ),
         },
+        
         "The Wall Street Journal": {
-            "title": "Opening...",
+            "title": "Tiny Note",
             "message": (
                 "Hope you remembered your subscription."
             ),
         },
+        
         "Fidelity": {
             "title": "Tiny Encouragement",
             "message": (
                 "Hope today treats your portfolio kindly."
             ),
         },
+        
         "Envestnet": {
-            "title": "Tiny Note",
+            "title": "Behind the Scenes",
             "message": (
                 "It's the teamwork app."
             ),
         },
+        
         "Forbes": {
-            "title": "Psst...,"
+            "title": "Psst...",
             "message": (
                 "Billionaire energy detected."
             ),
         },
+        
         "IRS": {
             "title": "Friendly Reminder",
             "message": (
                 "This page pairs well with coffee."
             ),
         },
+        
         "Morningstar": {
-            "title": "Developer Sticky Note",
+            "title": "Coffee Break ☕",
             "message": (
                 "Today's productivity is proudly powered by coffee."
             ),
         },
-    }
-
     # -------------------------------------------------------------------------
     # Streamlit page styling
     # -------------------------------------------------------------------------
