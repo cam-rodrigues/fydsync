@@ -101,56 +101,29 @@ def run():
     # Hover over the site's logo to reveal it.
     easter_eggs = {
         "Bloomberg": {
-            "title": "Loading Bloomberg...",
+            "title": "Opening Bloomberg...",
             "message": (
-                "Just kidding.<br>"
-                "It’s probably behind a paywall anyway."
+                "We checked.<br>"
+                "The market is still doing market things."
             ),
         },
         "Yahoo Finance": {
             "title": "Opening Yahoo Finance...",
             "message": (
-                "Still somehow everyone’s second monitor."
+                "Quietly carrying half the finance internet."
             ),
-        },
-        "MarketWatch": {
-            "title": "Opening MarketWatch...",
-            "message": (
-                "Watching the markets so you don’t have to."
-            ),
-        },
-        "Barron's": {
-            "title": "Loading premium insights...",
-            "message": (
-                "And, quite possibly, a premium paywall."
-            ),
+      
         },
         "The Wall Street Journal": {
-            "title": "Opening The Wall Street Journal...",
+            "title": "Opening...",
             "message": (
                 "Hope you remembered your subscription."
             ),
         },
         "Morningstar": {
-            "title": "Opening Morningstar...",
-            "message": "Morning, star.",
-        },
-        "TradingView": {
-            "title": "Opening TradingView...",
-            "message": "Candles detected.",
-        },
-        "SEC": {
-            "title": "Contacting the SEC...",
-            "message": (
-                "No insider trading while you’re here."
-            ),
-        },
-        "IRS": {
-            "title": "Opening the IRS...",
-            "message": (
-                "They’re probably looking for you too."
-            ),
-        },
+            "title": "Developer Sticky Note",
+            "message": "Today's productivity is proudly powered by coffee.",
+
     }
 
     # -------------------------------------------------------------------------
