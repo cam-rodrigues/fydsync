@@ -1031,7 +1031,6 @@ def run():
         "or privacy practices."
     )
 
-resources_components_fix.py
 # app_pages/resources.py
 
 from html import escape
