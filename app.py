@@ -7,18 +7,40 @@ import streamlit as st
 
 
 # =========================================================
+# File paths
+# =========================================================
+
+PAGES_DIR = "app_pages"
+ASSETS_DIR = "assets"
+
+ICON_PATH = os.path.join(
+    ASSETS_DIR,
+    "fidsync_icon.png",
+)
+
+SIDEBAR_LOGO_PATH = os.path.join(
+    ASSETS_DIR,
+    "fidsync_logo.png",
+)
+
+WORDMARK_PATH = os.path.join(
+    ASSETS_DIR,
+    "fidsync_wordmark.png",
+)
+
+DEFAULT_PAGE = "Getting_Started.py"
+
+
+# =========================================================
 # Page configuration
 # =========================================================
 
 st.set_page_config(
     page_title="FidSync Beta",
-    page_icon="📊",
+    page_icon=ICON_PATH,
     layout="wide",
     initial_sidebar_state="expanded",
 )
-
-PAGES_DIR = "app_pages"
-DEFAULT_PAGE = "Getting_Started.py"
 
 
 # =========================================================
@@ -123,7 +145,36 @@ st.markdown(
         }
 
         [data-testid="stSidebar"] > div:first-child {
-            padding-top: 1.25rem;
+            padding-top: 0.65rem;
+        }
+
+        /* Sidebar logo image */
+
+        [data-testid="stSidebar"] [data-testid="stImage"] {
+            margin-bottom: 0.15rem;
+        }
+
+        [data-testid="stSidebar"] [data-testid="stImage"] img {
+            display: block;
+            max-width: 100%;
+            height: auto;
+            object-fit: contain;
+        }
+
+        .sidebar-build-label {
+            margin-top: -0.15rem;
+            margin-bottom: 0.8rem;
+            color: #718096;
+            font-size: 0.7rem;
+            font-weight: 600;
+            letter-spacing: 0.03rem;
+            text-align: center;
+        }
+
+        .sidebar-logo-divider {
+            height: 1px;
+            margin: 0.7rem 0 0.95rem 0;
+            background-color: #d7e0eb;
         }
 
         /* Navigation buttons */
@@ -163,49 +214,6 @@ st.markdown(
             border-color: #b8c9df;
             color: #102542;
             font-weight: 650;
-        }
-
-        /* ---------- Sidebar logo ---------- */
-
-        .sidebar-logo-wrapper {
-            margin: 0 0 1.75rem 0;
-            padding: 0 0.5rem;
-        }
-
-        .sidebar-title-container {
-            display: flex;
-            align-items: center;
-            gap: 0.45rem;
-        }
-
-        .sidebar-title {
-            color: #102542 !important;
-            -webkit-text-fill-color: #102542 !important;
-            font-size: 1.75rem;
-            font-weight: 800;
-            line-height: 1;
-            letter-spacing: -0.04rem;
-        }
-
-        .beta-badge {
-            background-color: #2b6cb0;
-            color: #ffffff !important;
-            -webkit-text-fill-color: #ffffff !important;
-            font-size: 0.52rem;
-            font-weight: 700;
-            padding: 0.17rem 0.35rem;
-            border-radius: 0.3rem;
-            letter-spacing: 0.04rem;
-            opacity: 0;
-            animation: fadeScaleUp 0.4s ease-out 0.25s forwards;
-        }
-
-        .logo-underline {
-            width: 2.75rem;
-            height: 3px;
-            margin-top: 0.65rem;
-            background-color: #2b6cb0;
-            border-radius: 10px;
         }
 
         /* ---------- Sidebar section labels ---------- */
@@ -255,18 +263,6 @@ st.markdown(
             font-size: 0.78rem;
             font-weight: 650;
         }
-
-        @keyframes fadeScaleUp {
-            from {
-                opacity: 0;
-                transform: scale(0.85);
-            }
-
-            to {
-                opacity: 1;
-                transform: scale(1);
-            }
-        }
     </style>
     """,
     unsafe_allow_html=True,
@@ -281,7 +277,7 @@ handle_secret_query_mode()
 
 requested_page = st.query_params.get("page")
 
-# If there is no page parameter, Getting Started becomes the homepage.
+# If no page is specified, Getting Started is the homepage.
 selected_page = requested_page or DEFAULT_PAGE
 
 
@@ -289,15 +285,23 @@ selected_page = requested_page or DEFAULT_PAGE
 # Sidebar logo
 # =========================================================
 
+if os.path.exists(SIDEBAR_LOGO_PATH):
+    st.sidebar.image(
+        SIDEBAR_LOGO_PATH,
+        use_container_width=True,
+    )
+else:
+    st.sidebar.error(
+        "The FidSync sidebar logo could not be found at "
+        f"`{SIDEBAR_LOGO_PATH}`."
+    )
+
 st.sidebar.markdown(
     """
-    <div class="sidebar-logo-wrapper">
-        <div class="sidebar-title-container">
-            <div class="sidebar-title">FidSync</div>
-            <div class="beta-badge">BETA</div>
-        </div>
-        <div class="logo-underline"></div>
+    <div class="sidebar-build-label">
+        Internal Beta · Build 0.9
     </div>
+    <div class="sidebar-logo-divider"></div>
     """,
     unsafe_allow_html=True,
 )
@@ -331,7 +335,7 @@ def nav_button(label: str, filename: str) -> None:
         )
 
     if clicked:
-        # Keep any other query parameters, such as developer mode.
+        # Preserve other query parameters, such as developer mode.
         st.query_params["page"] = filename
         st.rerun()
 
