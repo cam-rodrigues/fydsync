@@ -1,13 +1,17 @@
 # app_pages/article_analyzer.py
 
-import streamlit as st
-import pdfplumber
-import re
-import pandas as pd
-from newspaper import Article
-from fpdf import FPDF
-import tempfile
+from datetime import datetime
+from urllib.parse import urlparse
 import os
+import random
+import re
+import tempfile
+
+import pandas as pd
+import pdfplumber
+import streamlit as st
+from fpdf import FPDF
+from newspaper import Article
 
 
 # =========================================================
@@ -20,6 +24,246 @@ INPUT_METHODS = [
     "Paste URL",
     "Paste Text",
     "Upload PDF",
+]
+
+
+ANALYSIS_LOADING_MESSAGES = [
+    "Retrieving and processing the article...",
+    "Retrieving and processing the article...",
+    "Separating the article from the advertisements...",
+    "Looking for the important paragraph...",
+    "Counting words so you do not have to...",
+    "Removing suspicious amounts of whitespace...",
+    "Consulting the editorial department...",
+    "Trying to find the point of the article...",
+]
+
+
+PDF_LOADING_MESSAGES = [
+    "Extracting text from the PDF...",
+    "Extracting text from the PDF...",
+    "Reading the fine print...",
+    "Checking every page for actual text...",
+    "Attempting diplomatic relations with the PDF...",
+    "Looking for selectable text...",
+]
+
+
+SOURCE_MESSAGES = {
+    "reuters.com": (
+        "Reuters detected. Concise reporting mode activated."
+    ),
+    "finance.yahoo.com": (
+        "Yahoo Finance detected. Market terminology incoming."
+    ),
+    "yahoo.com": (
+        "Yahoo detected. Comments section successfully avoided."
+    ),
+    "bloomberg.com": (
+        "Bloomberg detected. Terminal not included."
+    ),
+    "wsj.com": (
+        "The Wall Street Journal detected. Paywall probability elevated."
+    ),
+    "cnbc.com": (
+        "CNBC detected. Breaking-news banner not included."
+    ),
+    "forbes.com": (
+        "Forbes detected. Listicle probability elevated."
+    ),
+    "sec.gov": (
+        "SEC filing detected. Reading stamina may be required."
+    ),
+    "investopedia.com": (
+        "Investopedia detected. Definition mode activated."
+    ),
+    "wikipedia.org": (
+        "Wikipedia detected. Citation trail recommended."
+    ),
+    "reddit.com": (
+        "Reddit detected. Confidence and accuracy may not be correlated."
+    ),
+    "medium.com": (
+        "Medium detected. Estimated reading time is probably "
+        "already displayed."
+    ),
+    "substack.com": (
+        "Substack detected. Newsletter mode activated."
+    ),
+    "marketwatch.com": (
+        "MarketWatch detected. Market anxiety may be included."
+    ),
+    "fool.com": (
+        "The Motley Fool detected. Subscription invitation probable."
+    ),
+    "nytimes.com": (
+        "The New York Times detected. Crossword not included."
+    ),
+    "cnn.com": (
+        "CNN detected. Breaking-news banner has been removed."
+    ),
+    "foxbusiness.com": (
+        "Fox Business detected. Market commentary incoming."
+    ),
+    "apnews.com": (
+        "Associated Press detected. Straight-to-the-point mode activated."
+    ),
+}
+
+
+HIDDEN_ARTICLE_COMMANDS = {
+    "FIDSYNC": {
+        "title": "FidSync Internal Memorandum",
+        "authors": "The Spreadsheet Department",
+        "publish_date": "Classified",
+        "source": "Internal Archive",
+        "text": (
+            "FidSync remains operational. The platform continues to process "
+            "documents, organize financial information, and quietly judge "
+            "poorly formatted spreadsheets. Current risks include merged "
+            "cells, missing column headers, inconsistent ticker symbols, "
+            "and files named FINAL_final_v7. Management remains confident "
+            "that these threats can be controlled through validation, clear "
+            "documentation, and a responsible number of backup copies."
+        ),
+        "message": "Internal memorandum discovered.",
+    },
+
+    "CLIPPY": {
+        "title": "A Message from Clippy",
+        "authors": "Clippy",
+        "publish_date": "1997",
+        "source": "Microsoft Office Archives",
+        "text": (
+            "It looks like you are trying to analyze an article. Would you "
+            "like help adding unnecessary formatting, creating a table, "
+            "moving every image slightly out of alignment, or saving the "
+            "document in the wrong folder? Clippy remains available for "
+            "support whether or not that support was requested."
+        ),
+        "message": "Clippy has entered the analysis.",
+    },
+
+    "WARREN": {
+        "title": "Long-Term Investment Research",
+        "authors": "Definitely Not Warren Buffett",
+        "publish_date": "Whenever the Market Opens",
+        "source": "Omaha",
+        "text": (
+            "The preferred holding period remains forever, provided the "
+            "underlying business is strong, management is capable, and the "
+            "researcher has not become distracted by short-term market noise. "
+            "Investors are reminded that an exciting chart does not replace "
+            "understanding the company, its financial position, or the price "
+            "paid for ownership."
+        ),
+        "message": "Long-term mode activated.",
+    },
+
+    "GUITARCENTER": {
+        "title": "Local Musician Announces Final Guitar Purchase",
+        "authors": "Financially Concerned Sources",
+        "publish_date": "Earlier Today",
+        "source": "The Guitar Room",
+        "text": (
+            "A local musician confirmed today that the latest guitar purchase "
+            "would absolutely be the final one. Sources close to the situation "
+            "noted that the same statement had been issued after each of the "
+            "previous eleven purchases. The musician later clarified that a "
+            "bass, keyboard, microphone, amplifier, pedalboard, and several "
+            "recording interfaces do not technically count as guitars."
+        ),
+        "message": "Music-business reporting mode activated.",
+    },
+
+    "404": {
+        "title": "Article Not Found",
+        "authors": "Unknown",
+        "publish_date": "Unavailable",
+        "source": "Somewhere on the Internet",
+        "text": (
+            "The requested article could not be located. Investigators "
+            "searched the archive, the recycle bin, the browser history, "
+            "and several folders named Downloads. The document may have been "
+            "moved, deleted, renamed, or may never have existed in the first "
+            "place. Reality remains unavailable at this time."
+        ),
+        "message": "Reality may also be unavailable.",
+    },
+
+    "STONKS": {
+        "title": "Markets Continue Moving to the Right",
+        "authors": "Internet Economics Division",
+        "publish_date": "Today",
+        "source": "The Chart",
+        "text": (
+            "Financial markets continued their historic pattern of moving "
+            "from left to right today. Analysts remain divided over whether "
+            "the line will move upward, downward, or become unusually "
+            "horizontal. Experts advised investors to examine the labels "
+            "on both axes before forming strong conclusions."
+        ),
+        "message": "Advanced market analysis unlocked.",
+    },
+
+    "EXCEL": {
+        "title": "Global Economy Continues Running on Excel",
+        "authors": "Spreadsheet Correspondent",
+        "publish_date": "FINAL_v3",
+        "source": "Workbook1",
+        "text": (
+            "The global economy continued operating through interconnected "
+            "spreadsheets today. Officials confirmed that several critical "
+            "processes remain dependent on formulas copied from a workbook "
+            "created in 2008. Risk factors include merged cells, hidden rows, "
+            "broken external links, and an employee who knows how the main "
+            "macro works but is currently on vacation."
+        ),
+        "message": "Spreadsheet intelligence detected.",
+    },
+
+    "NOTION": {
+        "title": "Productivity System Requires Another Redesign",
+        "authors": "Organizational Research Team",
+        "publish_date": "After the Template Is Finished",
+        "source": "A Very Organized Dashboard",
+        "text": (
+            "A productivity system entered its fourth redesign this week "
+            "after the user concluded that the current task database was not "
+            "sufficiently aesthetic. Approximately four hours were spent "
+            "adjusting properties, icons, tags, and views. Twelve minutes "
+            "remained available for completing the original assignment."
+        ),
+        "message": "A new database has been created for this article.",
+    },
+
+    "COFFEE": {
+        "title": "Caffeine Temporarily Improves Productivity",
+        "authors": "Morning Research Desk",
+        "publish_date": "Before 9:00 AM",
+        "source": "The Nearest Coffee Shop",
+        "text": (
+            "Researchers confirmed that coffee may temporarily increase "
+            "alertness, motivation, and confidence in unfinished work. "
+            "Benefits were strongest during the first hour and declined "
+            "rapidly after lunch. Additional testing is required, preferably "
+            "after another iced coffee."
+        ),
+        "message": "Caffeine-powered analysis activated.",
+    },
+}
+
+
+ANALYZER_THOUGHTS = [
+    "That was a lot of words to reach the final paragraph.",
+    "The headline appears more confident than the article.",
+    "Another document has been successfully documented.",
+    "The important information was hiding in paragraph twelve.",
+    "This article contains a statistically significant number of commas.",
+    "The summary is shorter. That is already progress.",
+    "No spreadsheets were harmed during this analysis.",
+    "The article has been reduced to a more manageable amount of article.",
+    "Several paragraphs were apparently necessary to say that.",
 ]
 
 
@@ -52,7 +296,10 @@ def summarize_article(text):
     cleaned_text = clean_article_text(text)
 
     if len(cleaned_text) > SUMMARY_CHARACTER_LIMIT:
-        return cleaned_text[:SUMMARY_CHARACTER_LIMIT].rstrip() + "..."
+        return (
+            cleaned_text[:SUMMARY_CHARACTER_LIMIT].rstrip()
+            + "..."
+        )
 
     return cleaned_text
 
@@ -66,13 +313,21 @@ def get_text_statistics(text):
     sentences = re.split(r"(?<=[.!?])\s+", cleaned_text)
 
     sentence_count = len(
-        [sentence for sentence in sentences if sentence.strip()]
+        [
+            sentence
+            for sentence in sentences
+            if sentence.strip()
+        ]
     )
 
     word_count = len(words)
     character_count = len(cleaned_text)
 
-    estimated_reading_time = max(1, round(word_count / 225)) if word_count else 0
+    estimated_reading_time = (
+        max(1, round(word_count / 225))
+        if word_count
+        else 0
+    )
 
     return {
         "Words": word_count,
@@ -82,6 +337,90 @@ def get_text_statistics(text):
     }
 
 
+def clean_author_metadata(authors):
+    """
+    Remove obvious date, time, and reading-length fragments that may
+    be incorrectly detected as author names.
+    """
+
+    if not authors or authors == "Not detected":
+        return "Not detected"
+
+    invalid_terms = {
+        "mon",
+        "monday",
+        "tue",
+        "tues",
+        "tuesday",
+        "wed",
+        "wednesday",
+        "thu",
+        "thurs",
+        "thursday",
+        "fri",
+        "friday",
+        "sat",
+        "saturday",
+        "sun",
+        "sunday",
+        "january",
+        "february",
+        "march",
+        "april",
+        "may",
+        "june",
+        "july",
+        "august",
+        "september",
+        "october",
+        "november",
+        "december",
+        "am",
+        "pm",
+        "pdt",
+        "pst",
+        "est",
+        "edt",
+        "cst",
+        "cdt",
+        "min read",
+        "minute read",
+    }
+
+    author_parts = [
+        part.strip()
+        for part in authors.split(",")
+        if part.strip()
+    ]
+
+    cleaned_parts = []
+
+    for part in author_parts:
+        normalized = part.lower().strip()
+
+        if normalized in invalid_terms:
+            continue
+
+        if re.fullmatch(
+            r"\d+\s*min(?:ute)?s?\s*read",
+            normalized,
+        ):
+            continue
+
+        if re.fullmatch(
+            r"\d{1,2}:\d{2}\s*(am|pm)?",
+            normalized,
+        ):
+            continue
+
+        cleaned_parts.append(part)
+
+    if not cleaned_parts:
+        return "Not detected"
+
+    return ", ".join(cleaned_parts)
+
+
 def extract_article_from_url(url):
     """Download and extract article text from a webpage."""
 
@@ -89,10 +428,16 @@ def extract_article_from_url(url):
     article.download()
     article.parse()
 
+    raw_authors = (
+        ", ".join(article.authors)
+        if article.authors
+        else "Not detected"
+    )
+
     return {
         "text": clean_article_text(article.text),
         "title": article.title or "Untitled Article",
-        "authors": ", ".join(article.authors) if article.authors else "Not detected",
+        "authors": clean_author_metadata(raw_authors),
         "publish_date": (
             article.publish_date.strftime("%B %d, %Y")
             if article.publish_date
@@ -108,13 +453,102 @@ def extract_text_from_pdf(pdf_file):
     extracted_pages = []
 
     with pdfplumber.open(pdf_file) as pdf:
-        for page_number, page in enumerate(pdf.pages, start=1):
+        for page_number, page in enumerate(
+            pdf.pages,
+            start=1,
+        ):
             page_text = page.extract_text()
 
             if page_text:
                 extracted_pages.append(page_text)
 
-    return clean_article_text("\n\n".join(extracted_pages))
+    return clean_article_text(
+        "\n\n".join(extracted_pages)
+    )
+
+
+def get_source_message(url):
+    """Return an Easter egg message for a recognized domain."""
+
+    try:
+        domain = urlparse(url).netloc.lower()
+    except (TypeError, ValueError):
+        return None
+
+    if domain.startswith("www."):
+        domain = domain[4:]
+
+    for recognized_domain, message in SOURCE_MESSAGES.items():
+        if (
+            domain == recognized_domain
+            or domain.endswith(f".{recognized_domain}")
+        ):
+            return message
+
+    return None
+
+
+def detect_hidden_article_command(
+    input_mode,
+    article_input,
+):
+    """Detect an exact command entered through pasted text."""
+
+    if input_mode != "Paste Text":
+        return None
+
+    command = clean_article_text(
+        article_input or ""
+    ).upper()
+
+    if command in HIDDEN_ARTICLE_COMMANDS:
+        return command
+
+    return None
+
+
+def load_hidden_article(command):
+    """Load a fictional hidden article into session state."""
+
+    hidden_article = HIDDEN_ARTICLE_COMMANDS[command]
+
+    st.session_state.article_title = (
+        hidden_article["title"]
+    )
+
+    st.session_state.article_authors = (
+        hidden_article["authors"]
+    )
+
+    st.session_state.article_publish_date = (
+        hidden_article["publish_date"]
+    )
+
+    st.session_state.article_source = (
+        hidden_article["source"]
+    )
+
+    st.session_state.article_text = (
+        hidden_article["text"]
+    )
+
+    st.session_state.article_summary = summarize_article(
+        hidden_article["text"]
+    )
+
+    st.session_state.article_analyzed = True
+    st.session_state.article_hidden_command = command
+
+    if (
+        st.session_state.article_last_hidden_animation
+        != command
+    ):
+        st.balloons()
+        st.toast(hidden_article["message"])
+
+        st.session_state.article_last_hidden_animation = (
+            command
+        )
 
 
 # =========================================================
@@ -140,12 +574,24 @@ def prepare_text_for_pdf(text):
     }
 
     for original, replacement in replacements.items():
-        text = text.replace(original, replacement)
+        text = text.replace(
+            original,
+            replacement,
+        )
 
-    return text.encode("latin-1", errors="replace").decode("latin-1")
+    return (
+        text.encode(
+            "latin-1",
+            errors="replace",
+        )
+        .decode("latin-1")
+    )
 
 
-def export_summary_to_pdf(summary, title="Article Summary"):
+def export_summary_to_pdf(
+    summary,
+    title="Article Summary",
+):
     """Create a temporary PDF containing the article summary."""
 
     safe_title = prepare_text_for_pdf(title)
@@ -153,12 +599,20 @@ def export_summary_to_pdf(summary, title="Article Summary"):
 
     pdf = FPDF()
     pdf.add_page()
-    pdf.set_auto_page_break(auto=True, margin=15)
+    pdf.set_auto_page_break(
+        auto=True,
+        margin=15,
+    )
 
     pdf.set_title(safe_title)
     pdf.set_author("FidSync")
 
-    pdf.set_font("Arial", style="B", size=16)
+    pdf.set_font(
+        "Arial",
+        style="B",
+        size=16,
+    )
+
     pdf.multi_cell(
         0,
         10,
@@ -168,8 +622,14 @@ def export_summary_to_pdf(summary, title="Article Summary"):
 
     pdf.ln(2)
 
-    pdf.set_draw_color(43, 108, 176)
+    pdf.set_draw_color(
+        43,
+        108,
+        176,
+    )
+
     pdf.set_line_width(0.7)
+
     pdf.line(
         pdf.get_x(),
         pdf.get_y(),
@@ -179,7 +639,11 @@ def export_summary_to_pdf(summary, title="Article Summary"):
 
     pdf.ln(7)
 
-    pdf.set_font("Arial", size=11)
+    pdf.set_font(
+        "Arial",
+        size=11,
+    )
+
     pdf.multi_cell(
         0,
         7,
@@ -189,8 +653,18 @@ def export_summary_to_pdf(summary, title="Article Summary"):
 
     pdf.ln(7)
 
-    pdf.set_font("Arial", style="I", size=8)
-    pdf.set_text_color(95, 110, 125)
+    pdf.set_font(
+        "Arial",
+        style="I",
+        size=8,
+    )
+
+    pdf.set_text_color(
+        95,
+        110,
+        125,
+    )
+
     pdf.multi_cell(
         0,
         5,
@@ -226,6 +700,13 @@ def initialize_session_state():
         "article_summary": "",
         "article_analyzed": False,
         "article_error": "",
+        "article_hidden_command": "",
+        "article_last_hidden_animation": "",
+        "article_analysis_count": 0,
+        "article_input_methods_used": [],
+        "article_achievements": [],
+        "article_pending_achievements": [],
+        "article_greeting_shown": False,
     }
 
     for key, value in default_values.items():
@@ -234,7 +715,11 @@ def initialize_session_state():
 
 
 def clear_analysis():
-    """Clear the current article and analysis results."""
+    """
+    Clear the current article and results.
+
+    Achievement progress remains available for the session.
+    """
 
     st.session_state.article_text = ""
     st.session_state.article_title = ""
@@ -244,6 +729,156 @@ def clear_analysis():
     st.session_state.article_summary = ""
     st.session_state.article_analyzed = False
     st.session_state.article_error = ""
+    st.session_state.article_hidden_command = ""
+    st.session_state.article_last_hidden_animation = ""
+
+
+# =========================================================
+# Achievements and Easter egg helpers
+# =========================================================
+
+def unlock_article_achievement(
+    name,
+    description,
+):
+    """Unlock an achievement once per session."""
+
+    if name in st.session_state.article_achievements:
+        return False
+
+    st.session_state.article_achievements.append(name)
+
+    st.session_state.article_pending_achievements.append(
+        f"{name} — {description}"
+    )
+
+    return True
+
+
+def record_article_analysis(
+    input_mode,
+    article_text,
+):
+    """Record an analysis and check for achievements."""
+
+    st.session_state.article_analysis_count += 1
+
+    if (
+        input_mode
+        not in st.session_state.article_input_methods_used
+    ):
+        st.session_state.article_input_methods_used.append(
+            input_mode
+        )
+
+    analysis_count = (
+        st.session_state.article_analysis_count
+    )
+
+    if analysis_count == 1:
+        unlock_article_achievement(
+            "First Draft",
+            "completed your first article analysis.",
+        )
+
+    if analysis_count >= 5:
+        unlock_article_achievement(
+            "Research Assistant",
+            "completed five analyses in one session.",
+        )
+
+    if (
+        len(
+            st.session_state.article_input_methods_used
+        )
+        == 3
+    ):
+        unlock_article_achievement(
+            "Format Fluent",
+            "used URL, pasted-text, and PDF inputs.",
+        )
+
+    word_count = get_text_statistics(
+        article_text
+    )["Words"]
+
+    if word_count >= 3000:
+        unlock_article_achievement(
+            "Long Read",
+            "analyzed an article containing at least 3,000 words.",
+        )
+
+    if st.session_state.article_hidden_command:
+        unlock_article_achievement(
+            "Archive Explorer",
+            "discovered a hidden article.",
+        )
+
+
+def show_article_achievements():
+    """Display newly unlocked achievements."""
+
+    pending_achievements = (
+        st.session_state.article_pending_achievements
+    )
+
+    for achievement in pending_achievements:
+        st.toast(
+            f"Achievement unlocked: {achievement}"
+        )
+
+    st.session_state.article_pending_achievements = []
+
+
+def render_analyzer_greeting():
+    """Display a time-based message once per session."""
+
+    if st.session_state.article_greeting_shown:
+        return
+
+    current_time = datetime.now()
+    message = None
+
+    if current_time.hour < 8:
+        message = (
+            "Early-morning research session detected."
+        )
+
+    elif current_time.hour >= 20:
+        message = (
+            "Late-night reading mode activated."
+        )
+
+    elif current_time.weekday() == 4:
+        message = (
+            "Friday research session. "
+            "Keep the article concise."
+        )
+
+    if message:
+        st.toast(message)
+
+    st.session_state.article_greeting_shown = True
+
+
+def maybe_render_analyzer_thought():
+    """Display an occasional FidSync observation."""
+
+    analysis_count = (
+        st.session_state.article_analysis_count
+    )
+
+    if (
+        analysis_count > 0
+        and analysis_count % 3 == 0
+    ):
+        thought = random.choice(
+            ANALYZER_THOUGHTS
+        )
+
+        st.caption(
+            f'FidSync thinks: "{thought}"'
+        )
 
 
 # =========================================================
@@ -277,7 +912,9 @@ def apply_page_styles():
                     );
                 border: 1px solid #2d496b;
                 border-radius: 1rem;
-                box-shadow: 0 8px 24px rgba(16, 37, 66, 0.12);
+                box-shadow:
+                    0 8px 24px
+                    rgba(16, 37, 66, 0.12);
             }
 
             .analyzer-header-label {
@@ -343,7 +980,9 @@ def apply_page_styles():
                 background-color: white;
                 border: 1px solid #dce3ec;
                 border-radius: 0.75rem;
-                box-shadow: 0 2px 8px rgba(16, 37, 66, 0.04);
+                box-shadow:
+                    0 2px 8px
+                    rgba(16, 37, 66, 0.04);
             }
 
             [data-testid="stMetricLabel"] {
@@ -375,7 +1014,8 @@ def apply_page_styles():
             [data-baseweb="textarea"] > div:focus-within,
             [data-baseweb="select"] > div:focus-within {
                 border-color: #2b6cb0;
-                box-shadow: 0 0 0 1px #2b6cb0;
+                box-shadow:
+                    0 0 0 1px #2b6cb0;
             }
 
             /* Buttons */
@@ -385,28 +1025,21 @@ def apply_page_styles():
                 font-weight: 650;
             }
 
-            div[data-testid="stButton"] button[kind="primary"] {
+            div[data-testid="stButton"]
+            button[kind="primary"] {
                 background-color: #2b6cb0;
                 border-color: #2b6cb0;
                 color: white;
             }
 
-            div[data-testid="stButton"] button[kind="primary"]:hover {
+            div[data-testid="stButton"]
+            button[kind="primary"]:hover {
                 background-color: #1f568f;
                 border-color: #1f568f;
                 color: white;
             }
 
             /* Summary result */
-            .summary-card {
-                padding: 1.4rem 1.5rem;
-                margin-top: 0.8rem;
-                background-color: white;
-                border: 1px solid #dce3ec;
-                border-radius: 0.8rem;
-                box-shadow: 0 3px 12px rgba(16, 37, 66, 0.05);
-            }
-
             .summary-card-label {
                 margin-bottom: 0.5rem;
                 color: #2b6cb0;
@@ -414,35 +1047,6 @@ def apply_page_styles():
                 font-weight: 750;
                 letter-spacing: 0.06rem;
                 text-transform: uppercase;
-            }
-
-            .summary-card-title {
-                margin-bottom: 0.8rem;
-                color: #102542;
-                font-size: 1.1rem;
-                font-weight: 720;
-            }
-
-            .article-metadata {
-                padding: 1rem 1.1rem;
-                margin-bottom: 1rem;
-                background-color: #f7fafd;
-                border: 1px solid #d6e1f3;
-                border-radius: 0.65rem;
-            }
-
-            .metadata-row {
-                display: grid;
-                grid-template-columns: 105px 1fr;
-                gap: 0.7rem;
-                padding: 0.3rem 0;
-                color: #64748b;
-                font-size: 0.82rem;
-                line-height: 1.45;
-            }
-
-            .metadata-row strong {
-                color: #102542;
             }
 
             /* Download button */
@@ -455,7 +1059,8 @@ def apply_page_styles():
                 font-weight: 700;
             }
 
-            [data-testid="stDownloadButton"] > button:hover {
+            [data-testid="stDownloadButton"]
+            > button:hover {
                 background-color: #1f568f;
                 border-color: #1f568f;
                 color: white;
@@ -477,11 +1082,6 @@ def apply_page_styles():
             @media (max-width: 700px) {
                 .analyzer-header {
                     padding: 1.7rem;
-                }
-
-                .metadata-row {
-                    grid-template-columns: 1fr;
-                    gap: 0.1rem;
                 }
             }
         </style>
@@ -568,14 +1168,19 @@ def render_input_section():
         )
 
         if article_input:
-            file_size_mb = article_input.size / (1024 * 1024)
+            file_size_mb = (
+                article_input.size
+                / (1024 * 1024)
+            )
 
             st.caption(
                 f"Selected file: {article_input.name} "
                 f"({file_size_mb:.2f} MB)"
             )
 
-    action_col1, action_col2 = st.columns([3, 1])
+    action_col1, action_col2 = st.columns(
+        [3, 1]
+    )
 
     with action_col1:
         analyze_clicked = st.button(
@@ -601,25 +1206,60 @@ def render_input_section():
         )
 
 
-def process_article_input(input_mode, article_input):
+def process_article_input(
+    input_mode,
+    article_input,
+):
     """Validate and process the selected article input."""
 
     clear_analysis()
 
+    hidden_command = detect_hidden_article_command(
+        input_mode,
+        article_input,
+    )
+
+    if hidden_command:
+        load_hidden_article(hidden_command)
+
+        record_article_analysis(
+            input_mode,
+            st.session_state.article_text,
+        )
+
+        return
+
     if input_mode == "Paste URL":
-        url = (article_input or "").strip()
+        url = (
+            article_input or ""
+        ).strip()
 
         if not url:
-            st.error("Enter an article URL before analyzing.")
+            st.error(
+                "Enter an article URL before analyzing."
+            )
             return
 
-        if not re.match(r"^https?://", url, flags=re.IGNORECASE):
-            st.error("Enter a complete URL beginning with http:// or https://.")
+        if not re.match(
+            r"^https?://",
+            url,
+            flags=re.IGNORECASE,
+        ):
+            st.error(
+                "Enter a complete URL beginning "
+                "with http:// or https://."
+            )
             return
 
         try:
-            with st.spinner("Retrieving and processing the article..."):
-                article_data = extract_article_from_url(url)
+            with st.spinner(
+                random.choice(
+                    ANALYSIS_LOADING_MESSAGES
+                )
+            ):
+                article_data = (
+                    extract_article_from_url(url)
+                )
 
             if not article_data["text"]:
                 st.error(
@@ -628,14 +1268,35 @@ def process_article_input(input_mode, article_input):
                 )
                 return
 
-            st.session_state.article_text = article_data["text"]
-            st.session_state.article_title = article_data["title"]
-            st.session_state.article_authors = article_data["authors"]
-            st.session_state.article_publish_date = article_data["publish_date"]
-            st.session_state.article_source = article_data["source"]
+            st.session_state.article_text = (
+                article_data["text"]
+            )
+
+            st.session_state.article_title = (
+                article_data["title"]
+            )
+
+            st.session_state.article_authors = (
+                article_data["authors"]
+            )
+
+            st.session_state.article_publish_date = (
+                article_data["publish_date"]
+            )
+
+            st.session_state.article_source = (
+                article_data["source"]
+            )
+
+            source_message = get_source_message(url)
+
+            if source_message:
+                st.toast(source_message)
 
         except Exception as error:
-            st.session_state.article_error = str(error)
+            st.session_state.article_error = str(
+                error
+            )
 
             st.error(
                 "The article could not be retrieved. The website may block "
@@ -643,16 +1304,22 @@ def process_article_input(input_mode, article_input):
                 "unsupported page structure."
             )
 
-            with st.expander("View technical details"):
+            with st.expander(
+                "View technical details"
+            ):
                 st.code(str(error))
 
             return
 
     elif input_mode == "Paste Text":
-        pasted_text = clean_article_text(article_input or "")
+        pasted_text = clean_article_text(
+            article_input or ""
+        )
 
         if not pasted_text:
-            st.error("Paste article text before analyzing.")
+            st.error(
+                "Paste article text before analyzing."
+            )
             return
 
         if len(pasted_text) < 100:
@@ -661,20 +1328,44 @@ def process_article_input(input_mode, article_input):
                 "may not contain enough context."
             )
 
-        st.session_state.article_text = pasted_text
-        st.session_state.article_title = "Pasted Article"
-        st.session_state.article_authors = "Not provided"
-        st.session_state.article_publish_date = "Not provided"
-        st.session_state.article_source = "Pasted text"
+        st.session_state.article_text = (
+            pasted_text
+        )
+
+        st.session_state.article_title = (
+            "Pasted Article"
+        )
+
+        st.session_state.article_authors = (
+            "Not provided"
+        )
+
+        st.session_state.article_publish_date = (
+            "Not provided"
+        )
+
+        st.session_state.article_source = (
+            "Pasted text"
+        )
 
     elif input_mode == "Upload PDF":
         if article_input is None:
-            st.error("Upload a PDF before analyzing.")
+            st.error(
+                "Upload a PDF before analyzing."
+            )
             return
 
         try:
-            with st.spinner("Extracting text from the PDF..."):
-                extracted_text = extract_text_from_pdf(article_input)
+            with st.spinner(
+                random.choice(
+                    PDF_LOADING_MESSAGES
+                )
+            ):
+                extracted_text = (
+                    extract_text_from_pdf(
+                        article_input
+                    )
+                )
 
             if not extracted_text:
                 st.error(
@@ -683,21 +1374,40 @@ def process_article_input(input_mode, article_input):
                 )
                 return
 
-            st.session_state.article_text = extracted_text
-            st.session_state.article_title = os.path.splitext(
-                article_input.name
-            )[0]
+            st.session_state.article_text = (
+                extracted_text
+            )
 
-            st.session_state.article_authors = "Not detected"
-            st.session_state.article_publish_date = "Not detected"
-            st.session_state.article_source = article_input.name
+            st.session_state.article_title = (
+                os.path.splitext(
+                    article_input.name
+                )[0]
+            )
+
+            st.session_state.article_authors = (
+                "Not detected"
+            )
+
+            st.session_state.article_publish_date = (
+                "Not detected"
+            )
+
+            st.session_state.article_source = (
+                article_input.name
+            )
 
         except Exception as error:
-            st.session_state.article_error = str(error)
+            st.session_state.article_error = str(
+                error
+            )
 
-            st.error("The uploaded PDF could not be processed.")
+            st.error(
+                "The uploaded PDF could not be processed."
+            )
 
-            with st.expander("View technical details"):
+            with st.expander(
+                "View technical details"
+            ):
                 st.code(str(error))
 
             return
@@ -708,6 +1418,11 @@ def process_article_input(input_mode, article_input):
 
     st.session_state.article_analyzed = True
 
+    record_article_analysis(
+        input_mode,
+        st.session_state.article_text,
+    )
+
 
 # =========================================================
 # Results
@@ -717,9 +1432,17 @@ def render_results():
     if not st.session_state.article_analyzed:
         return
 
-    article_text = st.session_state.article_text
-    summary = st.session_state.article_summary
-    statistics = get_text_statistics(article_text)
+    article_text = (
+        st.session_state.article_text
+    )
+
+    summary = (
+        st.session_state.article_summary
+    )
+
+    statistics = get_text_statistics(
+        article_text
+    )
 
     st.markdown(
         """
@@ -731,7 +1454,9 @@ def render_results():
         unsafe_allow_html=True,
     )
 
-    metric_col1, metric_col2, metric_col3, metric_col4 = st.columns(4)
+    metric_col1, metric_col2, metric_col3, metric_col4 = (
+        st.columns(4)
+    )
 
     with metric_col1:
         st.metric(
@@ -757,36 +1482,70 @@ def render_results():
             statistics["Reading Time"],
         )
 
-    title = st.session_state.article_title or "Untitled Article"
-    authors = st.session_state.article_authors or "Not detected"
-    publish_date = st.session_state.article_publish_date or "Not detected"
-    source = st.session_state.article_source or "Not provided"
+    maybe_render_analyzer_thought()
 
-    st.markdown("#### Article details")
-    
-    detail_col1, detail_col2 = st.columns([1, 4])
-    with detail_col1:
-        st.markdown("**Title**")
-    with detail_col2:
-        st.write(title)
-    
-    detail_col1, detail_col2 = st.columns([1, 4])
-    with detail_col1:
-        st.markdown("**Author**")
-    with detail_col2:
-        st.write(authors)
-    
-    detail_col1, detail_col2 = st.columns([1, 4])
-    with detail_col1:
-        st.markdown("**Published**")
-    with detail_col2:
-        st.write(publish_date)
-    
-    detail_col1, detail_col2 = st.columns([1, 4])
-    with detail_col1:
-        st.markdown("**Source**")
-    with detail_col2:
-        st.write(source)
+    title = (
+        st.session_state.article_title
+        or "Untitled Article"
+    )
+
+    authors = (
+        st.session_state.article_authors
+        or "Not detected"
+    )
+
+    publish_date = (
+        st.session_state.article_publish_date
+        or "Not detected"
+    )
+
+    source = (
+        st.session_state.article_source
+        or "Not provided"
+    )
+
+    with st.container(border=True):
+        st.markdown("#### Article details")
+
+        detail_col1, detail_col2 = st.columns(
+            [1, 4]
+        )
+
+        with detail_col1:
+            st.markdown("**Title**")
+
+        with detail_col2:
+            st.write(title)
+
+        detail_col1, detail_col2 = st.columns(
+            [1, 4]
+        )
+
+        with detail_col1:
+            st.markdown("**Author**")
+
+        with detail_col2:
+            st.write(authors)
+
+        detail_col1, detail_col2 = st.columns(
+            [1, 4]
+        )
+
+        with detail_col1:
+            st.markdown("**Published**")
+
+        with detail_col2:
+            st.write(publish_date)
+
+        detail_col1, detail_col2 = st.columns(
+            [1, 4]
+        )
+
+        with detail_col1:
+            st.markdown("**Source**")
+
+        with detail_col2:
+            st.write(source)
 
     summary_tab, source_tab, details_tab = st.tabs(
         [
@@ -799,7 +1558,9 @@ def render_results():
     with summary_tab:
         st.markdown(
             """
-            <div class="summary-card-label">Generated Summary</div>
+            <div class="summary-card-label">
+                Generated Summary
+            </div>
             """,
             unsafe_allow_html=True,
         )
@@ -812,7 +1573,13 @@ def render_results():
         if original_length:
             retained_percentage = min(
                 100,
-                round((summary_length / original_length) * 100),
+                round(
+                    (
+                        summary_length
+                        / original_length
+                    )
+                    * 100
+                ),
             )
         else:
             retained_percentage = 0
@@ -839,6 +1606,7 @@ def render_results():
                     "Sentence count",
                     "Estimated reading time",
                     "Summary character limit",
+                    "Input analyses this session",
                 ],
                 "Value": [
                     f"{statistics['Words']:,}",
@@ -846,6 +1614,9 @@ def render_results():
                     f"{statistics['Sentences']:,}",
                     statistics["Reading Time"],
                     f"{SUMMARY_CHARACTER_LIMIT:,}",
+                    (
+                        f"{st.session_state.article_analysis_count:,}"
+                    ),
                 ],
             }
         )
@@ -856,10 +1627,16 @@ def render_results():
             hide_index=True,
         )
 
-    render_export_section(summary, title)
+    render_export_section(
+        summary,
+        title,
+    )
 
 
-def render_export_section(summary, title):
+def render_export_section(
+    summary,
+    title,
+):
     st.markdown(
         """
         <div class="section-heading">Export summary</div>
@@ -876,7 +1653,10 @@ def render_export_section(summary, title):
             title=title,
         )
 
-        with open(pdf_path, "rb") as pdf_file:
+        with open(
+            pdf_path,
+            "rb",
+        ) as pdf_file:
             pdf_data = pdf_file.read()
 
         safe_filename = re.sub(
@@ -888,18 +1668,42 @@ def render_export_section(summary, title):
         if not safe_filename:
             safe_filename = "article_summary"
 
-        st.download_button(
+        downloaded = st.download_button(
             label="Download Summary as PDF",
             data=pdf_data,
-            file_name=f"{safe_filename}_summary.pdf",
+            file_name=(
+                f"{safe_filename}_summary.pdf"
+            ),
             mime="application/pdf",
             use_container_width=True,
         )
 
-    except Exception as error:
-        st.error("The PDF could not be generated.")
+        if downloaded:
+            st.toast(
+                "Another PDF enters the archive."
+            )
 
-        with st.expander("View technical details"):
+            if (
+                "Documented"
+                not in st.session_state.article_achievements
+            ):
+                st.session_state.article_achievements.append(
+                    "Documented"
+                )
+
+                st.toast(
+                    "Achievement unlocked: Documented — "
+                    "exported an article summary as a PDF."
+                )
+
+    except Exception as error:
+        st.error(
+            "The PDF could not be generated."
+        )
+
+        with st.expander(
+            "View technical details"
+        ):
             st.code(str(error))
 
 
@@ -914,7 +1718,9 @@ def main():
     st.markdown(
         """
         <div class="analyzer-header">
-            <div class="analyzer-header-label">Research Tool</div>
+            <div class="analyzer-header-label">
+                Research Tool
+            </div>
             <h1>Article Analyzer</h1>
             <p>
                 Extract and review article content from a webpage, pasted text,
@@ -927,6 +1733,8 @@ def main():
     )
 
     render_input_section()
+    render_analyzer_greeting()
+    show_article_achievements()
     render_results()
 
     st.markdown(
