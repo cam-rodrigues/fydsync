@@ -851,6 +851,7 @@ def apply_page_styles():
 # =========================================================
 
 def run():
+    st.error("NEW RESOURCES FILE IS LOADING")
     apply_page_styles()
 
     total_resources = sum(
