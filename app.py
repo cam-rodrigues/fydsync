@@ -138,7 +138,7 @@ def initialize_app_state() -> None:
         "duck_debugger_open": False,
         "duck_consulted": False,
         "duck_response": "",
-        "duck_solved": "Not yet",
+        "duck_solved_choice": "Not yet",
         "duck_celebrated": False,
     }
 
@@ -643,7 +643,7 @@ with st.sidebar.expander(
                 st.session_state.duck_response = random.choice(
                     DUCK_RESPONSES
                 )
-                st.session_state.duck_solved = "Not yet"
+                st.session_state.duck_solved_choice = "Not yet"
                 st.session_state.duck_celebrated = False
             else:
                 st.warning(
@@ -659,7 +659,7 @@ with st.sidebar.expander(
             solved = st.radio(
                 "Problem solved?",
                 ["Not yet", "Yes"],
-                key="duck_solved",
+                key="duck_solved_choice",
                 horizontal=True,
             )
 
@@ -688,7 +688,7 @@ with st.sidebar.expander(
             ):
                 st.session_state.duck_consulted = False
                 st.session_state.duck_response = ""
-                st.session_state.duck_solved = "Not yet"
+                st.session_state.duck_solved_choice = "Not yet"
                 st.session_state.duck_celebrated = False
                 st.session_state.rubber_duck_problem = ""
                 st.rerun()
