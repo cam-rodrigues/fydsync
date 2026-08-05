@@ -599,12 +599,11 @@ def run():
             f"{unresolved_tickers} fund {'has' if unresolved_tickers == 1 else 'have'} "
             "an unresolved ticker and should be reviewed before export."
         )
-  
+
     with st.expander(
-        "Export Options",
+        "📦 Export Options",
         expanded=False,
     ):
-        st.caption("Ctrl+S's cooler cousin.")
         st.caption("Downloads include all detected funds, not only the currently filtered rows.")
 
         if st.session_state.get("export_pdf_key") != pdf_key:
@@ -627,13 +626,16 @@ def run():
             file_name="fund_criteria_results.csv",
             mime="text/csv",
             use_container_width=True,
+            help="Ctrl+S's cooler cousin.",
         )
+        
         download_col_2.download_button(
             "Download as Excel",
             data=excel_data,
             file_name="fund_criteria_results.xlsx",
             mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
             use_container_width=True,
+            help="Ctrl+S's cooler cousin.",
         )
 
 
