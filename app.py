@@ -1,12 +1,13 @@
 # app.py
 
-from datetime import datetime, timedelta
+from datetime import datetime
 import importlib.util
 import os
 import random
 
 import streamlit as st
-from streamlit_autorefresh import st_autorefresh
+
+
 # =========================================================
 # File paths
 # =========================================================
@@ -30,18 +31,6 @@ WORDMARK_PATH = os.path.join(
 )
 
 DEFAULT_PAGE = "Getting_Started.py"
-
-BREAK_REMINDER_MINUTES = 60
-BREAK_CHECK_INTERVAL_MS = 60 * 1000
-
-BREAK_REMINDER_MESSAGES = [
-    ("Coffee break", "Step away for a few minutes and give your eyes a reset.", "☕"),
-    ("Screen break", "Look at something farther away and relax your focus.", "👀"),
-    ("Hydration check", "Grab some water and move around for a minute.", "💧"),
-    ("Posture reset", "Drop your shoulders, unclench your jaw, and sit back.", "🧘"),
-    ("Stretch break", "Stand up and stretch before returning to the spreadsheets.", "🧍"),
-    ("Quick reset", "The work will still be here after a short break.", "⏸️"),
-]
 
 TIME_MESSAGES = {
     "early": [
@@ -103,10 +92,6 @@ def initialize_app_state() -> None:
         "app_system_check_clicks": 0,
         "app_secret_mode": False,
         "app_diagnostics_unlocked": False,
-        "break_reminders_enabled": True,
-        "break_reminder_interval_minutes": BREAK_REMINDER_MINUTES,
-        "last_break_reminder": datetime.now(),
-        "break_reminder_count": 0,
         "time_greeting_shown": False,
         "rare_startup_message_checked": False,
     }
@@ -215,44 +200,6 @@ def maybe_show_rare_startup_message() -> None:
         )
 
 
-def reset_break_timer() -> None:
-    """Restart the break-reminder timer from the current moment."""
-
-    st.session_state.last_break_reminder = datetime.now()
-
-
-def check_break_reminder() -> None:
-    """Show a reminder after the configured amount of active app time."""
-
-    if not st.session_state.break_reminders_enabled:
-        return
-
-    now = datetime.now()
-    interval_minutes = st.session_state.break_reminder_interval_minutes
-    reminder_interval = timedelta(minutes=interval_minutes)
-
-    if now - st.session_state.last_break_reminder < reminder_interval:
-        return
-
-    title, message, icon = random.choice(BREAK_REMINDER_MESSAGES)
-
-    st.toast(
-        f"{title}: {message}",
-        icon=icon,
-    )
-
-    st.session_state.last_break_reminder = now
-    st.session_state.break_reminder_count += 1
-
-
-# Rerun once per minute so the app can check whether a reminder is due.
-# This does not display a reminder every minute.
-st_autorefresh(
-    interval=BREAK_CHECK_INTERVAL_MS,
-    key="fidsync_break_reminder_refresh",
-)
-
-check_break_reminder()
 show_time_greeting()
 maybe_show_rare_startup_message()
 
@@ -595,39 +542,6 @@ with st.sidebar.expander(
     st.caption("Merged-cell tolerance: Low")
 
     st.divider()
-
-    st.toggle(
-        "Break reminders",
-        key="break_reminders_enabled",
-        help=(
-            "Show a short wellness reminder after the selected amount "
-            "of active app time."
-        ),
-        on_change=reset_break_timer,
-    )
-
-    reminder_interval = st.selectbox(
-        "Reminder interval",
-        options=[30, 45, 60, 90],
-        format_func=lambda minutes: f"Every {minutes} minutes",
-        key="break_reminder_interval_minutes",
-        disabled=not st.session_state.break_reminders_enabled,
-        on_change=reset_break_timer,
-    )
-
-    if st.session_state.break_reminders_enabled:
-        st.caption(
-            f"Reminders shown this session: "
-            f"{st.session_state.break_reminder_count}"
-        )
-
-        if st.button(
-            "Reset Break Timer",
-            key="reset_break_timer_button",
-            use_container_width=True,
-        ):
-            reset_break_timer()
-            st.toast("Break timer restarted.", icon="⏱️")
 
     if st.button(
         "Run System Check",
