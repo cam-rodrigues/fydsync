@@ -62,3 +62,6 @@ loguru
 tqdm
 beautifulsoup4
 pytz
+
+#For Reminders
+streamlit-autorefresh
