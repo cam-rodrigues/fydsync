@@ -100,7 +100,7 @@ def run():
     # Only sites listed here receive a hidden hover note.
     easter_eggs = {
         "Bloomberg": {
-            "title": "Opening Bloomberg...",
+            "title": "Advisor's Note",
             "message": (
                 "We checked.<br>"
                 "The market is still doing market things."
@@ -119,19 +119,25 @@ def run():
             ),
         },
         "Fidelity": {
-            "title": "Tiny Note",
+            "title": "Tiny Encouragement",
             "message": (
                 "Hope today treats your portfolio kindly."
             ),
         },
+        "Envestnet": {
+            "title": "Tiny Note",
+            "message": (
+                "It's the teamwork app."
+            ),
+        },
         "Forbes": {
-            "title": "Developer Sticky Note",
+            "title": "Psst...,
             "message": (
                 "Billionaire energy detected."
             ),
         },
         "IRS": {
-            "title": "Tiny Note",
+            "title": "Friendly Reminder",
             "message": (
                 "This page pairs well with coffee."
             ),
