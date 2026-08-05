@@ -599,8 +599,12 @@ def run():
             f"{unresolved_tickers} fund {'has' if unresolved_tickers == 1 else 'have'} "
             "an unresolved ticker and should be reviewed before export."
         )
-
-    with st.expander("Download Results", expanded=False):
+  
+    with st.expander(
+        "Export Options",
+        expanded=False,
+    ):
+        st.caption("Ctrl+S's cooler cousin.")
         st.caption("Downloads include all detected funds, not only the currently filtered rows.")
 
         if st.session_state.get("export_pdf_key") != pdf_key:
