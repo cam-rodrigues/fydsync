@@ -87,7 +87,28 @@ FAKE_RECOVERY_MESSAGES = [
     "Carry on.",
 ]
 
-
+DUCK_RESPONSES = [
+    "Have you tried reading the traceback again?",
+    "What changed since it last worked?",
+    "Print the variable.",
+    "Check the indentation.",
+    "It's probably a typo.",
+    "Excel has been known to lie.",
+    "Merged cells are rarely innocent.",
+    "Try restarting just this tool.",
+    "The answer may already be in the error message.",
+    "Maybe check the logs.",
+    "The bug is afraid of breakpoints.",
+    "Maybe it's working exactly as you told it to.",
+    "If all else fails, blame caching.",
+    "There is a 93% chance the answer is above the error.",
+    "Have you tried turning the code off and on again?",
+    "Did you accidentally merge those cells again?",
+    "One missing comma can ruin an entire afternoon.",
+    "The compiler isn't mad. Just disappointed.",
+    "If the bug disappeared, it has become a feature.",
+    "The duck believes in you.",
+]
 # =========================================================
 # Page configuration
 # =========================================================
@@ -114,6 +135,11 @@ def initialize_app_state() -> None:
         "time_greeting_shown": False,
         "rare_startup_message_checked": False,
         "fake_error_checked": False,
+        "duck_debugger_open": False,
+        "duck_consulted": False,
+        "duck_response": "",
+        "duck_solved": "Not yet",
+        "duck_celebrated": False,
     }
 
     for key, value in defaults.items():
@@ -578,6 +604,94 @@ with st.sidebar.expander(
     st.caption("Platform status: Operational")
     st.caption("Crystal ball: Unreliable")
     st.caption("Merged-cell tolerance: Low")
+    # ---------------------------------------------------------
+    # Rubber Duck Debugger
+    # ---------------------------------------------------------
+
+    st.divider()
+
+    st.toggle(
+        "🦆 Rubber Duck Debugger",
+        key="duck_debugger_open",
+        help="Open a tiny debugging assistant.",
+    )
+
+    if st.session_state.duck_debugger_open:
+        st.caption(
+            "Sometimes saying it out loud is enough to find the answer."
+        )
+
+        st.markdown(
+            "<div style='font-size:70px; text-align:center;'>🦆</div>",
+            unsafe_allow_html=True,
+        )
+
+        problem = st.text_area(
+            "What's going wrong?",
+            placeholder="Explain the bug to the duck...",
+            key="rubber_duck_problem",
+            height=140,
+        )
+
+        if st.button(
+            "Consult Duck",
+            key="consult_duck",
+            use_container_width=True,
+        ):
+            if problem.strip():
+                st.session_state.duck_consulted = True
+                st.session_state.duck_response = random.choice(
+                    DUCK_RESPONSES
+                )
+                st.session_state.duck_solved = "Not yet"
+                st.session_state.duck_celebrated = False
+            else:
+                st.warning(
+                    "The duck can't help unless you explain the problem first."
+                )
+
+        if st.session_state.duck_consulted:
+            st.success(
+                "🦆 has listened very carefully.\n\n"
+                + st.session_state.duck_response
+            )
+
+            solved = st.radio(
+                "Problem solved?",
+                ["Not yet", "Yes"],
+                key="duck_solved",
+                horizontal=True,
+            )
+
+            if solved == "Yes":
+                if not st.session_state.duck_celebrated:
+                    st.balloons()
+                    st.session_state.duck_celebrated = True
+
+                st.success(
+                    "🦆\n\n"
+                    "The duck knew you'd figure it out."
+                )
+            else:
+                st.session_state.duck_celebrated = False
+
+                st.info(
+                    "🦆\n\n"
+                    "Try explaining it one more time.\n\n"
+                    "The duck is very patient."
+                )
+
+            if st.button(
+                "Debug Another Problem",
+                key="duck_reset",
+                use_container_width=True,
+            ):
+                st.session_state.duck_consulted = False
+                st.session_state.duck_response = ""
+                st.session_state.duck_solved = "Not yet"
+                st.session_state.duck_celebrated = False
+                st.session_state.rubber_duck_problem = ""
+                st.rerun()
 
     st.divider()
 
