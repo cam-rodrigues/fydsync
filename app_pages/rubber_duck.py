@@ -18,32 +18,39 @@ DUCK_ISSUES = [
 
 DUCK_INTROS = {
     "There's an error": (
-        "Errors are rude, but they usually leave evidence. Let's begin with "
-        "the part of the traceback that points to your own code."
+        "Okay, deep breath. This is annoying, but it is also useful: errors are "
+        "loud, dramatic, and usually leave evidence everywhere. Very considerate "
+        "of them, honestly. Let's see what this one is trying to tell us."
     ),
     "My changes aren't showing up": (
-        "The code may be correct while the app is still running another file, "
-        "an older version, cached output, or a stored Session State value."
+        "Your changes may be completely fine while the app is stubbornly showing "
+        "you an older file, cached output, or a stored Session State value. Rude, "
+        "but fixable. Let's prove which code is actually running."
     ),
     "The app keeps doing the wrong thing": (
-        "The app is following some instruction perfectly. Our job is to find "
-        "the instruction that does not match what you intended."
+        "The app is almost certainly following an instruction perfectly, which "
+        "is unfortunately not the same as doing what you meant. You are not "
+        "losing it. We just need to find the overly obedient line responsible."
     ),
     "Something looks weird": (
-        "Visual problems are usually caused by layout, styling, container "
-        "width, or one rule overriding another. Let's isolate the layer."
+        "Okay, something has clearly made a creative decision without permission. "
+        "Visual problems usually come from layout, styling, container width, or "
+        "one CSS rule shoving another out of the way. Let's isolate it."
     ),
     "It's painfully slow": (
-        "Slow code needs timing evidence. We will find the expensive step "
-        "instead of guessing which part is responsible."
+        "If the app has enough time to make you question every life choice before "
+        "it loads, we have a problem. The good news is that slow code can be timed, "
+        "measured, and publicly identified as the culprit."
     ),
     "The numbers don't make sense": (
-        "Incorrect results usually begin earlier than they first become "
-        "visible. Let's check the data one transformation at a time."
+        "The numbers have apparently decided facts are optional. That does not "
+        "mean your whole calculation is wrong; one earlier transformation may "
+        "have quietly caused the mess. Let's trace it one step at a time."
     ),
     "I honestly have no idea": (
-        "That is a valid starting point. We do not need the diagnosis yet; "
-        "we only need one repeatable observation."
+        "Completely valid. 'I have no idea' is how a shocking amount of debugging "
+        "begins. You do not need to diagnose it yet. Give the duck one repeatable "
+        "observation, and we will build from there."
     ),
 }
 
@@ -170,51 +177,53 @@ DUCK_CONVERSATION = [
     (
         "Let's narrow it down.",
         "What was the last thing you changed before the problem appeared? Start "
-        "there, even if the change seems unrelated.",
+        "there, even if it seems unrelated. Bugs love entering through the side "
+        "door and acting innocent.",
     ),
     (
-        "Smaller is better.",
-        "Can you reproduce the problem with less code? Removing unrelated pieces "
-        "is progress, even before the bug is fixed.",
+        "That did not fix it. Rude.",
+        "You did not fail; that test ruled something out. Annoying progress is "
+        "still progress. Let's make the problem smaller and easier to corner.",
     ),
     (
         "File check.",
-        "Are you completely sure the file you are editing is the file that is "
-        "actually running? The duck has been fooled by duplicate files before.",
+        "Are you completely sure the file you are editing is the one actually "
+        "running? Duplicate files have embarrassed better developers than us.",
     ),
     (
         "New theory.",
-        "Add one print() or st.write(). Not five. One useful checkpoint, then run "
-        "the exact same action again.",
+        "Add one print() or st.write(). Not five. One useful checkpoint. We are "
+        "collecting evidence, not decorating the console.",
     ),
     (
         "Caching has entered the conversation.",
-        "The duck would like to blame caching. Not officially, but with growing "
-        "confidence.",
+        "The duck would like to blame caching. Not officially. Legally, we are "
+        "still calling it a person of interest.",
     ),
     (
-        "This is no longer a quick fix.",
-        "That is fine. A stubborn bug is still just a sequence of smaller facts "
-        "you have not isolated yet.",
+        "Okay, this bug is committed.",
+        "That is fine. You are not doing anything wrong. A stubborn bug is just "
+        "a pile of smaller facts waiting to be separated.",
     ),
     (
         "Debugging glasses activated.",
-        "Read the evidence as though someone else sent it to you. What would you "
-        "tell them to verify first?",
+        "Read the evidence as if someone else sent it to you. You are usually "
+        "much kinder and more logical with someone else's bug than your own.",
     ),
     (
-        "Emergency protocol.",
+        "Emergency duck protocol.",
         "Save the file. Restart Streamlit. Confirm the path. Reproduce the issue. "
-        "Check the evidence. Then take one sip of water.",
+        "Check the evidence. Take one sip of water. We are professionals.",
     ),
     (
         "Advanced bug confirmed.",
-        "Advanced does not mean invincible. It means the next test needs to be "
-        "more specific than the last one.",
+        "Advanced does not mean invincible. It means the bug has requested a more "
+        "specific test and, apparently, a dramatic amount of attention.",
     ),
     (
         "Morale report.",
-        "Developer morale is under review. Duck morale remains suspiciously high.",
+        "Developer morale may be under review, but you are still here and still "
+        "testing. Duck morale remains irresponsibly high.",
     ),
 ]
 
@@ -693,8 +702,9 @@ def render_active_session(issue: str) -> None:
 
     if struggle_count >= 2:
         st.caption(
-            "A stubborn bug does not mean you are doing anything wrong. It only "
-            "means the last test ruled something out."
+            "A stubborn bug does not mean you are bad at this. It means the bug "
+            "is being annoyingly specific, and every failed test is still "
+            "removing one of its hiding places."
         )
 
     with st.expander("Change the problem type"):
@@ -716,23 +726,51 @@ def render_success() -> None:
     struggle_count = st.session_state.duck_struggle_count
     reaction = get_duck_reaction(max(struggle_count, 2))
 
-    st.success("The problem is fixed. The duck accepts partial credit.")
+    st.balloons()
+
+    if struggle_count <= 1:
+        success_headline = "IT WORKED! That bug barely had time to unpack."
+        success_message = (
+            "Look at you. Calm, efficient, and absolutely devastating to minor "
+            "software problems. The duck is thrilled and pretending this was "
+            "the plan from the beginning."
+        )
+    elif struggle_count <= 5:
+        success_headline = "YES! IT ACTUALLY WORKED!"
+        success_message = (
+            "We found it. The bug has been removed from the premises, your app "
+            "is behaving again, and the duck is doing a deeply unprofessional "
+            "victory lap."
+        )
+    elif struggle_count <= 10:
+        success_headline = "WE DID IT! THAT WAS A WHOLE BOSS FIGHT."
+        success_message = (
+            "Seriously, you kept testing instead of randomly changing everything, "
+            "and that is exactly why the bug finally ran out of places to hide. "
+            "The duck is extremely proud and only slightly unbearable right now."
+        )
+    else:
+        success_headline = "IT WORKED!!! THE DUCK IS LOSING ITS MIND!"
+        success_message = (
+            "You defeated a bug that had clearly made this personal. You stayed "
+            "with it, kept gathering evidence, and finally broke through. The duck "
+            "was two attempts away from blaming the moon, but you got there first."
+        )
+
+    st.success(success_headline)
     st.markdown("## Case closed")
-    st.write(
-        "Debugging is not about never getting stuck. It is about testing one "
-        "useful theory at a time until the problem has nowhere left to hide."
-    )
+    st.write(success_message)
 
     st.markdown(
         f"""
         <div class="duck-dialogue">
             <div class="duck-dialogue-title">{reaction} Final report</div>
             <div class="duck-dialogue-text">
-                Bug status: resolved.<br>
+                Bug status: absolutely defeated.<br>
                 Attempts recorded: {struggle_count + 1}.<br>
-                Duck satisfaction: 100%.<br>
-                Developer confidence: restored.<br>
-                Coffee consumed: unknown.
+                Duck excitement: structurally unsafe.<br>
+                Developer credit: 100%.<br>
+                Victory laps completed: still counting.
             </div>
         </div>
         """,
