@@ -762,32 +762,31 @@ def render_results():
     publish_date = st.session_state.article_publish_date or "Not detected"
     source = st.session_state.article_source or "Not provided"
 
-    st.markdown(
-        f"""
-        <div class="article-metadata">
-            <div class="metadata-row">
-                <strong>Title</strong>
-                <span>{title}</span>
-            </div>
-
-            <div class="metadata-row">
-                <strong>Author</strong>
-                <span>{authors}</span>
-            </div>
-
-            <div class="metadata-row">
-                <strong>Published</strong>
-                <span>{publish_date}</span>
-            </div>
-
-            <div class="metadata-row">
-                <strong>Source</strong>
-                <span>{source}</span>
-            </div>
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
+    st.markdown("#### Article details")
+    
+    detail_col1, detail_col2 = st.columns([1, 4])
+    with detail_col1:
+        st.markdown("**Title**")
+    with detail_col2:
+        st.write(title)
+    
+    detail_col1, detail_col2 = st.columns([1, 4])
+    with detail_col1:
+        st.markdown("**Author**")
+    with detail_col2:
+        st.write(authors)
+    
+    detail_col1, detail_col2 = st.columns([1, 4])
+    with detail_col1:
+        st.markdown("**Published**")
+    with detail_col2:
+        st.write(publish_date)
+    
+    detail_col1, detail_col2 = st.columns([1, 4])
+    with detail_col1:
+        st.markdown("**Source**")
+    with detail_col2:
+        st.write(source)
 
     summary_tab, source_tab, details_tab = st.tabs(
         [
