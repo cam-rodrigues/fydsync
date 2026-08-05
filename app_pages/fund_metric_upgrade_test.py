@@ -601,7 +601,7 @@ def run():
         )
 
     with st.expander(
-        "📦 Export Options",
+        "Export Options",
         expanded=False,
     ):
         st.caption("Downloads include all detected funds, not only the currently filtered rows.")
