@@ -590,7 +590,7 @@ with st.sidebar.expander(
     st.divider()
     
     st.button(
-        "🦆 Consult Duck Debugger",
+        "Debugger",
         key="open_duck_debugger_button",
         use_container_width=True,
         on_click=open_duck_debugger,
