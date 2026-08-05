@@ -87,79 +87,6 @@ FAKE_RECOVERY_MESSAGES = [
     "Carry on.",
 ]
 
-DUCK_ISSUES = [
-    "Choose one...",
-    "There's an error",
-    "Python isn't listening",
-    "Something is behaving strangely",
-]
-
-DUCK_INTROS = {
-    "There's an error": (
-        "Oh no. Errors are rude, but they are usually trying to tell us "
-        "exactly where the problem is."
-    ),
-    "Python isn't listening": (
-        "Hmm. Python may be listening to a different file, an older version, "
-        "or instructions that are not running where you think they are."
-    ),
-    "Something is behaving strangely": (
-        "Suspicious. Let us slow it down and figure out what the app is doing "
-        "instead of what it is supposed to be doing."
-    ),
-}
-
-DUCK_ADVICE = {
-    "There's an error": [
-        "Read the traceback from the bottom upward and find the first line "
-        "that points to your own file.",
-        "Check the exact line named in the traceback. Look for a misspelled "
-        "variable, missing comma, unmatched quote, or indentation problem.",
-        "Temporarily add st.write() or print() statements right before the "
-        "failing line so you can see the values Python is receiving.",
-        "Comment out the newest section of code and add it back a few lines "
-        "at a time until the error returns.",
-        "Compare the broken version with the last version that worked. The "
-        "smallest difference is usually the most useful clue.",
-        "Copy the full technical error into a note and underline the exception "
-        "type, file name, and line number. Those three details usually narrow "
-        "the search quickly.",
-    ],
-    "Python isn't listening": [
-        "Save the file, confirm you edited the exact file the router loads, "
-        "then reboot the Streamlit app.",
-        "Check the filename and capitalization. A second copy of the file in "
-        "another folder can make your changes seem invisible.",
-        "Add a temporary st.success('NEW CODE IS RUNNING') line to confirm "
-        "which file Streamlit is actually loading.",
-        "Check whether Session State or caching is preserving an older value. "
-        "Try a fresh browser session after rebooting the app.",
-        "Make sure the function containing your new code is actually called. "
-        "Defined code does nothing until something runs it.",
-        "Look at the deployed GitHub file itself and confirm your latest commit "
-        "contains the change you expect.",
-    ],
-    "Something is behaving strangely": [
-        "Change only one thing at a time. Multiple fixes at once make it hard "
-        "to know which change mattered.",
-        "Inspect the inputs immediately before the strange behavior with "
-        "st.write(), including their type and value.",
-        "Try the smallest possible example that still reproduces the problem. "
-        "Remove styling and optional features until only the odd behavior remains.",
-        "Check whether a Streamlit rerun is resetting or recreating a widget. "
-        "Session State is often involved when behavior changes after a click.",
-        "Test the same action in a fresh private window. That helps separate "
-        "code problems from browser-session state.",
-    ],
-}
-
-DUCK_ENCOURAGEMENT = [
-    "Go try that. The duck will wait right here.",
-    "You have a solid next step. Give it another shot.",
-    "That is enough debugging wisdom for one attempt. Go test it.",
-    "Try the suggestion, then come back if the bug is still being dramatic.",
-]
-
 # =========================================================
 # Page configuration
 # =========================================================
@@ -186,12 +113,6 @@ def initialize_app_state() -> None:
         "time_greeting_shown": False,
         "rare_startup_message_checked": False,
         "fake_error_checked": False,
-        "duck_debugger_open": False,
-        "duck_active_issue": "",
-        "duck_advice_index": 0,
-        "duck_struggle_count": 0,
-        "duck_resolved": False,
-        "duck_celebrated": False,
     }
 
     for key, value in defaults.items():
@@ -314,22 +235,6 @@ def maybe_show_fake_error() -> None:
         placeholder.success(random.choice(FAKE_RECOVERY_MESSAGES))
         time.sleep(1)
         placeholder.empty()
-
-def reset_duck_debugger(close_debugger: bool = False) -> None:
-    """Reset the Rubber Duck Debugger safely between attempts."""
-
-    st.session_state.duck_active_issue = ""
-    st.session_state.duck_advice_index = 0
-    st.session_state.duck_struggle_count = 0
-    st.session_state.duck_resolved = False
-    st.session_state.duck_celebrated = False
-
-    if "duck_issue_choice" in st.session_state:
-        del st.session_state["duck_issue_choice"]
-
-    if close_debugger:
-        st.session_state.duck_debugger_open = False
-
 
 show_time_greeting()
 maybe_show_rare_startup_message()
@@ -650,6 +555,13 @@ nav_button(
 )
 
 
+def open_duck_debugger() -> None:
+    """Open the hidden Rubber Duck Debugger page."""
+
+    st.session_state.duck_previous_page = selected_page
+    st.query_params["page"] = "rubber_duck.py"
+
+
 # =========================================================
 # Sidebar Easter egg panel
 # =========================================================
@@ -675,118 +587,14 @@ with st.sidebar.expander(
     # ---------------------------------------------------------
     # Rubber Duck Debugger
     # ---------------------------------------------------------
-
     st.divider()
-
-    if not st.session_state.duck_debugger_open:
-        if st.button(
-            "🦆 Consult Duck Debugger",
-            key="open_duck_debugger",
-            use_container_width=True,
-        ):
-            st.session_state.duck_debugger_open = True
-            st.rerun()
-
-    else:
-        st.markdown(
-            "<div style='font-size:74px; text-align:center; "
-            "line-height:1; margin:0.25rem 0 0.7rem 0;'>🦆</div>",
-            unsafe_allow_html=True,
-        )
-
-        st.markdown("**What's going wrong?**")
-
-        issue_choice = st.radio(
-            "Choose the closest option",
-            DUCK_ISSUES,
-            key="duck_issue_choice",
-            label_visibility="collapsed",
-        )
-
-        if issue_choice != "Choose one...":
-            if issue_choice != st.session_state.duck_active_issue:
-                st.session_state.duck_active_issue = issue_choice
-                st.session_state.duck_advice_index = 0
-                st.session_state.duck_struggle_count = 0
-                st.session_state.duck_resolved = False
-                st.session_state.duck_celebrated = False
-
-            if st.session_state.duck_resolved:
-                if not st.session_state.duck_celebrated:
-                    st.balloons()
-                    st.session_state.duck_celebrated = True
-
-                st.success(
-                    "🦆 The duck knew you could do it."
-                )
-
-                st.caption(
-                    "The official diagnosis was persistence."
-                )
-
-                if st.button(
-                    "Debug Another Problem",
-                    key="duck_debug_another",
-                    use_container_width=True,
-                    on_click=reset_duck_debugger,
-                ):
-                    pass
-
-            else:
-                advice_list = DUCK_ADVICE[issue_choice]
-                advice_index = (
-                    st.session_state.duck_advice_index
-                    % len(advice_list)
-                )
-
-                st.info(
-                    "🦆 " + DUCK_INTROS[issue_choice]
-                )
-
-                st.success(
-                    advice_list[advice_index]
-                )
-
-                st.caption(
-                    random.choice(DUCK_ENCOURAGEMENT)
-                )
-
-                fixed_col, struggling_col = st.columns(2)
-
-                with fixed_col:
-                    if st.button(
-                        "I Fixed It",
-                        key="duck_fixed_it",
-                        use_container_width=True,
-                    ):
-                        st.session_state.duck_resolved = True
-                        st.rerun()
-
-                with struggling_col:
-                    if st.button(
-                        "I'm Still Struggling",
-                        key="duck_still_struggling",
-                        use_container_width=True,
-                    ):
-                        st.session_state.duck_advice_index += 1
-                        st.session_state.duck_struggle_count += 1
-                        st.rerun()
-
-                if st.session_state.duck_struggle_count >= 2:
-                    st.caption(
-                        "The duck is still listening. Bugs can be stubborn; "
-                        "that does not mean you are doing anything wrong."
-                    )
-
-        close_duck = st.button(
-            "Close Duck Debugger",
-            key="close_duck_debugger",
-            use_container_width=True,
-        )
-
-        if close_duck:
-            reset_duck_debugger(close_debugger=True)
-            st.rerun()
+    
+    st.button(
+        "🦆 Consult Duck Debugger",
+        key="open_duck_debugger_button",
+        use_container_width=True,
+        on_click=open_duck_debugger,
+    )
 
     st.divider()
 
@@ -906,7 +714,5 @@ def load_page(filename: str) -> None:
 # =========================================================
 # Run selected page
 # =========================================================
-
-load_page(selected_page)
 
 load_page(selected_page)
