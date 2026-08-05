@@ -20,6 +20,8 @@ SOLITAIRE_URL = "https://play-solitaire.com/"
 
 HIDDEN_LOOKUP_ALIASES = {
     "SOLITARE": "SOLITAIRE",
+    "TRUST ME BRO": "TRUSTMEBRO",
+    "TRUSTMEBRO": "TRUSTMEBRO",
 }
 
 KNOWN_LIMITATIONS = """
@@ -302,6 +304,28 @@ HIDDEN_LOOKUPS = {
             "for too long. FidSync recommends stepping away from the screen, "
             "stretching, drinking some water, and touching some grass. "
             "Management has approved one game of Solitaire."
+        ),
+    },
+    "TRUSTMEBRO": {
+        "title": "Trust Me Bro Analytics",
+        "subtitle": "Independent Research · Source: A Guy",
+        "message": "Fact-checking... yeah, we're gonna need a better source.",
+        "metrics": {
+            "Confidence Score": "0/100",
+            "Source": "Some guy on the internet",
+            "Evidence": "✨ Vibes ✨",
+            "Analyst Rating": "Extremely Confident",
+        },
+        "details": {
+            "Methodology": "Trust me, bro.",
+            "Peer Review": "His friend agreed",
+            "Financial Model": "Made it up",
+            "Success Rate": "Pending",
+        },
+        "description": (
+            "Trust Me Bro Analytics delivers bold market predictions backed by "
+            "absolutely no research whatsoever. Results may include financial "
+            "regret."
         ),
     },
 }
