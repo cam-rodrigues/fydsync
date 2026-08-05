@@ -756,13 +756,18 @@ def run():
 
             function openWithToast(url, title, message, delay) {{
                 /*
-                 * Open a blank tab immediately while the click still counts
-                 * as a user gesture. Browsers may block a delayed window.open().
+                 * Open the destination immediately so the user never sees
+                 * an empty about:blank tab. The joke remains visible on the
+                 * Resources page while the website loads in the new tab.
                  */
                 const destinationTab = window.open(
-                    "about:blank",
+                    url,
                     "_blank"
                 );
+
+                if (destinationTab) {
+                    destinationTab.opener = null;
+                }
 
                 const backdrop =
                     document.getElementById("toastBackdrop");
