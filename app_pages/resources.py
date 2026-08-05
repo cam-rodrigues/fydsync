@@ -134,6 +134,7 @@ def run():
             "title": "Tiny Note",
             "message": (
                 "This page pairs well with coffee."
+            ),
         },
         "Morningstar": {
             "title": "Developer Sticky Note",
