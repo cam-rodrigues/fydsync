@@ -1,6 +1,8 @@
 # app_pages/company_lookup.py
 
 from datetime import date, timedelta
+from html import escape
+import random
 import re
 
 import pandas as pd
@@ -24,6 +26,27 @@ KNOWN_LIMITATIONS = """
 - Yahoo Finance may occasionally delay, restrict, or omit certain fields.
 """
 
+SPECIAL_TICKER_MESSAGES = {
+    "AAPL": "An apple a day keeps the portfolio review underway.",
+    "MSFT": "Clippy would like to help with this analysis.",
+    "TSLA": "Volatility mode may be enabled.",
+    "NVDA": "GPU-powered optimism detected.",
+    "BRK-B": "Patience mode activated.",
+    "BTC-USD": "HODL mode detected.",
+}
+
+# Professional messages appear more frequently than the joke messages.
+LOADING_MESSAGES = [
+    "Checking market data...",
+    "Checking market data...",
+    "Reviewing company fundamentals...",
+    "Reviewing company fundamentals...",
+    "Calculating moving averages...",
+    "Loading historical pricing...",
+    "Comparing numbers that definitely looked smaller yesterday...",
+    "Consulting the financial crystal ball...",
+]
+
 
 # =========================================================
 # Formatting helpers
@@ -32,11 +55,15 @@ KNOWN_LIMITATIONS = """
 def format_currency(value, decimals=2):
     """Format a numeric value as currency."""
 
-    if value is None or pd.isna(value):
+    if value is None:
         return "N/A"
 
     try:
+        if pd.isna(value):
+            return "N/A"
+
         return f"${float(value):,.{decimals}f}"
+
     except (TypeError, ValueError):
         return "N/A"
 
@@ -44,34 +71,58 @@ def format_currency(value, decimals=2):
 def format_large_currency(value):
     """Format a large currency amount using abbreviated units."""
 
-    if value is None or pd.isna(value):
+    if value is None:
         return "N/A"
 
     try:
-        value = float(value)
+        if pd.isna(value):
+            return "N/A"
+
+        numeric_value = float(value)
+
     except (TypeError, ValueError):
         return "N/A"
 
-    if abs(value) >= 1_000_000_000_000:
-        return f"${value / 1_000_000_000_000:.2f}T"
+    if abs(numeric_value) >= 1_000_000_000_000:
+        return f"${numeric_value / 1_000_000_000_000:.2f}T"
 
-    if abs(value) >= 1_000_000_000:
-        return f"${value / 1_000_000_000:.2f}B"
+    if abs(numeric_value) >= 1_000_000_000:
+        return f"${numeric_value / 1_000_000_000:.2f}B"
 
-    if abs(value) >= 1_000_000:
-        return f"${value / 1_000_000:.2f}M"
+    if abs(numeric_value) >= 1_000_000:
+        return f"${numeric_value / 1_000_000:.2f}M"
 
-    return f"${value:,.0f}"
+    return f"${numeric_value:,.0f}"
 
 
 def format_number(value, decimals=2):
     """Format a general numeric value."""
 
-    if value is None or pd.isna(value):
+    if value is None:
         return "N/A"
 
     try:
+        if pd.isna(value):
+            return "N/A"
+
         return f"{float(value):,.{decimals}f}"
+
+    except (TypeError, ValueError):
+        return "N/A"
+
+
+def format_integer(value):
+    """Format a value as a whole number."""
+
+    if value is None:
+        return "N/A"
+
+    try:
+        if pd.isna(value):
+            return "N/A"
+
+        return f"{int(float(value)):,}"
+
     except (TypeError, ValueError):
         return "N/A"
 
@@ -80,14 +131,17 @@ def format_percentage(value, decimals=2, decimal_input=True):
     """
     Format a percentage.
 
-    Yahoo Finance usually returns dividend yield as a decimal, so
-    decimal_input=True multiplies the value by 100.
+    Yahoo Finance usually returns percentage values as decimals.
+    When decimal_input is True, the value is multiplied by 100.
     """
 
-    if value is None or pd.isna(value):
+    if value is None:
         return "N/A"
 
     try:
+        if pd.isna(value):
+            return "N/A"
+
         percentage = float(value)
 
         if decimal_input:
@@ -100,14 +154,32 @@ def format_percentage(value, decimals=2, decimal_input=True):
 
 
 def safe_text(value, fallback="N/A"):
-    """Return a clean string or a fallback value."""
+    """Return a clean string or the supplied fallback."""
 
     if value is None:
         return fallback
 
-    value = str(value).strip()
+    cleaned_value = str(value).strip()
 
-    return value if value else fallback
+    return cleaned_value if cleaned_value else fallback
+
+
+def first_available(*values):
+    """Return the first value that is not None or NaN."""
+
+    for value in values:
+        if value is None:
+            continue
+
+        try:
+            if pd.isna(value):
+                continue
+        except (TypeError, ValueError):
+            pass
+
+        return value
+
+    return None
 
 
 def validate_ticker(ticker):
@@ -116,7 +188,8 @@ def validate_ticker(ticker):
     if not ticker:
         return False
 
-    # Supports formats such as AAPL, BRK-B, BTC-USD, SHOP.TO, and 7203.T
+    # Supports formats such as:
+    # AAPL, BRK-B, BTC-USD, SHOP.TO, 7203.T, and ^GSPC
     pattern = r"^[A-Z0-9^][A-Z0-9.\-=^]{0,14}$"
 
     return re.fullmatch(pattern, ticker) is not None
@@ -141,6 +214,22 @@ def build_location(info):
     )
 
 
+def calculate_percentage_change(current_value, previous_value):
+    """Calculate the percentage change between two values."""
+
+    if current_value is None or previous_value in (None, 0):
+        return None
+
+    try:
+        return (
+            (float(current_value) - float(previous_value))
+            / float(previous_value)
+        ) * 100
+
+    except (TypeError, ValueError, ZeroDivisionError):
+        return None
+
+
 # =========================================================
 # Data retrieval
 # =========================================================
@@ -150,8 +239,8 @@ def retrieve_company_data(ticker):
     """
     Retrieve company information.
 
-    The cache lasts 15 minutes to reduce repeated Yahoo Finance
-    requests during Streamlit reruns.
+    Results are cached for 15 minutes to reduce repeated Yahoo
+    Finance requests during Streamlit reruns.
     """
 
     stock = yf.Ticker(ticker)
@@ -166,7 +255,7 @@ def retrieve_price_history(ticker, start_date, end_date):
 
     stock = yf.Ticker(ticker)
 
-    # yfinance treats the end date as exclusive, so add one day.
+    # yfinance treats the end date as exclusive.
     inclusive_end_date = end_date + timedelta(days=1)
 
     history = stock.history(
@@ -180,19 +269,20 @@ def retrieve_price_history(ticker, start_date, end_date):
 
     history.index = pd.to_datetime(history.index)
 
-    # Remove timezone information to make display/export simpler.
+    # Remove timezone information to simplify display and exports.
     if getattr(history.index, "tz", None) is not None:
         history.index = history.index.tz_localize(None)
 
-    history["MA20"] = history["Close"].rolling(
-        window=20,
-        min_periods=1,
-    ).mean()
+    if "Close" in history.columns:
+        history["MA20"] = history["Close"].rolling(
+            window=20,
+            min_periods=1,
+        ).mean()
 
-    history["MA50"] = history["Close"].rolling(
-        window=50,
-        min_periods=1,
-    ).mean()
+        history["MA50"] = history["Close"].rolling(
+            window=50,
+            min_periods=1,
+        ).mean()
 
     return history
 
@@ -207,6 +297,8 @@ def initialize_session_state():
     defaults = {
         "company_lookup_searched": False,
         "company_lookup_ticker": "",
+        "company_lookup_input": "",
+        "fidsync_easter_egg_shown": False,
     }
 
     for key, value in defaults.items():
@@ -215,10 +307,12 @@ def initialize_session_state():
 
 
 def clear_search():
-    """Clear the current ticker search."""
+    """Clear the current ticker search and visible input."""
 
     st.session_state.company_lookup_searched = False
     st.session_state.company_lookup_ticker = ""
+    st.session_state.company_lookup_input = ""
+    st.session_state.fidsync_easter_egg_shown = False
 
 
 # =========================================================
@@ -311,13 +405,12 @@ def apply_page_styles():
                 line-height: 1.55;
             }
 
-            /* Input labels */
+            /* Inputs */
             [data-testid="stWidgetLabel"] p {
                 color: #102542;
                 font-weight: 650;
             }
 
-            /* Inputs */
             [data-baseweb="input"] > div,
             [data-baseweb="select"] > div {
                 border-color: #ccd8e6;
@@ -331,19 +424,22 @@ def apply_page_styles():
             }
 
             /* Buttons */
-            .stButton > button {
+            .stButton > button,
+            [data-testid="stFormSubmitButton"] > button {
                 min-height: 2.65rem;
                 border-radius: 0.55rem;
                 font-weight: 650;
             }
 
-            div[data-testid="stButton"] button[kind="primary"] {
+            div[data-testid="stButton"] button[kind="primary"],
+            [data-testid="stFormSubmitButton"] button[kind="primary"] {
                 background-color: #2b6cb0;
                 border-color: #2b6cb0;
                 color: white;
             }
 
-            div[data-testid="stButton"] button[kind="primary"]:hover {
+            div[data-testid="stButton"] button[kind="primary"]:hover,
+            [data-testid="stFormSubmitButton"] button[kind="primary"]:hover {
                 background-color: #1f568f;
                 border-color: #1f568f;
                 color: white;
@@ -436,6 +532,34 @@ def apply_page_styles():
                 color: white;
             }
 
+            /* Hidden FidSync result */
+            .fidsync-easter-egg {
+                padding: 1.5rem;
+                margin-top: 1rem;
+                background:
+                    radial-gradient(
+                        circle at top right,
+                        rgba(117, 158, 203, 0.18),
+                        transparent 40%
+                    ),
+                    #f7fafd;
+                border: 1px solid #b9cce2;
+                border-radius: 0.85rem;
+                text-align: center;
+                box-shadow: 0 4px 14px rgba(16, 37, 66, 0.07);
+            }
+
+            .fidsync-easter-egg h3 {
+                margin: 0 0 0.35rem 0;
+                color: #102542;
+            }
+
+            .fidsync-easter-egg p {
+                margin: 0;
+                color: #64748b;
+                font-size: 0.88rem;
+            }
+
             /* Disclaimer */
             .lookup-disclaimer {
                 margin-top: 1.5rem;
@@ -488,29 +612,29 @@ def render_search_section():
         unsafe_allow_html=True,
     )
 
-    search_col, button_col, clear_col = st.columns([5, 1.4, 1])
+    with st.form("ticker_search_form", clear_on_submit=False):
+        search_col, button_col = st.columns([5, 1.4])
 
-    with search_col:
-        ticker_input = st.text_input(
-            "Ticker symbol",
-            value=st.session_state.company_lookup_ticker,
-            placeholder="Example: AAPL",
-            max_chars=15,
-            label_visibility="collapsed",
-        )
+        with search_col:
+            ticker_input = st.text_input(
+                "Ticker symbol",
+                placeholder="Example: AAPL",
+                max_chars=15,
+                label_visibility="collapsed",
+                key="company_lookup_input",
+            )
 
-    with button_col:
-        search_clicked = st.button(
-            "Search",
-            type="primary",
-            use_container_width=True,
-        )
+        with button_col:
+            search_clicked = st.form_submit_button(
+                "Search",
+                type="primary",
+                use_container_width=True,
+            )
 
-    with clear_col:
-        clear_clicked = st.button(
-            "Clear",
-            use_container_width=True,
-        )
+    clear_clicked = st.button(
+        "Clear Search",
+        use_container_width=False,
+    )
 
     if clear_clicked:
         clear_search()
@@ -532,6 +656,8 @@ def render_search_section():
 
         st.session_state.company_lookup_ticker = ticker
         st.session_state.company_lookup_searched = True
+        st.session_state.fidsync_easter_egg_shown = False
+
         st.rerun()
 
     with st.expander("Known limitations"):
@@ -544,30 +670,53 @@ def render_search_section():
 
 def render_company_overview(ticker, info):
     company_name = safe_text(
-        info.get("longName") or info.get("shortName"),
+        first_available(
+            info.get("longName"),
+            info.get("shortName"),
+        ),
         fallback="Company Information",
     )
 
-    quote_type = safe_text(info.get("quoteType"), fallback="Security")
+    quote_type = safe_text(
+        info.get("quoteType"),
+        fallback="Security",
+    )
+
     exchange = safe_text(
-        info.get("fullExchangeName") or info.get("exchange"),
+        first_available(
+            info.get("fullExchangeName"),
+            info.get("exchange"),
+        ),
         fallback="Exchange unavailable",
     )
 
+    safe_company_name = escape(company_name)
+    safe_ticker = escape(ticker)
+    safe_quote_type = escape(quote_type)
+    safe_exchange = escape(exchange)
+
     st.markdown(
-        f'<div class="company-heading">{company_name} ({ticker})</div>',
+        (
+            '<div class="company-heading">'
+            f"{safe_company_name} ({safe_ticker})"
+            "</div>"
+        ),
         unsafe_allow_html=True,
     )
 
     st.markdown(
-        f'<div class="company-subheading">{quote_type} · {exchange}</div>',
+        (
+            '<div class="company-subheading">'
+            f"{safe_quote_type} · {safe_exchange}"
+            "</div>"
+        ),
         unsafe_allow_html=True,
     )
 
-    price = (
-        info.get("currentPrice")
-        or info.get("regularMarketPrice")
-        or info.get("navPrice")
+    price = first_available(
+        info.get("currentPrice"),
+        info.get("regularMarketPrice"),
+        info.get("navPrice"),
     )
 
     previous_close = info.get("previousClose")
@@ -577,12 +726,22 @@ def render_company_overview(ticker, info):
     fifty_two_week_low = info.get("fiftyTwoWeekLow")
     fifty_two_week_high = info.get("fiftyTwoWeekHigh")
 
+    price_delta = calculate_percentage_change(
+        price,
+        previous_close,
+    )
+
     metric_col1, metric_col2, metric_col3, metric_col4 = st.columns(4)
 
     with metric_col1:
         st.metric(
             "Current Price",
             format_currency(price),
+            delta=(
+                f"{price_delta:.2f}%"
+                if price_delta is not None
+                else None
+            ),
         )
 
     with metric_col2:
@@ -630,11 +789,9 @@ def render_company_overview(ticker, info):
         )
 
     with metric_col8:
-        beta = info.get("beta")
-
         st.metric(
             "Beta",
-            format_number(beta),
+            format_number(info.get("beta")),
         )
 
     profile_tab, fundamentals_tab, description_tab = st.tabs(
@@ -657,22 +814,20 @@ def render_company_overview(ticker, info):
                 st.write(safe_text(info.get("industry")))
 
                 st.markdown("**Employees**")
-                employees = info.get("fullTimeEmployees")
-
-                if employees is not None:
-                    try:
-                        st.write(f"{int(employees):,}")
-                    except (TypeError, ValueError):
-                        st.write("N/A")
-                else:
-                    st.write("N/A")
+                st.write(
+                    format_integer(
+                        info.get("fullTimeEmployees")
+                    )
+                )
 
             with profile_col2:
                 st.markdown("**Headquarters**")
+
                 headquarters = build_location(info)
                 st.write(headquarters or "N/A")
 
                 st.markdown("**Website**")
+
                 website = info.get("website")
 
                 if website:
@@ -702,17 +857,29 @@ def render_company_overview(ticker, info):
                 "Value": [
                     format_number(info.get("forwardPE")),
                     format_number(info.get("priceToBook")),
-                    format_large_currency(info.get("enterpriseValue")),
-                    format_percentage(info.get("profitMargins")),
-                    format_percentage(info.get("operatingMargins")),
-                    format_percentage(info.get("returnOnAssets")),
-                    format_percentage(info.get("returnOnEquity")),
-                    format_percentage(info.get("revenueGrowth")),
-                    format_percentage(info.get("earningsGrowth")),
-                    (
-                        f"{int(info.get('averageVolume')):,}"
-                        if info.get("averageVolume") is not None
-                        else "N/A"
+                    format_large_currency(
+                        info.get("enterpriseValue")
+                    ),
+                    format_percentage(
+                        info.get("profitMargins")
+                    ),
+                    format_percentage(
+                        info.get("operatingMargins")
+                    ),
+                    format_percentage(
+                        info.get("returnOnAssets")
+                    ),
+                    format_percentage(
+                        info.get("returnOnEquity")
+                    ),
+                    format_percentage(
+                        info.get("revenueGrowth")
+                    ),
+                    format_percentage(
+                        info.get("earningsGrowth")
+                    ),
+                    format_integer(
+                        info.get("averageVolume")
                     ),
                 ],
             }
@@ -797,16 +964,41 @@ def render_history_section(ticker):
         )
         return
 
-    first_close = history["Close"].dropna().iloc[0]
-    last_close = history["Close"].dropna().iloc[-1]
+    if "Close" not in history.columns:
+        st.warning(
+            "Historical records were returned, but closing-price data "
+            "was unavailable."
+        )
+        return
 
-    if first_close:
-        period_change = ((last_close / first_close) - 1) * 100
-    else:
-        period_change = 0
+    valid_closes = history["Close"].dropna()
 
-    period_high = history["High"].max()
-    period_low = history["Low"].min()
+    if valid_closes.empty:
+        st.warning(
+            "Historical records were returned, but no valid closing "
+            "prices were available."
+        )
+        return
+
+    first_close = valid_closes.iloc[0]
+    last_close = valid_closes.iloc[-1]
+
+    period_change = calculate_percentage_change(
+        last_close,
+        first_close,
+    )
+
+    period_high = (
+        history["High"].max()
+        if "High" in history.columns
+        else None
+    )
+
+    period_low = (
+        history["Low"].min()
+        if "Low" in history.columns
+        else None
+    )
 
     history_metric1, history_metric2, history_metric3, history_metric4 = (
         st.columns(4)
@@ -822,7 +1014,11 @@ def render_history_section(ticker):
         st.metric(
             "Period End",
             format_currency(last_close),
-            delta=f"{period_change:.2f}%",
+            delta=(
+                f"{period_change:.2f}%"
+                if period_change is not None
+                else None
+            ),
         )
 
     with history_metric3:
@@ -846,15 +1042,23 @@ def render_history_section(ticker):
     )
 
     with chart_tab:
+        available_chart_columns = [
+            column
+            for column in ["Close", "MA20", "MA50"]
+            if column in history.columns
+        ]
+
         chart_data = history[
-            ["Close", "MA20", "MA50"]
+            available_chart_columns
         ].copy()
 
-        chart_data.columns = [
-            "Closing Price",
-            "20-Day Average",
-            "50-Day Average",
-        ]
+        rename_map = {
+            "Close": "Closing Price",
+            "MA20": "20-Day Average",
+            "MA50": "50-Day Average",
+        }
+
+        chart_data = chart_data.rename(columns=rename_map)
 
         st.line_chart(
             chart_data,
@@ -867,15 +1071,24 @@ def render_history_section(ticker):
         )
 
     with volume_tab:
-        st.bar_chart(
-            history["Volume"],
-            use_container_width=True,
-        )
+        if "Volume" in history.columns:
+            st.bar_chart(
+                history["Volume"],
+                use_container_width=True,
+            )
+        else:
+            st.info(
+                "Trading-volume data is not available for this security."
+            )
 
     with data_tab:
         frequency = st.selectbox(
             "View frequency",
-            options=["Daily", "Monthly", "Quarterly"],
+            options=[
+                "Daily",
+                "Monthly",
+                "Quarterly",
+            ],
             index=0,
             key=f"{ticker}_history_frequency",
         )
@@ -905,21 +1118,35 @@ def render_history_section(ticker):
             if column in display_data.columns
         ]
 
-        display_data = display_data[display_columns].copy()
+        display_data = display_data[
+            display_columns
+        ].copy()
+
+        formatters = {
+            column: "${:,.2f}"
+            for column in [
+                "Open",
+                "High",
+                "Low",
+                "Close",
+                "MA20",
+                "MA50",
+            ]
+            if column in display_data.columns
+        }
+
+        if "Volume" in display_data.columns:
+            formatters["Volume"] = "{:,.0f}"
+
+        if "Dividends" in display_data.columns:
+            formatters["Dividends"] = "${:,.4f}"
+
+        if "Stock Splits" in display_data.columns:
+            formatters["Stock Splits"] = "{:,.4f}"
 
         st.dataframe(
             display_data.style.format(
-                {
-                    "Open": "${:,.2f}",
-                    "High": "${:,.2f}",
-                    "Low": "${:,.2f}",
-                    "Close": "${:,.2f}",
-                    "Volume": "{:,.0f}",
-                    "Dividends": "${:,.4f}",
-                    "Stock Splits": "{:,.4f}",
-                    "MA20": "${:,.2f}",
-                    "MA50": "${:,.2f}",
-                },
+                formatters,
                 na_rep="N/A",
             ),
             use_container_width=True,
@@ -935,14 +1162,69 @@ def render_history_section(ticker):
         st.download_button(
             label="Download Historical Data as CSV",
             data=csv_data,
-            file_name=f"{ticker}_{frequency.lower()}_history.csv",
+            file_name=(
+                f"{ticker}_{frequency.lower()}_history.csv"
+            ),
             mime="text/csv",
             use_container_width=True,
         )
 
     last_date = history.index[-1].strftime("%B %d, %Y")
 
-    st.caption(f"Most recent observation in this range: {last_date}")
+    st.caption(
+        f"Most recent observation in this range: {last_date}"
+    )
+
+
+# =========================================================
+# Easter eggs
+# =========================================================
+
+def render_fidsync_easter_egg():
+    """Render the hidden FidSync ticker result."""
+
+    if not st.session_state.fidsync_easter_egg_shown:
+        st.balloons()
+        st.session_state.fidsync_easter_egg_shown = True
+
+    st.markdown(
+        """
+        <div class="fidsync-easter-egg">
+            <h3>FidSync recognizes one of its own.</h3>
+            <p>
+                Internal developer mode unlocked. Market capitalization:
+                immeasurable. Beta status: very beta.
+            </p>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    diagnostic_col1, diagnostic_col2, diagnostic_col3 = st.columns(3)
+
+    with diagnostic_col1:
+        st.metric(
+            "Platform Status",
+            "Operational",
+        )
+
+    with diagnostic_col2:
+        st.metric(
+            "Data Retention",
+            "0 Files",
+        )
+
+    with diagnostic_col3:
+        st.metric(
+            "Version",
+            "Beta",
+        )
+
+    with st.expander("Developer diagnostics"):
+        st.write("Session state: Enabled")
+        st.write("Caching: Enabled")
+        st.write("Historical engine: Ready")
+        st.write("Financial crystal ball: Unreliable")
 
 
 # =========================================================
@@ -976,32 +1258,46 @@ def run():
     ):
         ticker = st.session_state.company_lookup_ticker
 
-        try:
-            with st.spinner(f"Retrieving information for {ticker}..."):
-                company_info = retrieve_company_data(ticker)
+        # Hidden ticker that does not make a Yahoo Finance request.
+        if ticker == "FIDS":
+            render_fidsync_easter_egg()
 
-            # Yahoo Finance may return an empty dictionary for an invalid ticker.
-            if not company_info:
+        else:
+            try:
+                with st.spinner(
+                    random.choice(LOADING_MESSAGES)
+                ):
+                    company_info = retrieve_company_data(ticker)
+
+                if not company_info:
+                    st.error(
+                        "No company information was returned. Confirm "
+                        "the ticker and try again."
+                    )
+
+                else:
+                    render_company_overview(
+                        ticker,
+                        company_info,
+                    )
+
+                    special_message = (
+                        SPECIAL_TICKER_MESSAGES.get(ticker)
+                    )
+
+                    if special_message:
+                        st.toast(special_message)
+
+                    render_history_section(ticker)
+
+            except Exception as error:
                 st.error(
-                    "No company information was returned. Confirm the ticker "
-                    "and try again."
-                )
-            else:
-                render_company_overview(
-                    ticker,
-                    company_info,
+                    "The ticker data could not be retrieved. Confirm "
+                    "the symbol and try again."
                 )
 
-                render_history_section(ticker)
-
-        except Exception as error:
-            st.error(
-                "The ticker data could not be retrieved. Confirm the symbol "
-                "and try again."
-            )
-
-            with st.expander("View technical details"):
-                st.code(str(error))
+                with st.expander("View technical details"):
+                    st.code(str(error))
 
     st.markdown(
         """
