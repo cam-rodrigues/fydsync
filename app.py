@@ -50,9 +50,9 @@ TIME_MESSAGES = {
         "Spreadsheet endurance test: continuing.",
     ],
     "evening": [
-        "Working late? Do not forget to take a break.",
-        "After-hours mode activated.",
-        "The markets may be closed, but the spreadsheets are not.",
+        "Do not forget to take a break.",
+        "Don't strain your eyes.",
+        "Maybe it's time for a coffee break.",
     ],
     "friday": [
         "Friday detected. The weekend is almost priced in.",
