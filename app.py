@@ -38,12 +38,12 @@ PAGE_GROUPS = {
     "Documentation": {
         "Getting Started": "Getting_Started.py",
         "Roadmap": "roadmap.py",
-        "Resources": "resources.py",
         "User Requests": "user_requests.py",
     },
-    "Tools": {
-        "Article Analyzer": "article_analyzer.py",
-        "Company Lookup": "company_lookup.py",
+    "Research": {
+        "Resources": "resources.py",
+        "Article Analysis": "article_analyzer.py",
+        "Company Research": "company_lookup.py",
     },
     "Analyst Tools": {
         "Fund Scorecard": "fund_scorecard_metrics.py",
