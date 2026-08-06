@@ -1,6 +1,6 @@
 # app_pages/company_lookup.py
 
-from datetime import date, datetime, timedelta
+from datetime import date, timedelta
 from html import escape
 import random
 import re
@@ -20,269 +20,16 @@ SOLITAIRE_URL = "https://play-solitaire.com/"
 
 HIDDEN_LOOKUP_ALIASES = {
     "SOLITARE": "SOLITAIRE",
-    "TRUST ME BRO": "TRUSTMEBRO",
-    "TRUSTMEBRO": "TRUSTMEBRO",
 }
 
 KNOWN_LIMITATIONS = """
-- The ticker must be valid and supported by Yahoo Finance.
-- Use dashes rather than dots for tickers such as `BRK-B`.
-- Some international securities require exchange suffixes such as `.TO`, `.T`, or `.NS`.
-- Delisted, micro-cap, and newly listed securities may return incomplete data.
-- Cryptocurrency symbols such as `BTC-USD` may return price data but limited fundamentals.
-- ETF and mutual fund fundamentals may be limited or unavailable.
-- Yahoo Finance may occasionally delay, restrict, or omit certain fields.
+- Symbols must match Yahoo Finance formatting, including dashes or exchange suffixes.
+- Some securities may have incomplete fundamentals or historical data.
+- Yahoo Finance data may be delayed or temporarily unavailable.
 """
 
 
-SPECIAL_TICKER_MESSAGES = {
-    # Technology
-    "AAPL": "An apple a day keeps the portfolio review underway.",
-    "MSFT": "Clippy would like to help with this analysis.",
-    "GOOG": "Searching... approximately 14 million results found.",
-    "GOOGL": "Searching... approximately 14 million results found.",
-    "META": "The metaverse is still loading.",
-    "AMZN": "Your market data has arrived with free two-day shipping.",
-    "NFLX": "Still watching the earnings report?",
-    "NVDA": "GPU acceleration detected.",
-    "AMD": "Performance mode enabled.",
-    "INTC": "Intel inside. Hopefully.",
-    "IBM": "Still computing after all these years.",
-    "ORCL": "Consulting the oracle.",
-    "ADBE": "This analysis has been creatively enhanced.",
-    "CRM": "Relationship status: Customer.",
-    "UBER": "Your market data has arrived.",
-    "LYFT": "Taking the scenic route through Wall Street.",
-
-    # Automotive
-    "F": "Built Ford Tough.",
-    "GM": "General Motors. Specific lookup.",
-    "TSLA": "Volatility mode enabled.",
-    "RIVN": "Adventure mode charging.",
-    "TM": "Reliability mode activated.",
-
-    # Entertainment and media
-    "DIS": "The magic is in the fundamentals.",
-    "WBD": "Roll the opening credits.",
-    "SONY": "Now playing: Market Analysis.",
-    "SPOT": "Now playing: Bull Market Blues.",
-    "ROKU": "Streaming market data.",
-
-    # Finance
-    "JPM": "Jamie probably already knows.",
-    "BRK-B": "Warren would tell you to zoom out.",
-    "V": "Approved.",
-    "MA": "Transaction complete.",
-    "AXP": "Membership has its privileges.",
-
-    # Retail
-    "WMT": "Rollback pricing not included.",
-    "TGT": "Bullseye.",
-    "COST": "Membership not required for this lookup.",
-    "HD": "You can fix almost anything with enough trips.",
-    "LOW": "Weekend project mode activated.",
-    "BBY": "Geek Squad approves this search.",
-
-    # Food and beverages
-    "MCD": "Would you like fries with those shares?",
-    "SBUX": "Coffee may improve investment research.",
-    "KO": "Open happiness... and the financial statements.",
-    "PEP": "Diversification tastes refreshing.",
-    "DPZ": "Pizza is on the way. Probably not.",
-
-    # Consumer and miscellaneous
-    "NKE": "Just buy... after doing the research.",
-    "LULU": "Stretching valuation.",
-    "CROX": "Comfort over style.",
-    "EA": "It's in the earnings.",
-    "PLTR": "Seeing everything... allegedly.",
-
-    # Cryptocurrency
-    "BTC-USD": "HODL mode detected.",
-    "DOGE-USD": "Such analysis. Very finance.",
-}
-
-
 HIDDEN_LOOKUPS = {
-    "GUITARCENTER": {
-        "title": "Guitar Center Holdings",
-        "subtitle": "Musical Retail · NASDAQ: GTRS",
-        "message": (
-            "You walked in for strings and somehow left with another guitar."
-        ),
-        "metrics": {
-            "Current Price": "$2,699.99",
-            "Market Cap": "Your Paycheck",
-            "P/E Ratio": "Loud",
-            "Dividend Yield": "Store Credit",
-        },
-        "details": {
-            "Headquarters": "The Guitar Room You Promised You Did Not Need",
-            "Cash on Hand": "$14.23",
-            "Guitars Owned": "12",
-            "Guitars Needed": "13",
-        },
-        "description": (
-            "Guitar Center specializes in convincing musicians that one more "
-            "instrument will finally complete their collection."
-        ),
-    },
-
-    "STONKS": {
-        "title": "Stonks Incorporated",
-        "subtitle": "Advanced Financial Strategy · NYSE: STONKS",
-        "message": "Analysis complete. The line moved to the right.",
-        "metrics": {
-            "Current Price": "$420.69",
-            "Market Cap": "Very Large",
-            "P/E Ratio": "Trust Me",
-            "Dividend Yield": "Memes",
-        },
-        "details": {
-            "Sector": "Internet Economics",
-            "Risk Level": "Yes",
-            "Analyst Rating": "Probably",
-            "Strategy": "Buy High, Panic Later",
-        },
-        "description": (
-            "Stonks Incorporated provides highly confident financial opinions "
-            "supported by arrows, screenshots, and almost no context."
-        ),
-    },
-
-    "MONOPOLY": {
-        "title": "Monopoly Property Group",
-        "subtitle": "Real Estate · NYSE: MPLY",
-        "message": "Please collect $200 before continuing.",
-        "metrics": {
-            "Current Price": "$200.00",
-            "Market Cap": "The Entire Board",
-            "P/E Ratio": "Do Not Pass Go",
-            "Dividend Yield": "Rent",
-        },
-        "details": {
-            "CEO": "Rich Uncle Pennybags",
-            "Headquarters": "Boardwalk",
-            "Primary Competitor": "Whoever Owns Park Place",
-            "Cash Position": "Colorful Paper",
-        },
-        "description": (
-            "Monopoly Property Group acquires residential and commercial "
-            "properties while aggressively opposing free parking."
-        ),
-    },
-
-    "COFFEE": {
-        "title": "Caffeine Capital",
-        "subtitle": "Productivity Infrastructure · NASDAQ: JAVA",
-        "message": "Motivation loading.",
-        "metrics": {
-            "Current Price": "$5.75",
-            "Market Cap": "One Large Cold Brew",
-            "P/E Ratio": "Per Espresso",
-            "Dividend Yield": "Refills",
-        },
-        "details": {
-            "Operating Hours": "Immediately",
-            "Primary Asset": "Iced Coffee",
-            "Risk Factor": "No Coffee",
-            "Productivity": "Temporarily Improved",
-        },
-        "description": (
-            "Caffeine Capital provides short-term productivity solutions "
-            "followed by highly predictable afternoon volatility."
-        ),
-    },
-
-    "ABOUT": {
-        "title": "About FidSync",
-        "subtitle": "Internal Platform · Beta",
-        "message": "You found the hidden platform profile.",
-        "metrics": {
-            "Version": "Beta",
-            "Status": "Operational",
-            "Data Retention": "0 Files",
-            "Crystal Ball": "Unreliable",
-        },
-        "details": {
-            "Framework": "Streamlit",
-            "Language": "Python",
-            "Primary Fuel": "Spreadsheets",
-            "Secondary Fuel": "Coffee",
-        },
-        "description": (
-            "FidSync is an internal financial research and workflow toolkit "
-            "built to organize data, reduce repetitive work, and occasionally "
-            "hide unnecessary Easter eggs."
-        ),
-    },
-
-    "NOTION": {
-        "title": "Notion Productivity Systems",
-        "subtitle": "Organizational Technology · NASDAQ: TODO",
-        "message": "A new database has been created for this database.",
-        "metrics": {
-            "Productivity": "3%",
-            "Databases": "482",
-            "Tasks Completed": "Maybe",
-            "Templates": "Too Many",
-        },
-        "details": {
-            "Current Task": "Redesigning the Task Tracker",
-            "Time Organizing": "4 Hours",
-            "Time Working": "12 Minutes",
-            "Primary Asset": "Aesthetic Dashboards",
-        },
-        "description": (
-            "Notion Productivity Systems helps users spend significant time "
-            "building the perfect workspace before beginning any actual work."
-        ),
-    },
-
-    "EXCEL": {
-        "title": "Excel Financial Infrastructure",
-        "subtitle": "Spreadsheet Technology · NASDAQ: XLSX",
-        "message": "Excel has accepted your sacrifice.",
-        "metrics": {
-            "Rows Remaining": "1,048,576",
-            "Columns": "16,384",
-            "Broken Links": "Unknown",
-            "Circular References": "Probably",
-        },
-        "details": {
-            "Primary Function": "Keeping Finance Running",
-            "Most Used Feature": "Undo",
-            "Natural Predator": "Merged Cells",
-            "Current Status": "Not Responding",
-        },
-        "description": (
-            "Excel Financial Infrastructure supports the global economy through "
-            "formulas, pivot tables, and workbooks named Final_FINAL_v7."
-        ),
-    },
-
-    "BELMONT": {
-        "title": "Belmont University Holdings",
-        "subtitle": "Higher Education · NASDAQ: BRUIN",
-        "message": "Tuition continues to outperform the market.",
-        "metrics": {
-            "Tuition": "Up",
-            "Sleep": "Down",
-            "Assignments": "Due",
-            "Parking": "Unavailable",
-        },
-        "details": {
-            "Primary Asset": "Campus Construction",
-            "Student Fuel": "Coffee",
-            "Most Valuable Resource": "A Free Practice Room",
-            "Risk Factor": "Group Projects",
-        },
-        "description": (
-            "Belmont University Holdings provides educational services, "
-            "networking opportunities, and an impressive number of hills."
-        ),
-    },
-
     "SOLITAIRE": {
         "title": "Solitaire Holdings",
         "subtitle": "Workplace Wellness · NASDAQ: CARDS",
@@ -306,30 +53,7 @@ HIDDEN_LOOKUPS = {
             "Management has approved one game of Solitaire."
         ),
     },
-    "TRUSTMEBRO": {
-        "title": "Trust Me Bro Analytics",
-        "subtitle": "Independent Research · Source: A Guy",
-        "message": "Fact-checking... yeah, we're gonna need a better source.",
-        "metrics": {
-            "Confidence Score": "0/100",
-            "Source": "Some guy on the internet",
-            "Evidence": "✨ Vibes ✨",
-            "Analyst Rating": "Extremely Confident",
-        },
-        "details": {
-            "Methodology": "Trust me, bro.",
-            "Peer Review": "His friend agreed",
-            "Financial Model": "Made it up",
-            "Success Rate": "Pending",
-        },
-        "description": (
-            "Trust Me Bro Analytics delivers bold market predictions backed by "
-            "absolutely no research whatsoever. Results may include financial "
-            "regret."
-        ),
-    },
 }
-
 
 LOADING_MESSAGES = [
     "Checking market data...",
@@ -342,17 +66,6 @@ LOADING_MESSAGES = [
     "Convincing Yahoo Finance to cooperate...",
     "Looking for the missing decimal place...",
     "Consulting the financial crystal ball...",
-]
-
-
-FIDSYNC_THOUGHTS = [
-    "This one looks interesting.",
-    "I have seen worse balance sheets.",
-    "That valuation is ambitious.",
-    "Hopefully this is not another SPAC.",
-    "The numbers have been successfully numbered.",
-    "Past performance remains annoyingly unable to predict the future.",
-    "Another ticker enters the spreadsheet.",
 ]
 
 
@@ -604,13 +317,7 @@ def initialize_session_state():
         "company_lookup_searched": False,
         "company_lookup_ticker": "",
         "company_lookup_input": "",
-        "company_search_count": 0,
-        "company_search_history": [],
-        "company_achievements": [],
-        "company_pending_achievements": [],
-        "company_greeting_shown": False,
         "company_hidden_lookup_shown": "",
-        "fidsync_easter_egg_shown": False,
     }
 
     for key, value in defaults.items():
@@ -630,119 +337,6 @@ def clear_search():
     st.session_state.company_lookup_ticker = ""
     st.session_state.company_lookup_input = ""
     st.session_state.company_hidden_lookup_shown = ""
-    st.session_state.fidsync_easter_egg_shown = False
-
-
-# =========================================================
-# Achievements and Easter egg helpers
-# =========================================================
-
-def unlock_achievement(achievement):
-    """Unlock an achievement only once during the session."""
-
-    if achievement in st.session_state.company_achievements:
-        return False
-
-    st.session_state.company_achievements.append(achievement)
-
-    return True
-
-
-def record_ticker_search(ticker):
-    """Record a search and return newly unlocked achievements."""
-
-    st.session_state.company_search_count += 1
-    st.session_state.company_search_history.append(ticker)
-
-    search_count = st.session_state.company_search_count
-    unique_tickers = set(st.session_state.company_search_history)
-
-    newly_unlocked = []
-
-    if search_count == 1 and unlock_achievement("First Search"):
-        newly_unlocked.append(
-            "First Search — completed your first company lookup."
-        )
-
-    if search_count >= 5 and unlock_achievement("Market Researcher"):
-        newly_unlocked.append(
-            "Market Researcher — completed five searches in one session."
-        )
-
-    if (
-        len(unique_tickers) >= 5
-        and unlock_achievement("Diversified Researcher")
-    ):
-        newly_unlocked.append(
-            "Diversified Researcher — reviewed five different securities."
-        )
-
-    bitcoin_searches = (
-        st.session_state.company_search_history.count("BTC-USD")
-    )
-
-    if bitcoin_searches >= 3 and unlock_achievement("Diamond Hands"):
-        newly_unlocked.append(
-            "Diamond Hands — reviewed Bitcoin three times."
-        )
-
-    if (
-        ticker in HIDDEN_LOOKUPS or ticker == "FIDS"
-    ) and unlock_achievement("Easter Egg Hunter"):
-        newly_unlocked.append(
-            "Easter Egg Hunter — discovered a hidden lookup."
-        )
-
-    return newly_unlocked
-
-
-def show_pending_achievements():
-    """Display and clear newly unlocked achievements."""
-
-    pending = st.session_state.company_pending_achievements
-
-    for achievement in pending:
-        st.toast(f"Achievement unlocked: {achievement}")
-
-    st.session_state.company_pending_achievements = []
-
-
-def render_session_greeting():
-    """Display a time-based message once per session."""
-
-    if st.session_state.company_greeting_shown:
-        return
-
-    current_time = datetime.now()
-    current_hour = current_time.hour
-    weekday = current_time.weekday()
-
-    message = None
-
-    if current_hour < 8:
-        message = "Early market research session detected."
-
-    elif current_hour >= 18:
-        message = "After-hours research mode activated."
-
-    elif weekday == 4:
-        message = "Friday research session. The weekend is almost priced in."
-
-    if message:
-        st.toast(message)
-
-    st.session_state.company_greeting_shown = True
-
-
-def maybe_render_fidsync_thought():
-    """Display an occasional FidSync observation."""
-
-    search_count = st.session_state.company_search_count
-
-    if search_count > 0 and search_count % 4 == 0:
-        st.caption(
-            f'FidSync thinks: "{random.choice(FIDSYNC_THOUGHTS)}"'
-        )
 
 
 # =========================================================
@@ -951,32 +545,6 @@ def apply_page_styles():
                 color: white;
             }
 
-            .fidsync-easter-egg {
-                padding: 1.5rem;
-                margin-top: 1rem;
-                background:
-                    radial-gradient(
-                        circle at top right,
-                        rgba(117, 158, 203, 0.18),
-                        transparent 40%
-                    ),
-                    #f7fafd;
-                border: 1px solid #b9cce2;
-                border-radius: 0.85rem;
-                text-align: center;
-                box-shadow: 0 4px 14px rgba(16, 37, 66, 0.07);
-            }
-
-            .fidsync-easter-egg h3 {
-                margin: 0 0 0.35rem 0;
-                color: #102542;
-            }
-
-            .fidsync-easter-egg p {
-                margin: 0;
-                color: #64748b;
-                font-size: 0.88rem;
-            }
 
             .lookup-disclaimer {
                 margin-top: 1.5rem;
@@ -1072,15 +640,6 @@ def render_search_section():
         st.session_state.company_lookup_ticker = ticker
         st.session_state.company_lookup_searched = True
         st.session_state.company_hidden_lookup_shown = ""
-        st.session_state.fidsync_easter_egg_shown = False
-
-        new_achievements = record_ticker_search(ticker)
-
-        if new_achievements:
-            st.session_state.company_pending_achievements.extend(
-                new_achievements
-            )
-
         st.rerun()
 
     with st.expander("Known limitations"):
@@ -1607,53 +1166,6 @@ def render_history_section(ticker):
 # Hidden lookup renderers
 # =========================================================
 
-def render_fidsync_easter_egg():
-    """Render the hidden FidSync ticker result."""
-
-    if not st.session_state.fidsync_easter_egg_shown:
-        st.balloons()
-        st.session_state.fidsync_easter_egg_shown = True
-
-    st.markdown(
-        """
-        <div class="fidsync-easter-egg">
-            <h3>FidSync recognizes one of its own.</h3>
-            <p>
-                Internal developer mode unlocked. Market capitalization:
-                immeasurable. Beta status: very beta.
-            </p>
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
-
-    diagnostic_col1, diagnostic_col2, diagnostic_col3 = st.columns(3)
-
-    with diagnostic_col1:
-        st.metric(
-            "Platform Status",
-            "Operational",
-        )
-
-    with diagnostic_col2:
-        st.metric(
-            "Data Retention",
-            "0 Files",
-        )
-
-    with diagnostic_col3:
-        st.metric(
-            "Version",
-            "Beta",
-        )
-
-    with st.expander("Developer diagnostics"):
-        st.write("Session state: Enabled")
-        st.write("Caching: Enabled")
-        st.write("Historical engine: Ready")
-        st.write("Financial crystal ball: Unreliable")
-
-
 def render_hidden_lookup(ticker):
     """Render a fictional profile for a hidden lookup."""
 
@@ -1770,8 +1282,6 @@ def run():
     )
 
     render_search_section()
-    render_session_greeting()
-    show_pending_achievements()
 
     if (
         st.session_state.company_lookup_searched
@@ -1779,12 +1289,8 @@ def run():
     ):
         ticker = st.session_state.company_lookup_ticker
 
-        # Hidden FidSync developer profile
-        if ticker == "FIDS":
-            render_fidsync_easter_egg()
-
-        # Fictional hidden company profiles
-        elif ticker in HIDDEN_LOOKUPS:
+        # Hidden Solitaire profile
+        if ticker in HIDDEN_LOOKUPS:
             render_hidden_lookup(ticker)
 
         # Normal Yahoo Finance search
@@ -1807,14 +1313,6 @@ def run():
                         company_info,
                     )
 
-                    special_message = (
-                        SPECIAL_TICKER_MESSAGES.get(ticker)
-                    )
-
-                    if special_message:
-                        st.toast(special_message)
-
-                    maybe_render_fidsync_thought()
 
                     render_history_section(ticker)
 
