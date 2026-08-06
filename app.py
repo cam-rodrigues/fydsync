@@ -51,8 +51,8 @@ PAGE_GROUPS = {
         "Writeup": "write_up.py",
         "Writeup & Rec": "writeup_&_rec.py",
     },
-    "Under Construction": {
-        "Testing": "testing.py",
+    "Development": {
+        "Sandbox": "testing.py",
     },
 }
 
