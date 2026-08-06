@@ -37,7 +37,7 @@ DUCK_DEBUGGER_PAGE = "rubber_duck.py"
 PAGE_GROUPS = {
     "Documentation": {
         "Getting Started": "Getting_Started.py",
-        "Capabilities & Potential": "capabilities_and_potential.py",
+        "Roadmap": "capabilities_and_potential.py",
         "Resources": "resources.py",
         "User Requests": "user_requests.py",
     },
