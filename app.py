@@ -5,7 +5,7 @@ from zoneinfo import ZoneInfo
 import importlib.util
 import os
 import random
-import time
+import uuid
 
 import streamlit as st
 
@@ -17,6 +17,10 @@ import streamlit as st
 PAGES_DIR = "app_pages"
 ASSETS_DIR = "assets"
 
+APP_VERSION = "0.9"
+APP_STAGE = "Beta"
+APP_TIMEZONE = ZoneInfo("America/New_York")
+
 ICON_PATH = os.path.join(
     ASSETS_DIR,
     "fidsync_icon.png",
@@ -27,12 +31,43 @@ SIDEBAR_LOGO_PATH = os.path.join(
     "fidsync_logo.png",
 )
 
-WORDMARK_PATH = os.path.join(
-    ASSETS_DIR,
-    "fidsync_wordmark.png",
-)
-
 DEFAULT_PAGE = "Getting_Started.py"
+DUCK_DEBUGGER_PAGE = "rubber_duck.py"
+
+PAGE_GROUPS = {
+    "Documentation": {
+        "Getting Started": "Getting_Started.py",
+        "Capabilities & Potential": "capabilities_and_potential.py",
+        "Resources": "resources.py",
+        "User Requests": "user_requests.py",
+    },
+    "Tools": {
+        "Article Analyzer": "article_analyzer.py",
+        "Company Lookup": "company_lookup.py",
+    },
+    "MPI Tools": {
+        "Fund Scorecard": "fund_scorecard.py",
+        "Scorecard Metrics": "fund_scorecard_metrics.py",
+        "IPS Screening": "ips_screening.py",
+        "Writeup": "write_up.py",
+        "Writeup & Recommendation": "writeup_&_rec.py",
+    },
+    "Testing": {
+        "Fund Scorecard Test": "fund_metric_upgrade_test.py",
+    },
+}
+
+ALLOWED_PAGES = {
+    filename
+    for pages in PAGE_GROUPS.values()
+    for filename in pages.values()
+}
+ALLOWED_PAGES.add(DUCK_DEBUGGER_PAGE)
+
+LEGACY_REDIRECTS = {
+    "company_scraper.py": "company_lookup.py",
+    "data_scanner.py": "company_lookup.py",
+}
 
 TIME_MESSAGES = {
     "early": [
@@ -114,6 +149,7 @@ def initialize_app_state() -> None:
         "time_greeting_shown": False,
         "rare_startup_message_checked": False,
         "fake_error_checked": False,
+        "last_startup_message": None,
     }
 
     for key, value in defaults.items():
@@ -187,12 +223,9 @@ def show_time_greeting() -> None:
     if st.session_state.time_greeting_shown:
         return
 
-    # FIX: Explicitly use datetime.datetime.now() to avoid naming collisions
-    now = datetime.now(ZoneInfo("America/New_York"))
+    now = datetime.now(APP_TIMEZONE)
 
-    if now.weekday() == 4:
-        message_group = "friday"
-    elif now.hour < 8:
+    if now.hour < 8:
         message_group = "early"
     elif now.hour < 12:
         message_group = "morning"
@@ -201,10 +234,28 @@ def show_time_greeting() -> None:
     else:
         message_group = "evening"
 
+    available_messages = list(TIME_MESSAGES[message_group])
+
+    if now.weekday() == 4:
+        available_messages.extend(TIME_MESSAGES["friday"])
+
+    previous_message = st.session_state.last_startup_message
+    non_repeating_messages = [
+        message
+        for message in available_messages
+        if message != previous_message
+    ]
+
+    selected_message = random.choice(
+        non_repeating_messages or available_messages
+    )
+
     st.toast(
-        random.choice(TIME_MESSAGES[message_group]),
+        selected_message,
         icon="🕒",
     )
+
+    st.session_state.last_startup_message = selected_message
     st.session_state.time_greeting_shown = True
 
 
@@ -223,21 +274,28 @@ def maybe_show_rare_startup_message() -> None:
 
 
 def maybe_show_fake_error() -> None:
-    """Very rarely show a fake error for fun."""
+    """Very rarely show a nonblocking fake error in developer mode."""
     if st.session_state.fake_error_checked:
         return
 
     st.session_state.fake_error_checked = True
 
-    # NOTE: Keep the percentage low (0.5%) so it doesn't constantly block your app flow
-    if random.random() < 0.005:
-        placeholder = st.empty()
-        placeholder.error(random.choice(FAKE_ERROR_MESSAGES))
-        time.sleep(1.2)  # Short delay so they can read the panic
-        placeholder.success(random.choice(FAKE_RECOVERY_MESSAGES))
-        time.sleep(1.2)  # Short delay to see the relief
-        placeholder.empty()
+    if (
+        st.session_state.app_secret_mode
+        and random.random() < 0.05
+    ):
+        st.toast(
+            random.choice(FAKE_ERROR_MESSAGES),
+            icon="🚨",
+        )
+        st.toast(
+            random.choice(FAKE_RECOVERY_MESSAGES),
+            icon="✅",
+        )
 
+
+# Read developer mode before startup messages run.
+handle_secret_query_mode()
 
 # Run startup messages once per browser session.
 show_time_greeting()
@@ -400,12 +458,20 @@ st.markdown(
 # Navigation state
 # =========================================================
 
-handle_secret_query_mode()
-
 requested_page = st.query_params.get("page")
 
-# If no page is specified, Getting Started is the homepage.
-selected_page = requested_page or DEFAULT_PAGE
+if requested_page in LEGACY_REDIRECTS:
+    redirected_page = LEGACY_REDIRECTS[requested_page]
+    st.query_params["page"] = redirected_page
+    st.rerun()
+
+if requested_page in ALLOWED_PAGES:
+    selected_page = requested_page
+else:
+    selected_page = DEFAULT_PAGE
+
+    if requested_page:
+        st.query_params["page"] = DEFAULT_PAGE
 
 
 # =========================================================
@@ -424,9 +490,9 @@ else:
     )
 
 st.sidebar.markdown(
-    """
+    f"""
     <div class="sidebar-build-label">
-        Internal Beta · Build 0.9
+        Internal {APP_STAGE} · Build {APP_VERSION}
     </div>
     <div class="sidebar-logo-divider"></div>
     """,
@@ -471,99 +537,29 @@ def nav_button(label: str, filename: str) -> None:
 # Sidebar navigation
 # =========================================================
 
-st.sidebar.markdown(
-    '<div class="sidebar-section">Documentation</div>',
-    unsafe_allow_html=True,
-)
-
-nav_button(
-    "Getting Started",
-    "Getting_Started.py",
-)
-
-nav_button(
-    "Capabilities & Potential",
-    "capabilities_and_potential.py",
-)
-
-nav_button(
-    "Resources",
-    "resources.py",
-)
-
-nav_button(
-    "User Requests",
-    "user_requests.py",
-)
-
-
-st.sidebar.markdown(
-    '<div class="sidebar-section">Tools</div>',
-    unsafe_allow_html=True,
-)
-
-nav_button(
-    "Article Analyzer",
-    "article_analyzer.py",
-)
-
-nav_button(
-    "Company Lookup",
-    "company_lookup.py",
-)
-
-
-st.sidebar.markdown(
-    '<div class="sidebar-section">MPI Tools</div>',
-    unsafe_allow_html=True,
-)
-
-with st.sidebar.expander(
-    "Open MPI tools",
-    expanded=False,
-):
-    nav_button(
-        "Fund Scorecard",
-        "fund_scorecard.py",
+for section_name, pages in PAGE_GROUPS.items():
+    st.sidebar.markdown(
+        f'<div class="sidebar-section">{section_name}</div>',
+        unsafe_allow_html=True,
     )
 
-    nav_button(
-        "Scorecard Metrics",
-        "fund_scorecard_metrics.py",
-    )
-
-    nav_button(
-        "IPS Screening",
-        "ips_screening.py",
-    )
-
-    nav_button(
-        "Writeup",
-        "write_up.py",
-    )
-
-    nav_button(
-        "Writeup & Recommendation",
-        "writeup_&_rec.py",
-    )
-
-
-st.sidebar.markdown(
-    '<div class="sidebar-section">Testing</div>',
-    unsafe_allow_html=True,
-)
-
-nav_button(
-    "Fund Scorecard Test",
-    "fund_metric_upgrade_test.py",
-)
+    if section_name == "MPI Tools":
+        with st.sidebar.expander(
+            "Open MPI tools",
+            expanded=False,
+        ):
+            for label, filename in pages.items():
+                nav_button(label, filename)
+    else:
+        for label, filename in pages.items():
+            nav_button(label, filename)
 
 
 def open_duck_debugger() -> None:
     """Open the hidden Rubber Duck Debugger page."""
 
     st.session_state.duck_previous_page = selected_page
-    st.query_params["page"] = "rubber_duck.py"
+    st.query_params["page"] = DUCK_DEBUGGER_PAGE
 
 
 # =========================================================
@@ -571,12 +567,12 @@ def open_duck_debugger() -> None:
 # =========================================================
 
 with st.sidebar.expander(
-    "Version 0.9 Beta",
+    f"Version {APP_VERSION} {APP_STAGE}",
     expanded=False,
 ):
     st.markdown(
-        """
-        <div class="version-label">FidSync Beta</div>
+        f"""
+        <div class="version-label">FidSync {APP_STAGE}</div>
         <div class="version-note">
             Built with Python, Streamlit, spreadsheets, and
             cautious optimism.
@@ -623,10 +619,41 @@ with st.sidebar.expander(
             "Developer diagnostics",
             expanded=False,
         ):
-            st.write("Navigation engine: Operational")
-            st.write("Page loader: Ready")
-            st.write("Spreadsheet containment: Stable")
-            st.write("Financial crystal ball: Unreliable")
+            current_page_path = os.path.join(
+                PAGES_DIR,
+                selected_page,
+            )
+
+            missing_registered_pages = sorted(
+                filename
+                for filename in ALLOWED_PAGES
+                if not os.path.exists(
+                    os.path.join(PAGES_DIR, filename)
+                )
+            )
+
+            st.write(
+                "Pages directory:",
+                "Found" if os.path.isdir(PAGES_DIR) else "Missing",
+            )
+            st.write(
+                "Current page file:",
+                "Found" if os.path.exists(current_page_path) else "Missing",
+            )
+            st.write("Current page:", selected_page)
+            st.write("Current timezone:", str(APP_TIMEZONE))
+            st.write(
+                "Registered pages:",
+                len(ALLOWED_PAGES),
+            )
+
+            if missing_registered_pages:
+                st.warning(
+                    "Missing registered page files: "
+                    + ", ".join(missing_registered_pages)
+                )
+            else:
+                st.success("All registered page files were found.")
 
             st.metric(
                 "System Checks",
@@ -639,18 +666,6 @@ with st.sidebar.expander(
             )
 
 
-# =========================================================
-# Legacy redirects
-# =========================================================
-
-legacy_redirects = {
-    "company_scraper.py": "data_scanner.py",
-}
-
-if selected_page in legacy_redirects:
-    selected_page = legacy_redirects[selected_page]
-    st.query_params["page"] = selected_page
-    st.rerun()
 
 
 # =========================================================
@@ -658,12 +673,25 @@ if selected_page in legacy_redirects:
 # =========================================================
 
 def load_page(filename: str) -> None:
-    """Import and run a page from the app_pages directory."""
+    """Import and run one registered page."""
 
-    page_path = os.path.join(
-        PAGES_DIR,
-        filename,
+    if filename not in ALLOWED_PAGES:
+        st.error("That page is not registered.")
+        st.query_params["page"] = DEFAULT_PAGE
+        st.rerun()
+
+    page_path = os.path.abspath(
+        os.path.join(
+            PAGES_DIR,
+            filename,
+        )
     )
+    pages_root = os.path.abspath(PAGES_DIR)
+
+    if os.path.commonpath([pages_root, page_path]) != pages_root:
+        st.error("That page path is not allowed.")
+        st.query_params["page"] = DEFAULT_PAGE
+        st.rerun()
 
     if not os.path.exists(page_path):
         st.warning(
@@ -706,12 +734,39 @@ def load_page(filename: str) -> None:
         module.run()
 
     except Exception as error:
-        st.error("This page could not be loaded. Open debugger for help.")
+        error_reference = uuid.uuid4().hex[:8].upper()
+
+        st.error(
+            "This page could not be loaded. "
+            f"Error reference: `{error_reference}`"
+        )
+
+        action_col, debugger_col = st.columns(2)
+
+        with action_col:
+            if st.button(
+                "Return to Getting Started",
+                key=f"return_home_{error_reference}",
+                use_container_width=True,
+            ):
+                st.query_params["page"] = DEFAULT_PAGE
+                st.rerun()
+
+        with debugger_col:
+            if st.button(
+                "Open Debugger",
+                key=f"open_debugger_{error_reference}",
+                use_container_width=True,
+            ):
+                st.session_state.duck_previous_page = filename
+                st.query_params["page"] = DUCK_DEBUGGER_PAGE
+                st.rerun()
 
         with st.expander(
             "View technical details",
             expanded=False,
         ):
+            st.caption(f"Error reference: {error_reference}")
             st.exception(error)
 
 
