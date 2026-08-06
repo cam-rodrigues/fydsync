@@ -2523,7 +2523,13 @@ def run():
             )
 
             show_report_summary()
+           
+            # -----------------------------------------------------
+            # IPS FAIL TABLE
+            # -----------------------------------------------------
 
+            step14_5_ips_fail_table()
+          
             with st.expander(
                 "Table of Contents",
                 expanded=False,
@@ -2899,11 +2905,7 @@ def run():
                 unsafe_allow_html=True,
             )
 
-            # -----------------------------------------------------
-            # IPS FAIL TABLE
-            # -----------------------------------------------------
 
-            step14_5_ips_fail_table()
 
             # -----------------------------------------------------
             # SINGLE FUND WRITEUP
