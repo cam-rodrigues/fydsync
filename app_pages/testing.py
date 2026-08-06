@@ -1248,65 +1248,273 @@ def step14_5_ips_fail_table():
     import pandas as pd
 
     df = st.session_state.get("ips_icon_table")
+
     if df is None or df.empty:
         return
 
-    fail_df = df[df["IPS Watch Status"].isin(["FW", "IW"])][["Fund Name", "IPS Watch Status"]]
+    fail_df = df[
+        df["IPS Watch Status"].isin(["FW", "IW"])
+    ][
+        [
+            "Fund Name",
+            "IPS Watch Status",
+        ]
+    ].copy()
+
     if fail_df.empty:
+        st.success(
+            "No funds are currently on watch."
+        )
         return
 
-    table_html = fail_df.rename(columns={
-        "Fund Name": "Fund",
-        "IPS Watch Status": "Watch Status"
-    }).to_html(index=False, border=0, justify="center", classes="ips-fail-table")
+    status_labels = {
+        "IW": "Informal Watch",
+        "FW": "Formal Watch",
+    }
 
-    st.markdown(f"""
-    <div style='
-        background: linear-gradient(120deg, #e6f0fb 85%, #c8e0f6 100%);
-        color: #23395d;
-        border-radius: 1.3rem;
-        box-shadow: 0 2px 14px rgba(44,85,130,0.08), 0 1px 4px rgba(36,67,105,0.07);
-        padding: 1.6rem 2.0rem 1.6rem 2.0rem;
-        max-width: 650px;
-        margin: 1.4rem auto 1.2rem auto;
-        border: 1.5px solid #b5d0eb;'>
-        <div style='font-weight:700; color:#23395d; font-size:1.15rem; margin-bottom:0.5rem; letter-spacing:-0.5px;'>
-            Funds on Watch
-        </div>
-        <div style='font-size:1rem; margin-bottom:1rem; color:#23395d;'>
-            The following funds failed five or more IPS criteria and are currently on watch.
-        </div>
-        {table_html}
-    </div>
-    """, unsafe_allow_html=True)
+    fail_df["Watch Status"] = fail_df[
+        "IPS Watch Status"
+    ].map(status_labels)
 
-    st.markdown("""
-    <style>
-    .ips-fail-table {
-        width: 100%;
-        border-collapse: collapse;
-        margin-top: 0.7em;
-        font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
-    }
-    .ips-fail-table th, .ips-fail-table td {
-        border: none;
-        padding: 0.48em 1.1em;
-        text-align: left;
-        font-size: 1.07em;
-    }
-    .ips-fail-table th {
-        background: #244369;
-        color: #fff;
-        font-weight: 700;
-        letter-spacing: 0.01em;
-    }
-    .ips-fail-table td {
-        color: #244369;
-    }
-    .ips-fail-table tr:nth-child(even) {background: #e6f0fb;}
-    .ips-fail-table tr:nth-child(odd)  {background: #f8fafc;}
-    </style>
-    """, unsafe_allow_html=True)
+    fail_df = fail_df.rename(
+        columns={
+            "Fund Name": "Fund",
+        }
+    )[
+        [
+            "Fund",
+            "Watch Status",
+            "IPS Watch Status",
+        ]
+    ]
+
+    rows = []
+
+    for _, row in fail_df.iterrows():
+        status_code = row["IPS Watch Status"]
+        status_class = (
+            "watch-formal"
+            if status_code == "FW"
+            else "watch-informal"
+        )
+
+        rows.append(
+            f"""
+            <div class="watch-row">
+                <div class="watch-fund">
+                    {row["Fund"]}
+                </div>
+
+                <div class="watch-status {status_class}">
+                    {row["Watch Status"]}
+                </div>
+            </div>
+            """
+        )
+
+    rows_html = "".join(rows)
+
+    informal_count = int(
+        (
+            fail_df["IPS Watch Status"] == "IW"
+        ).sum()
+    )
+
+    formal_count = int(
+        (
+            fail_df["IPS Watch Status"] == "FW"
+        ).sum()
+    )
+
+    total_count = len(fail_df)
+
+    st.markdown(
+        f"""
+        <style>
+            .watch-panel {{
+                width: 100%;
+                background: #FFFFFF;
+                border: 1px solid #DDE3EA;
+                border-radius: 12px;
+                overflow: hidden;
+                margin: 0.4rem 0 1rem 0;
+                box-shadow: 0 3px 12px rgba(16, 24, 40, 0.035);
+            }}
+
+            .watch-panel-header {{
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 1rem;
+                padding: 1rem 1.15rem;
+                background: #F8FAFC;
+                border-bottom: 1px solid #E4E7EC;
+            }}
+
+            .watch-panel-title {{
+                color: #16243A;
+                font-size: 1rem;
+                font-weight: 700;
+                margin-bottom: 0.15rem;
+            }}
+
+            .watch-panel-description {{
+                color: #667085;
+                font-size: 0.84rem;
+                line-height: 1.4;
+            }}
+
+            .watch-count {{
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                min-width: 32px;
+                height: 32px;
+                padding: 0 0.65rem;
+                border-radius: 999px;
+                background: #EAF0F8;
+                color: #24466F;
+                font-size: 0.8rem;
+                font-weight: 700;
+                flex-shrink: 0;
+            }}
+
+            .watch-summary {{
+                display: flex;
+                gap: 0.6rem;
+                padding: 0.75rem 1.15rem;
+                border-bottom: 1px solid #EAECF0;
+                background: #FFFFFF;
+            }}
+
+            .watch-summary-item {{
+                color: #667085;
+                font-size: 0.78rem;
+                font-weight: 600;
+            }}
+
+            .watch-summary-item strong {{
+                color: #344054;
+                margin-right: 0.2rem;
+            }}
+
+            .watch-table-header {{
+                display: grid;
+                grid-template-columns: minmax(0, 1fr) 180px;
+                gap: 1rem;
+                padding: 0.65rem 1.15rem;
+                background: #162F52;
+                color: #FFFFFF;
+                font-size: 0.78rem;
+                font-weight: 700;
+                letter-spacing: 0.02em;
+            }}
+
+            .watch-row {{
+                display: grid;
+                grid-template-columns: minmax(0, 1fr) 180px;
+                align-items: center;
+                gap: 1rem;
+                padding: 0.78rem 1.15rem;
+                border-bottom: 1px solid #EAECF0;
+                background: #FFFFFF;
+            }}
+
+            .watch-row:last-child {{
+                border-bottom: none;
+            }}
+
+            .watch-row:hover {{
+                background: #FAFBFC;
+            }}
+
+            .watch-fund {{
+                color: #344054;
+                font-size: 0.88rem;
+                font-weight: 550;
+            }}
+
+            .watch-status {{
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                width: fit-content;
+                min-width: 112px;
+                padding: 0.34rem 0.65rem;
+                border-radius: 999px;
+                font-size: 0.74rem;
+                font-weight: 700;
+                white-space: nowrap;
+            }}
+
+            .watch-formal {{
+                background: #FDECEC;
+                color: #B42318;
+                border: 1px solid #F6C7C3;
+            }}
+
+            .watch-informal {{
+                background: #FFF6DB;
+                color: #9A6700;
+                border: 1px solid #F5D98A;
+            }}
+
+            @media (max-width: 700px) {{
+                .watch-table-header,
+                .watch-row {{
+                    grid-template-columns: 1fr;
+                }}
+
+                .watch-table-header div:last-child {{
+                    display: none;
+                }}
+
+                .watch-panel-header {{
+                    align-items: flex-start;
+                }}
+            }}
+        </style>
+
+        <div class="watch-panel">
+            <div class="watch-panel-header">
+                <div>
+                    <div class="watch-panel-title">
+                        Funds on Watch
+                    </div>
+
+                    <div class="watch-panel-description">
+                        Funds that failed five or more IPS criteria
+                        and require additional review.
+                    </div>
+                </div>
+
+                <div class="watch-count">
+                    {total_count}
+                </div>
+            </div>
+
+            <div class="watch-summary">
+                <div class="watch-summary-item">
+                    <strong>{informal_count}</strong>
+                    Informal Watch
+                </div>
+
+                <div class="watch-summary-item">
+                    <strong>{formal_count}</strong>
+                    Formal Watch
+                </div>
+            </div>
+
+            <div class="watch-table-header">
+                <div>Fund</div>
+                <div>Watch Status</div>
+            </div>
+
+            {rows_html}
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
 
 #───Step 15: Single Fund──────────────────────────────────────────────────────────────────
 
