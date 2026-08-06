@@ -2521,25 +2521,25 @@ def run():
                 process_toc(toc_text)
 
         # =========================================================
+        # =========================================================
         # FUND ANALYSIS TAB
         # =========================================================
 
-        
         with analysis_tab:
-                    st.markdown(
-                        """
-                        <div class="section-header">
-                            <div class="section-kicker">Fund Analysis</div>
-                            <div class="section-title">Extracted Fund Details</div>
-                            <div class="section-copy">
-                                Select an analysis category to review the information
-                                extracted from the report.
-                            </div>
-                        </div>
-                        """,
-                        unsafe_allow_html=True,
-                    )
-        
+            st.markdown(
+                """
+                <div class="section-header">
+                    <div class="section-kicker">Fund Analysis</div>
+                    <div class="section-title">Extracted Fund Details</div>
+                    <div class="section-copy">
+                        Select an analysis category to review the information
+                        extracted from the report.
+                    </div>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+
             analysis_view = st.selectbox(
                 "Analysis Category",
                 [
@@ -2552,11 +2552,11 @@ def run():
                 ],
                 key="fund_review_analysis_view",
             )
-        
+
             # ---------------------------------------------------------
             # IPS SCREENING
             # ---------------------------------------------------------
-        
+
             if analysis_view == "IPS Screening":
                 sp = st.session_state.get("scorecard_page")
                 tot = st.session_state.get("total_options")
@@ -2564,7 +2564,7 @@ def run():
                 factsheets_page = st.session_state.get(
                     "factsheets_page"
                 )
-        
+
                 if sp and tot is not None and pp:
                     step3_5_6_scorecard_and_ips(
                         pdf,
@@ -2578,11 +2578,11 @@ def run():
                         "IPS screening information was not found "
                         "in this report."
                     )
-        
+
             # ---------------------------------------------------------
             # FUND FACTSHEETS
             # ---------------------------------------------------------
-        
+
             elif analysis_view == "Fund Factsheets":
                 names = [
                     block["Fund Name"]
@@ -2591,7 +2591,7 @@ def run():
                         [],
                     )
                 ]
-        
+
                 if names:
                     step6_process_factsheets(
                         pdf,
@@ -2601,67 +2601,84 @@ def run():
                     st.info(
                         "No fund factsheets were found in this report."
                     )
-        
+
             # ---------------------------------------------------------
             # FUND FACTS
             # ---------------------------------------------------------
-        
+
             elif analysis_view == "Fund Facts":
                 step12_process_fund_facts(pdf)
-        
+
             # ---------------------------------------------------------
             # RETURNS
             # ---------------------------------------------------------
-        
+
             elif analysis_view == "Returns":
                 step7_extract_returns(pdf)
                 step8_calendar_returns(pdf)
-        
+
             # ---------------------------------------------------------
             # MPT STATISTICS
             # ---------------------------------------------------------
-        
+
             elif analysis_view == "MPT Statistics":
-                normalized_toc = " ".join(
-                    toc_text.lower().split()
-                )
-        
                 has_mpt_3yr = (
-                    "mpt statistics (3yr)" in normalized_toc
-                    or "mpt statistics (3 year)" in normalized_toc
-                    or "mpt statistics 3yr" in normalized_toc
+                    st.session_state.get("r3yr_page") is not None
                 )
-        
+
                 has_mpt_5yr = (
-                    "mpt statistics (5yr)" in normalized_toc
-                    or "mpt statistics (5 year)" in normalized_toc
-                    or "mpt statistics 5yr" in normalized_toc
+                    st.session_state.get("r5yr_page") is not None
                 )
-        
+
                 if not has_mpt_3yr and not has_mpt_5yr:
                     st.info(
                         "No MPT statistics were included in this report."
                     )
-        
+
                 else:
                     if has_mpt_3yr:
                         step9_risk_analysis_3yr(pdf)
-        
+
                     if has_mpt_5yr:
                         step10_risk_analysis_5yr(pdf)
-        
-                    step11_create_summary()
-        
+
+                    mpt3 = st.session_state.get(
+                        "step9_mpt_stats",
+                        [],
+                    )
+
+                    mpt5 = st.session_state.get(
+                        "step10_mpt_stats",
+                        [],
+                    )
+
+                    if mpt3 and mpt5:
+                        step11_create_summary()
+                    elif mpt3:
+                        st.info(
+                            "Three-year MPT statistics were found, "
+                            "but five-year statistics were not included."
+                        )
+                    elif mpt5:
+                        st.info(
+                            "Five-year MPT statistics were found, "
+                            "but three-year statistics were not included."
+                        )
+                    else:
+                        st.info(
+                            "No MPT statistics could be extracted "
+                            "from this report."
+                        )
+
             # ---------------------------------------------------------
             # RISK-ADJUSTED RETURNS
             # ---------------------------------------------------------
-        
+
             elif analysis_view == "Risk-Adjusted Returns":
                 step13_process_risk_adjusted_returns(pdf)
                 step14_extract_peer_risk_adjusted_return_rank(
                     pdf
                 )
-
         # =========================================================
         # DATA PREPARATION
         # =========================================================
