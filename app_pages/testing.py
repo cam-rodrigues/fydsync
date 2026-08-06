@@ -2804,69 +2804,80 @@ def step17_export_to_ppt():
 
 
     # ───── 6) EXPENSE & RETURN SLIDE: Table 1 ────────────────────────────────────────
+
     # Locate the slide by its placeholder
     slide_expense_and_return = None
+
     for sl in prs.slides:
         for shape in sl.shapes:
-            if shape.has_text_frame and "[Category] – Expense & Return" in shape.text_frame.text:
+            if not shape.has_text_frame:
+                continue
+
+            text = shape.text_frame.text or ""
+
+            if "[Category]" in text and "Expense & Return" in text:
                 slide_expense_and_return = sl
                 break
+
         if slide_expense_and_return:
             break
 
     if not slide_expense_and_return:
         st.warning("Couldn't find the Expense and Return slide.")
-    else:
-        facts_rec = next(
-            (f for f in facts if f.get("Matched Fund Name") == selected),
-            {}
-        )
-        
-        category = facts_rec.get("Category", "")
-        
-        fill_text_placeholder_preserving_format(
-            slide_expense_and_return,
-            "[Category]",
-            category
-        )
-        
-        # Grab all tables, pick the first (top-left)
-        tables = [sh for sh in slide_expense_and_return.shapes if sh.has_table]
-        if not tables:
-            st.warning("No tables found on Expense and Return slide.")
-        else:
-            tbl1 = tables[0].table
-            tbl_xml = tbl1._tbl
+        return
 
-            # Determine how many body rows to add
-            existing = len(tbl1.rows) - 1  # header excluded
-            needed = len(ear_df) - existing
-            if needed > 0:
-                base_tr = tbl_xml.tr_lst[1]
-                for _ in range(needed):
-                    tbl_xml.append(deepcopy(base_tr))
+    # Get the category for the selected fund
+    facts_rec = next(
+        (f for f in facts if f.get("Matched Fund Name") == selected),
+        {}
+    )
 
-            
-            # Fill each DataFrame row into the table
-            for r_idx, df_row in enumerate(ear_df.itertuples(index=False), start=1):
-                for c_idx, val in enumerate(df_row):
-                    cell = tbl1.cell(r_idx, c_idx)
-                    para = cell.text_frame.paragraphs[0]
-            
-                    # get or create the run
-                    if para.runs:
-                        run = para.runs[0]
-                        run.text = val
-                    else:
-                        run = para.add_run()
-                        run.text = val
-            
-                    # if this is the Net Expense Ratio column (column index 1):
-                    if c_idx == 1:
-                        run.font.name = "Cambria"
-                        run.font.size = Pt(11)
-                        run.font.color.rgb = RGBColor(0, 0, 0)
-                    # else: leave the template’s default styling for column 0
+    category = facts_rec.get("Category", "")
+
+    fill_text_placeholder_preserving_format(
+        slide_expense_and_return,
+        "[Category]",
+        category
+    )
+
+    # Grab all tables, pick the first (top-left)
+    tables = [sh for sh in slide_expense_and_return.shapes if sh.has_table]
+
+    if not tables:
+        st.warning("No tables found on Expense and Return slide.")
+        return
+
+    tbl1 = tables[0].table
+    tbl_xml = tbl1._tbl
+
+    # Determine how many body rows to add
+    existing = len(tbl1.rows) - 1  # header excluded
+    needed = len(ear_df) - existing
+
+    if needed > 0:
+        base_tr = tbl_xml.tr_lst[1]
+        for _ in range(needed):
+            tbl_xml.append(deepcopy(base_tr))
+
+    # Fill each DataFrame row into the table
+    for r_idx, df_row in enumerate(ear_df.itertuples(index=False), start=1):
+        for c_idx, val in enumerate(df_row):
+            cell = tbl1.cell(r_idx, c_idx)
+            para = cell.text_frame.paragraphs[0]
+
+            if para.runs:
+                run = para.runs[0]
+            else:
+                run = para.add_run()
+
+            run.text = str(val)
+
+            # Style only the Net Expense Ratio column
+            if c_idx == 1:
+                run.font.name = "Cambria"
+                run.font.size = Pt(11)
+                run.font.color.rgb = RGBColor(0, 0, 0)
+
     
     # ───── 9c) Expense and Return Slide: Table 2 – Returns ─────────────────────────────
 
