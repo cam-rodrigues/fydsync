@@ -364,7 +364,7 @@ st.markdown(
         /* Navigation buttons */
 
         [data-testid="stSidebar"] .stButton {
-            margin-bottom: 0.05rem;
+            margin-bottom: 0.01rem;
         }
 
         [data-testid="stSidebar"] .stButton > button {
