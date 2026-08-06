@@ -6,13 +6,8 @@ from urllib.parse import urlparse
 import os
 import random
 import re
-import tempfile
 
-import pandas as pd
-import pdfplumber
 import streamlit as st
-from fpdf import FPDF
-from newspaper import Article
 
 
 # =========================================================
@@ -470,6 +465,7 @@ IGNORED_COMMON_WORDS = {
 # Article processing
 # =========================================================
 
+@st.cache_data(show_spinner=False)
 def clean_article_text(text):
     """
     Normalize extracted article text by removing repeated spaces
@@ -486,6 +482,7 @@ def clean_article_text(text):
     return text.strip()
 
 
+@st.cache_data(show_spinner=False)
 def summarize_article(text):
     """
     Create a basic extractive preview by limiting the article text
@@ -503,6 +500,7 @@ def summarize_article(text):
     return cleaned_text
 
 
+@st.cache_data(show_spinner=False)
 def get_text_statistics(text):
     """Calculate basic statistics for the extracted article."""
 
@@ -620,8 +618,11 @@ def clean_author_metadata(authors):
     return ", ".join(cleaned_parts)
 
 
+@st.cache_data(show_spinner=False, ttl=1800)
 def extract_article_from_url(url):
     """Download and extract article text from a webpage."""
+
+    from newspaper import Article
 
     article = Article(url)
     article.download()
@@ -646,16 +647,17 @@ def extract_article_from_url(url):
     }
 
 
-def extract_text_from_pdf(pdf_file):
+@st.cache_data(show_spinner=False)
+def extract_text_from_pdf(pdf_bytes):
     """Extract readable text from every page of an uploaded PDF."""
+
+    from io import BytesIO
+    import pdfplumber
 
     extracted_pages = []
 
-    with pdfplumber.open(pdf_file) as pdf:
-        for page_number, page in enumerate(
-            pdf.pages,
-            start=1,
-        ):
+    with pdfplumber.open(BytesIO(pdf_bytes)) as pdf:
+        for page in pdf.pages:
             page_text = page.extract_text()
 
             if page_text:
@@ -738,6 +740,7 @@ def get_headline_ratio_message(title, article_text):
     return None
 
 
+@st.cache_data(show_spinner=False)
 def get_most_common_word(text):
     """Return the most common meaningful word and its count."""
 
@@ -868,11 +871,14 @@ def prepare_text_for_pdf(text):
     )
 
 
+@st.cache_data(show_spinner=False)
 def export_summary_to_pdf(
     summary,
     title="Article Summary",
 ):
-    """Create a temporary PDF containing the article summary."""
+    """Create and cache PDF bytes containing the article summary."""
+
+    from fpdf import FPDF
 
     safe_title = prepare_text_for_pdf(title)
     safe_summary = prepare_text_for_pdf(summary)
@@ -955,14 +961,12 @@ def export_summary_to_pdf(
         ),
     )
 
-    temp_path = os.path.join(
-        tempfile.gettempdir(),
-        "fidsync_article_summary.pdf",
-    )
+    pdf_output = pdf.output(dest="S")
 
-    pdf.output(temp_path)
+    if isinstance(pdf_output, str):
+        return pdf_output.encode("latin-1")
 
-    return temp_path
+    return bytes(pdf_output)
 
 
 # =========================================================
@@ -1684,9 +1688,11 @@ def process_article_input(
                     PDF_LOADING_MESSAGES
                 )
             ):
+                pdf_bytes = article_input.getvalue()
+
                 extracted_text = (
                     extract_text_from_pdf(
-                        article_input
+                        pdf_bytes
                     )
                 )
 
@@ -1979,6 +1985,8 @@ def render_results():
         )
 
     with details_tab:
+        import pandas as pd
+
         comma_count = article_text.count(",")
 
         details_dataframe = pd.DataFrame(
@@ -2033,16 +2041,10 @@ def render_export_section(
     )
 
     try:
-        pdf_path = export_summary_to_pdf(
+        pdf_data = export_summary_to_pdf(
             summary=summary,
             title=title,
         )
-
-        with open(
-            pdf_path,
-            "rb",
-        ) as pdf_file:
-            pdf_data = pdf_file.read()
 
         safe_filename = re.sub(
             r"[^A-Za-z0-9_-]+",
