@@ -3779,7 +3779,7 @@ def run():
         unsafe_allow_html=True,
     )
 
-    st.title("Fund Review & Recommendation")
+    st.title("Writeup & Rec")
 
     st.markdown(
         """
