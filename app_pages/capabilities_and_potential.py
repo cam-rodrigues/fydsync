@@ -490,8 +490,9 @@ def run():
         selected_priority = st.selectbox(
             "Select an area to review",
             options=priority_options,
+            key="development_priority",
         )
-
+        
         priority_details = {
             "Benchmark comparison tools": (
                 "This would likely be one of the most practical next additions "
@@ -518,7 +519,8 @@ def run():
                 "replace advisor judgment or compliance oversight."
             ),
         }
-
+        
+        st.markdown(f"#### {selected_priority}")
         st.info(priority_details[selected_priority])
 
     # =====================================================
