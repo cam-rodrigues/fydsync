@@ -1244,8 +1244,7 @@ def step14_extract_peer_risk_adjusted_return_rank(pdf):
 #───Step 14.5: IPS Fail Table──────────────────────────────────────────────────────────────────
 
 def step14_5_ips_fail_table():
-    import html
-    import textwrap
+    import pandas as pd
     import streamlit as st
 
     df = st.session_state.get("ips_icon_table")
@@ -1271,6 +1270,10 @@ def step14_5_ips_fail_table():
         "FW": "Formal Watch",
     }
 
+    fail_df["Watch Status"] = fail_df[
+        "IPS Watch Status"
+    ].map(status_labels)
+
     informal_count = int(
         (fail_df["IPS Watch Status"] == "IW").sum()
     )
@@ -1281,220 +1284,85 @@ def step14_5_ips_fail_table():
 
     total_count = len(fail_df)
 
-    rows_html = ""
-
-    for _, row in fail_df.iterrows():
-        fund_name = html.escape(str(row["Fund Name"]))
-        status_code = row["IPS Watch Status"]
-        status_label = status_labels.get(
-            status_code,
-            status_code,
-        )
-
-        status_class = (
-            "watch-formal"
-            if status_code == "FW"
-            else "watch-informal"
-        )
-
-        rows_html += f"""
-<div class="watch-row">
-    <div class="watch-fund">{fund_name}</div>
-    <div>
-        <span class="watch-status {status_class}">
-            {status_label}
-        </span>
-    </div>
-</div>
-"""
-
-    panel_html = f"""
-<style>
-.watch-panel {{
-    width: 100%;
-    background: #FFFFFF;
-    border: 1px solid #D9E0E8;
-    border-radius: 12px;
-    overflow: hidden;
-    margin: 0.5rem 0 1.1rem 0;
-    box-shadow: 0 2px 8px rgba(16, 24, 40, 0.035);
-}}
-
-.watch-panel-header {{
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 1rem;
-    padding: 1rem 1.15rem;
-    background: #F8FAFC;
-    border-bottom: 1px solid #E4E7EC;
-}}
-
-.watch-panel-title {{
-    color: #16243A;
-    font-size: 1rem;
-    font-weight: 700;
-    margin-bottom: 0.15rem;
-}}
-
-.watch-panel-description {{
-    color: #667085;
-    font-size: 0.84rem;
-    line-height: 1.45;
-}}
-
-.watch-count {{
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-width: 34px;
-    height: 34px;
-    padding: 0 0.65rem;
-    border-radius: 999px;
-    background: #E7EEF7;
-    color: #24466F;
-    font-size: 0.8rem;
-    font-weight: 700;
-    flex-shrink: 0;
-}}
-
-.watch-summary {{
-    display: flex;
-    gap: 1.2rem;
-    padding: 0.7rem 1.15rem;
-    background: #FFFFFF;
-    border-bottom: 1px solid #EAECF0;
-}}
-
-.watch-summary-item {{
-    color: #667085;
-    font-size: 0.78rem;
-    font-weight: 600;
-}}
-
-.watch-summary-item strong {{
-    color: #344054;
-    margin-right: 0.2rem;
-}}
-
-.watch-table-header {{
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) 175px;
-    gap: 1rem;
-    padding: 0.65rem 1.15rem;
-    background: #203E64;
-    color: #FFFFFF;
-    font-size: 0.78rem;
-    font-weight: 700;
-}}
-
-.watch-row {{
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) 175px;
-    align-items: center;
-    gap: 1rem;
-    padding: 0.78rem 1.15rem;
-    background: #FFFFFF;
-    border-bottom: 1px solid #EAECF0;
-}}
-
-.watch-row:last-child {{
-    border-bottom: none;
-}}
-
-.watch-row:hover {{
-    background: #FAFBFC;
-}}
-
-.watch-fund {{
-    color: #344054;
-    font-size: 0.88rem;
-    font-weight: 550;
-}}
-
-.watch-status {{
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-width: 112px;
-    padding: 0.32rem 0.65rem;
-    border-radius: 999px;
-    font-size: 0.73rem;
-    font-weight: 700;
-    white-space: nowrap;
-}}
-
-.watch-formal {{
-    background: #FDECEC;
-    color: #B42318;
-    border: 1px solid #F4C7C3;
-}}
-
-.watch-informal {{
-    background: #FFF6DB;
-    color: #8A6100;
-    border: 1px solid #F1D585;
-}}
-
-@media (max-width: 700px) {{
-    .watch-table-header,
-    .watch-row {{
-        grid-template-columns: 1fr;
-    }}
-
-    .watch-table-header div:last-child {{
-        display: none;
-    }}
-
-    .watch-panel-header {{
-        align-items: flex-start;
-    }}
-}}
-</style>
-
-<div class="watch-panel">
-    <div class="watch-panel-header">
-        <div>
-            <div class="watch-panel-title">
-                Funds on Watch
-            </div>
-
-            <div class="watch-panel-description">
-                Funds that failed five or more IPS criteria
-                and require additional review.
-            </div>
-        </div>
-
-        <div class="watch-count">
-            {total_count}
-        </div>
-    </div>
-
-    <div class="watch-summary">
-        <div class="watch-summary-item">
-            <strong>{informal_count}</strong>
-            Informal Watch
-        </div>
-
-        <div class="watch-summary-item">
-            <strong>{formal_count}</strong>
-            Formal Watch
-        </div>
-    </div>
-
-    <div class="watch-table-header">
-        <div>Fund</div>
-        <div>Watch Status</div>
-    </div>
-
-    {rows_html}
-</div>
-"""
-
-    st.markdown(
-        textwrap.dedent(panel_html),
-        unsafe_allow_html=True,
+    st.markdown("### Funds on Watch")
+    st.caption(
+        "Funds that failed five or more IPS criteria "
+        "and require additional review."
     )
+
+    total_col, informal_col, formal_col = st.columns(
+        3,
+        gap="small",
+    )
+
+    with total_col:
+        st.metric(
+            "Total on Watch",
+            total_count,
+        )
+
+    with informal_col:
+        st.metric(
+            "Informal Watch",
+            informal_count,
+        )
+
+    with formal_col:
+        st.metric(
+            "Formal Watch",
+            formal_count,
+        )
+
+    display_df = fail_df.rename(
+        columns={
+            "Fund Name": "Fund",
+        }
+    )[
+        [
+            "Fund",
+            "Watch Status",
+        ]
+    ]
+
+    def style_watch_status(value):
+        if value == "Formal Watch":
+            return (
+                "background-color: #FDECEC; "
+                "color: #B42318; "
+                "font-weight: 700;"
+            )
+
+        if value == "Informal Watch":
+            return (
+                "background-color: #FFF6DB; "
+                "color: #8A6100; "
+                "font-weight: 700;"
+            )
+
+        return ""
+
+    styled_df = display_df.style.applymap(
+        style_watch_status,
+        subset=["Watch Status"],
+    )
+
+    st.dataframe(
+        styled_df,
+        use_container_width=True,
+        hide_index=True,
+        column_config={
+            "Fund": st.column_config.TextColumn(
+                "Fund",
+                width="large",
+            ),
+            "Watch Status": st.column_config.TextColumn(
+                "Watch Status",
+                width="medium",
+            ),
+        },
+    )
+
+    st.markdown("---")
 
 #───Step 15: Single Fund──────────────────────────────────────────────────────────────────
 
