@@ -2568,7 +2568,7 @@ def run():
     # PAGE HEADER
     # =========================================================
 
-    st.title("Fund Review Builder")
+    st.title("Writeup")
 
     st.markdown(
         """
