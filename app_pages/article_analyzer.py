@@ -1,8 +1,5 @@
 # app_pages/article_analyzer.py
 
-from collections import Counter
-from datetime import datetime
-from urllib.parse import urlparse
 import os
 import random
 import re
@@ -45,331 +42,13 @@ PDF_LOADING_MESSAGES = [
 ]
 
 
-SOURCE_MESSAGES = {
-    "reuters.com": (
-        "Reuters detected. Concise reporting mode activated."
-    ),
-    "finance.yahoo.com": (
-        "Yahoo Finance detected. Market terminology incoming."
-    ),
-    "yahoo.com": (
-        "Yahoo detected. Comments section successfully avoided."
-    ),
-    "bloomberg.com": (
-        "Bloomberg detected. Terminal not included."
-    ),
-    "wsj.com": (
-        "The Wall Street Journal detected. Paywall probability elevated."
-    ),
-    "cnbc.com": (
-        "CNBC detected. Breaking-news banner not included."
-    ),
-    "forbes.com": (
-        "Forbes detected. Listicle probability elevated."
-    ),
-    "sec.gov": (
-        "SEC filing detected. Reading stamina may be required."
-    ),
-    "investopedia.com": (
-        "Investopedia detected. Definition mode activated."
-    ),
-    "wikipedia.org": (
-        "Wikipedia detected. Citation trail recommended."
-    ),
-    "reddit.com": (
-        "Reddit detected. Confidence and accuracy may not be correlated."
-    ),
-    "medium.com": (
-        "Medium detected. Estimated reading time is probably "
-        "already displayed."
-    ),
-    "substack.com": (
-        "Substack detected. Newsletter mode activated."
-    ),
-    "marketwatch.com": (
-        "MarketWatch detected. Market anxiety may be included."
-    ),
-    "fool.com": (
-        "The Motley Fool detected. Subscription invitation probable."
-    ),
-    "nytimes.com": (
-        "The New York Times detected. Crossword not included."
-    ),
-    "cnn.com": (
-        "CNN detected. Breaking-news banner has been removed."
-    ),
-    "foxbusiness.com": (
-        "Fox Business detected. Market commentary incoming."
-    ),
-    "apnews.com": (
-        "Associated Press detected. Straight-to-the-point mode activated."
-    ),
-}
-
-
-HEADLINE_MESSAGES = {
-    "breaking": (
-        "Breaking news detected. The headline seems very sure of itself."
-    ),
-    "exclusive": (
-        "Exclusive detected. Access appears emotionally restricted."
-    ),
-    "shocking": (
-        "Shocking headline detected. Proceed with measured skepticism."
-    ),
-    "you won't believe": (
-        "Clickbait probability elevated."
-    ),
-    "you wont believe": (
-        "Clickbait probability elevated."
-    ),
-    "must see": (
-        "Urgency language detected."
-    ),
-    "crash": (
-        "Market drama detected."
-    ),
-    "surge": (
-        "Upward-arrow energy detected."
-    ),
-    "skyrocket": (
-        "Rocket terminology detected. Gravity still applies."
-    ),
-    "plunge": (
-        "Downward-arrow energy detected."
-    ),
-    "secret": (
-        "A secret has been placed directly in the headline."
-    ),
-    "urgent": (
-        "Urgency detected. Breathing remains permitted."
-    ),
-}
-
-
-PDF_FILENAME_MESSAGES = {
-    "final_final": (
-        "The final version has been located. Allegedly."
-    ),
-    "final-final": (
-        "The final version has been located. Allegedly."
-    ),
-    "final v": (
-        "Final-version numbering detected."
-    ),
-    "draft": (
-        "Draft detected. Expectations adjusted."
-    ),
-    "v7": (
-        "Version seven detected. Progress has occurred."
-    ),
-    "v8": (
-        "Version eight detected. This must be the real final version."
-    ),
-    "confidential": (
-        "Confidential filename detected. Handle carefully."
-    ),
-    "report": (
-        "Report mode activated."
-    ),
-    "copy": (
-        "A copy of a copy may have entered the archive."
-    ),
-    "untitled": (
-        "Untitled document detected. Naming remains optional."
-    ),
-}
-
 SOLITAIRE_URL = "https://play-solitaire.com/"
 
 HIDDEN_COMMAND_ALIASES = {
     "SOLITARE": "SOLITAIRE",
 }
+
 HIDDEN_ARTICLE_COMMANDS = {
-    "FIDSYNC": {
-        "title": "FidSync Internal Memorandum",
-        "authors": "The Spreadsheet Department",
-        "publish_date": "Classified",
-        "source": "Internal Archive",
-        "text": (
-            "FidSync remains operational. The platform continues to process "
-            "documents, organize financial information, and quietly judge "
-            "poorly formatted spreadsheets. Current risks include merged "
-            "cells, missing column headers, inconsistent ticker symbols, "
-            "and files named FINAL_final_v7. Management remains confident "
-            "that these threats can be controlled through validation, clear "
-            "documentation, and a responsible number of backup copies."
-        ),
-        "message": "Internal memorandum discovered.",
-    },
-
-    "CLIPPY": {
-        "title": "A Message from Clippy",
-        "authors": "Clippy",
-        "publish_date": "1997",
-        "source": "Microsoft Office Archives",
-        "text": (
-            "It looks like you are trying to analyze an article. Would you "
-            "like help adding unnecessary formatting, creating a table, "
-            "moving every image slightly out of alignment, or saving the "
-            "document in the wrong folder? Clippy remains available for "
-            "support whether or not that support was requested."
-        ),
-        "message": "Clippy has entered the analysis.",
-    },
-
-    "WARREN": {
-        "title": "Long-Term Investment Research",
-        "authors": "Definitely Not Warren Buffett",
-        "publish_date": "Whenever the Market Opens",
-        "source": "Omaha",
-        "text": (
-            "The preferred holding period remains forever, provided the "
-            "underlying business is strong, management is capable, and the "
-            "researcher has not become distracted by short-term market noise. "
-            "Investors are reminded that an exciting chart does not replace "
-            "understanding the company, its financial position, or the price "
-            "paid for ownership."
-        ),
-        "message": "Long-term mode activated.",
-    },
-
-    "GUITARCENTER": {
-        "title": "Local Musician Announces Final Guitar Purchase",
-        "authors": "Financially Concerned Sources",
-        "publish_date": "Earlier Today",
-        "source": "The Guitar Room",
-        "text": (
-            "A local musician confirmed today that the latest guitar purchase "
-            "would absolutely be the final one. Sources close to the situation "
-            "noted that the same statement had been issued after each of the "
-            "previous eleven purchases. The musician later clarified that a "
-            "bass, keyboard, microphone, amplifier, pedalboard, and several "
-            "recording interfaces do not technically count as guitars."
-        ),
-        "message": "Music-business reporting mode activated.",
-    },
-
-    "404": {
-        "title": "Article Not Found",
-        "authors": "Unknown",
-        "publish_date": "Unavailable",
-        "source": "Somewhere on the Internet",
-        "text": (
-            "The requested article could not be located. Investigators "
-            "searched the archive, the recycle bin, the browser history, "
-            "and several folders named Downloads. The document may have been "
-            "moved, deleted, renamed, or may never have existed in the first "
-            "place. Reality remains unavailable at this time."
-        ),
-        "message": "Reality may also be unavailable.",
-    },
-
-    "STONKS": {
-        "title": "Markets Continue Moving to the Right",
-        "authors": "Internet Economics Division",
-        "publish_date": "Today",
-        "source": "The Chart",
-        "text": (
-            "Financial markets continued their historic pattern of moving "
-            "from left to right today. Analysts remain divided over whether "
-            "the line will move upward, downward, or become unusually "
-            "horizontal. Experts advised investors to examine the labels "
-            "on both axes before forming strong conclusions."
-        ),
-        "message": "Advanced market analysis unlocked.",
-    },
-
-    "EXCEL": {
-        "title": "Global Economy Continues Running on Excel",
-        "authors": "Spreadsheet Correspondent",
-        "publish_date": "FINAL_v3",
-        "source": "Workbook1",
-        "text": (
-            "The global economy continued operating through interconnected "
-            "spreadsheets today. Officials confirmed that several critical "
-            "processes remain dependent on formulas copied from a workbook "
-            "created in 2008. Risk factors include merged cells, hidden rows, "
-            "broken external links, and an employee who knows how the main "
-            "macro works but is currently on vacation."
-        ),
-        "message": "Spreadsheet intelligence detected.",
-    },
-
-    "NOTION": {
-        "title": "Productivity System Requires Another Redesign",
-        "authors": "Organizational Research Team",
-        "publish_date": "After the Template Is Finished",
-        "source": "A Very Organized Dashboard",
-        "text": (
-            "A productivity system entered its fourth redesign this week "
-            "after the user concluded that the current task database was not "
-            "sufficiently aesthetic. Approximately four hours were spent "
-            "adjusting properties, icons, tags, and views. Twelve minutes "
-            "remained available for completing the original assignment."
-        ),
-        "message": "A new database has been created for this article.",
-    },
-
-    "COFFEE": {
-        "title": "Caffeine Temporarily Improves Productivity",
-        "authors": "Morning Research Desk",
-        "publish_date": "Before 9:00 AM",
-        "source": "The Nearest Coffee Shop",
-        "text": (
-            "Researchers confirmed that coffee may temporarily increase "
-            "alertness, motivation, and confidence in unfinished work. "
-            "Benefits were strongest during the first hour and declined "
-            "rapidly after lunch. Additional testing is required, preferably "
-            "after another iced coffee."
-        ),
-        "message": "Caffeine-powered analysis activated.",
-    },
-
-    "LOREM": {
-        "title": "Placeholder Journalism Reaches New Heights",
-        "authors": "Lorem Ipsum",
-        "publish_date": "Since Approximately 1500",
-        "source": "The Typesetting Desk",
-        "text": (
-            "Lorem ipsum dolor sit amet, consectetur adipiscing elit. "
-            "Industry observers confirmed that placeholder text remains "
-            "widely used despite containing very little actionable "
-            "information. Analysts praised its visual consistency while "
-            "acknowledging that readers rarely learn anything from it."
-        ),
-        "message": "Placeholder mode activated.",
-    },
-
-    "TERMSANDCONDITIONS": {
-        "title": "Terms and Conditions Successfully Ignored",
-        "authors": "Everyone",
-        "publish_date": "Immediately Before Clicking Accept",
-        "source": "The Bottom of the Page",
-        "text": (
-            "Users confirmed that they had read and understood all applicable "
-            "terms and conditions despite scrolling directly to the final "
-            "checkbox. Researchers found that average reading speed increased "
-            "dramatically when the accept button became visible."
-        ),
-        "message": "Legal reading speed set to maximum.",
-    },
-
-    "CLICKBAIT": {
-        "title": "You Won't Believe What Happened Next",
-        "authors": "Engagement Optimization Department",
-        "publish_date": "Right Now",
-        "source": "A Suspiciously Urgent Website",
-        "text": (
-            "Readers were told that they would not believe what happened next. "
-            "What happened next was a paragraph containing information that "
-            "could have been communicated directly in the headline. The "
-            "publisher confirmed that seventeen additional slides were "
-            "available."
-        ),
-        "message": "Clickbait containment procedures activated.",
-    },
-
     "SOLITAIRE": {
         "title": "Screen-Time Analysis Complete",
         "authors": "FidSync Wellness Department",
@@ -383,81 +62,6 @@ HIDDEN_ARTICLE_COMMANDS = {
         ),
         "message": "Productivity has been temporarily suspended.",
     },
-    
-    "TLDR": {
-        "title": "Article Considered Too Long",
-        "authors": "The Summary Department",
-        "publish_date": "Eventually",
-        "source": "The Final Paragraph",
-        "text": (
-            "The article was long. The summary was shorter. Important details "
-            "were located somewhere in the middle. Readers requested a more "
-            "concise version and were informed that this was the concise "
-            "version."
-        ),
-        "message": "Maximum concision mode activated.",
-    },
-}
-
-
-ANALYZER_THOUGHTS = [
-    "That was a lot of words to reach the final paragraph.",
-    "The headline appears more confident than the article.",
-    "Another document has been successfully documented.",
-    "The important information was hiding in paragraph twelve.",
-    "This article contains a statistically significant number of commas.",
-    "The summary is shorter. That is already progress.",
-    "No spreadsheets were harmed during this analysis.",
-    "The article has been reduced to a more manageable amount of article.",
-    "Several paragraphs were apparently necessary to say that.",
-]
-
-
-RARE_COMPLETION_MESSAGES = [
-    "The editor has been notified.",
-    "Paragraphs successfully contained.",
-    "No footnotes escaped.",
-    "Article domestication complete.",
-    "The document has agreed to cooperate.",
-    "All available words have been counted.",
-]
-
-
-IGNORED_COMMON_WORDS = {
-    "about",
-    "after",
-    "again",
-    "against",
-    "before",
-    "being",
-    "between",
-    "because",
-    "could",
-    "during",
-    "first",
-    "from",
-    "have",
-    "into",
-    "more",
-    "other",
-    "over",
-    "said",
-    "should",
-    "their",
-    "there",
-    "these",
-    "those",
-    "through",
-    "under",
-    "very",
-    "were",
-    "what",
-    "when",
-    "where",
-    "which",
-    "while",
-    "with",
-    "would",
 }
 
 
@@ -666,103 +270,6 @@ def extract_text_from_pdf(pdf_bytes):
     return clean_article_text(
         "\n\n".join(extracted_pages)
     )
-
-
-def get_source_message(url):
-    """Return an Easter egg message for a recognized domain."""
-
-    try:
-        domain = urlparse(url).netloc.lower()
-    except (TypeError, ValueError):
-        return None
-
-    if domain.startswith("www."):
-        domain = domain[4:]
-
-    for recognized_domain, message in SOURCE_MESSAGES.items():
-        if (
-            domain == recognized_domain
-            or domain.endswith(f".{recognized_domain}")
-        ):
-            return message
-
-    return None
-
-
-def get_headline_message(title):
-    """Return a message for certain headline words or phrases."""
-
-    normalized_title = (title or "").lower()
-
-    for keyword, message in HEADLINE_MESSAGES.items():
-        if keyword in normalized_title:
-            return message
-
-    return None
-
-
-def get_pdf_filename_message(filename):
-    """Return a message based on a PDF filename."""
-
-    normalized_filename = (filename or "").lower()
-
-    for keyword, message in PDF_FILENAME_MESSAGES.items():
-        if keyword in normalized_filename:
-            return message
-
-    return None
-
-
-def get_length_message(word_count):
-    """Return a subtle observation based on article length."""
-
-    if word_count >= 5000:
-        return "This article has become a small book."
-
-    if word_count >= 3000:
-        return "Long-form journalism detected. Snacks may be required."
-
-    if 0 < word_count <= 100:
-        return "Brief article detected. Extremely brief."
-
-    return None
-
-
-def get_headline_ratio_message(title, article_text):
-    """Compare headline length against article-body length."""
-
-    title_length = len(title or "")
-    body_length = len(article_text or "")
-
-    if title_length >= 80 and body_length < 800:
-        return "The headline may be doing most of the work here."
-
-    return None
-
-
-@st.cache_data(show_spinner=False)
-def get_most_common_word(text):
-    """Return the most common meaningful word and its count."""
-
-    words = re.findall(
-        r"\b[a-zA-Z]{5,}\b",
-        (text or "").lower(),
-    )
-
-    filtered_words = [
-        word
-        for word in words
-        if word not in IGNORED_COMMON_WORDS
-    ]
-
-    if not filtered_words:
-        return None, 0
-
-    word, count = Counter(
-        filtered_words
-    ).most_common(1)[0]
-
-    return word, count
 
 
 def detect_hidden_article_command(
@@ -987,14 +494,6 @@ def initialize_session_state():
         "article_error": "",
         "article_hidden_command": "",
         "article_last_hidden_animation": "",
-        "article_analysis_count": 0,
-        "article_input_methods_used": [],
-        "article_achievements": [],
-        "article_pending_achievements": [],
-        "article_greeting_shown": False,
-        "article_last_headline_message_count": 0,
-        "article_last_rare_message_count": 0,
-        "article_last_filename_message_count": 0,
     }
 
     for key, value in default_values.items():
@@ -1019,213 +518,6 @@ def clear_analysis():
     st.session_state.article_error = ""
     st.session_state.article_hidden_command = ""
     st.session_state.article_last_hidden_animation = ""
-
-
-# =========================================================
-# Achievements and Easter egg helpers
-# =========================================================
-
-def unlock_article_achievement(
-    name,
-    description,
-):
-    """Unlock an achievement once per session."""
-
-    if name in st.session_state.article_achievements:
-        return False
-
-    st.session_state.article_achievements.append(name)
-
-    st.session_state.article_pending_achievements.append(
-        f"{name} — {description}"
-    )
-
-    return True
-
-
-def record_article_analysis(
-    input_mode,
-    article_text,
-):
-    """Record an analysis and check for achievements."""
-
-    st.session_state.article_analysis_count += 1
-
-    if (
-        input_mode
-        not in st.session_state.article_input_methods_used
-    ):
-        st.session_state.article_input_methods_used.append(
-            input_mode
-        )
-
-    analysis_count = (
-        st.session_state.article_analysis_count
-    )
-
-    if analysis_count == 1:
-        unlock_article_achievement(
-            "First Draft",
-            "completed your first article analysis.",
-        )
-
-    if analysis_count >= 5:
-        unlock_article_achievement(
-            "Research Assistant",
-            "completed five analyses in one session.",
-        )
-
-    if (
-        len(
-            st.session_state.article_input_methods_used
-        )
-        == 3
-    ):
-        unlock_article_achievement(
-            "Format Fluent",
-            "used URL, pasted-text, and PDF inputs.",
-        )
-
-    statistics = get_text_statistics(
-        article_text
-    )
-
-    word_count = statistics["Words"]
-    comma_count = article_text.count(",")
-
-    if word_count >= 3000:
-        unlock_article_achievement(
-            "Long Read",
-            "analyzed an article containing at least 3,000 words.",
-        )
-
-    if comma_count >= 100:
-        unlock_article_achievement(
-            "Comma Enthusiast",
-            "analyzed an article containing at least 100 commas.",
-        )
-
-    if st.session_state.article_hidden_command:
-        unlock_article_achievement(
-            "Archive Explorer",
-            "discovered a hidden article.",
-        )
-
-
-def show_article_achievements():
-    """Display newly unlocked achievements."""
-
-    pending_achievements = (
-        st.session_state.article_pending_achievements
-    )
-
-    for achievement in pending_achievements:
-        st.toast(
-            f"Achievement unlocked: {achievement}"
-        )
-
-    st.session_state.article_pending_achievements = []
-
-
-def render_analyzer_greeting():
-    """Display a time-based message once per session."""
-
-    if st.session_state.article_greeting_shown:
-        return
-
-    current_time = datetime.now()
-    message = None
-
-    if current_time.hour < 8:
-        message = (
-            "Early-morning research session detected."
-        )
-
-    elif current_time.hour >= 20:
-        message = (
-            "Late-night reading mode activated."
-        )
-
-    elif current_time.weekday() == 4:
-        message = (
-            "Friday research session. "
-            "Keep the article concise."
-        )
-
-    if message:
-        st.toast(message)
-
-    st.session_state.article_greeting_shown = True
-
-
-def maybe_show_headline_message():
-    """Show a headline reaction once per completed analysis."""
-
-    current_count = (
-        st.session_state.article_analysis_count
-    )
-
-    if (
-        current_count
-        == st.session_state.article_last_headline_message_count
-    ):
-        return
-
-    message = get_headline_message(
-        st.session_state.article_title
-    )
-
-    if message:
-        st.toast(message)
-
-    st.session_state.article_last_headline_message_count = (
-        current_count
-    )
-
-
-def maybe_show_rare_completion_message():
-    """Occasionally show a rare completion message once per analysis."""
-
-    current_count = (
-        st.session_state.article_analysis_count
-    )
-
-    if (
-        current_count
-        == st.session_state.article_last_rare_message_count
-    ):
-        return
-
-    if random.random() < 0.08:
-        st.toast(
-            random.choice(
-                RARE_COMPLETION_MESSAGES
-            )
-        )
-
-    st.session_state.article_last_rare_message_count = (
-        current_count
-    )
-
-
-def maybe_render_analyzer_thought():
-    """Display an occasional FidSync observation."""
-
-    analysis_count = (
-        st.session_state.article_analysis_count
-    )
-
-    if (
-        analysis_count > 0
-        and analysis_count % 3 == 0
-    ):
-        thought = random.choice(
-            ANALYZER_THOUGHTS
-        )
-
-        st.caption(
-            f'FidSync thinks: "{thought}"'
-        )
 
 
 # =========================================================
@@ -1560,14 +852,6 @@ def process_article_input(
     if hidden_command:
         load_hidden_article(hidden_command)
 
-        record_article_analysis(
-            input_mode,
-            st.session_state.article_text,
-        )
-
-        maybe_show_headline_message()
-        maybe_show_rare_completion_message()
-
         return
 
     if input_mode == "Paste URL":
@@ -1628,11 +912,6 @@ def process_article_input(
             st.session_state.article_source = (
                 article_data["source"]
             )
-
-            source_message = get_source_message(url)
-
-            if source_message:
-                st.toast(source_message)
 
         except Exception as error:
             st.session_state.article_error = str(
@@ -1715,13 +994,6 @@ def process_article_input(
             st.session_state.article_publish_date = "Not detected"
             st.session_state.article_source = article_input.name
 
-            filename_message = get_pdf_filename_message(
-                article_input.name
-            )
-
-            if filename_message:
-                st.toast(filename_message)
-
         except Exception as error:
             st.session_state.article_error = str(
                 error
@@ -1744,13 +1016,6 @@ def process_article_input(
 
     st.session_state.article_analyzed = True
 
-    record_article_analysis(
-        input_mode,
-        st.session_state.article_text,
-    )
-
-    maybe_show_headline_message()
-    maybe_show_rare_completion_message()
 
 
 # =========================================================
@@ -1811,8 +1076,6 @@ def render_results():
             statistics["Reading Time"],
         )
 
-    maybe_render_analyzer_thought()
-
     title = (
         st.session_state.article_title
         or "Untitled Article"
@@ -1832,31 +1095,6 @@ def render_results():
         st.session_state.article_source
         or "Not provided"
     )
-
-    length_message = get_length_message(
-        statistics["Words"]
-    )
-
-    if length_message:
-        st.caption(length_message)
-
-    headline_ratio_message = get_headline_ratio_message(
-        title,
-        article_text,
-    )
-
-    if headline_ratio_message:
-        st.caption(headline_ratio_message)
-
-    common_word, common_count = get_most_common_word(
-        article_text
-    )
-
-    if common_word and common_count >= 15:
-        st.caption(
-            f'This article is especially committed to the word '
-            f'"{common_word}" ({common_count} uses).'
-        )
 
     with st.container(border=True):
         st.markdown("#### Article details")
@@ -1960,23 +1198,7 @@ def render_results():
             f"Approximately {retained_percentage}% of extracted text"
         )
 
-        if statistics["Words"] >= 3000:
-            if st.button(
-                "I still do not want to read all that",
-                use_container_width=False,
-            ):
-                shorter_summary = summary[:250].rstrip()
-
-                if len(summary) > 250:
-                    shorter_summary += "..."
-
-                st.info(shorter_summary)
-
     with source_tab:
-        st.caption(
-            "You chose the full text. Respect."
-        )
-
         st.text_area(
             "Extracted article text",
             value=article_text,
@@ -1998,7 +1220,6 @@ def render_results():
                     "Comma count",
                     "Estimated reading time",
                     "Summary character limit",
-                    "Input analyses this session",
                 ],
                 "Value": [
                     f"{statistics['Words']:,}",
@@ -2007,9 +1228,6 @@ def render_results():
                     f"{comma_count:,}",
                     statistics["Reading Time"],
                     f"{SUMMARY_CHARACTER_LIMIT:,}",
-                    (
-                        f"{st.session_state.article_analysis_count:,}"
-                    ),
                 ],
             }
         )
@@ -2055,7 +1273,7 @@ def render_export_section(
         if not safe_filename:
             safe_filename = "article_summary"
 
-        downloaded = st.download_button(
+        st.download_button(
             label="Download Summary as PDF",
             data=pdf_data,
             file_name=(
@@ -2064,24 +1282,6 @@ def render_export_section(
             mime="application/pdf",
             use_container_width=True,
         )
-
-        if downloaded:
-            st.toast(
-                "Another PDF enters the archive."
-            )
-
-            if (
-                "Documented"
-                not in st.session_state.article_achievements
-            ):
-                st.session_state.article_achievements.append(
-                    "Documented"
-                )
-
-                st.toast(
-                    "Achievement unlocked: Documented — "
-                    "exported an article summary as a PDF."
-                )
 
     except Exception as error:
         st.error(
@@ -2120,8 +1320,6 @@ def main():
     )
 
     render_input_section()
-    render_analyzer_greeting()
-    show_article_achievements()
     render_results()
 
     st.markdown(
