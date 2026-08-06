@@ -6,8 +6,9 @@ import streamlit as st
 import streamlit.components.v1 as components
 
 
-def get_logo_url(website_url):
+def get_logo_url(website_url: str) -> str:
     """Generate a Google favicon URL for a website."""
+
     encoded_url = quote(website_url, safe="")
     return (
         "https://www.google.com/s2/favicons"
@@ -15,255 +16,209 @@ def get_logo_url(website_url):
     )
 
 
-def run():
-    # Remove this block if set_page_config() is already called
-    # in your app's main entry file.
-    st.set_page_config(
-        page_title="Resources",
-        page_icon="🔗",
-        layout="wide",
-    )
+CATEGORIES = {
+    "Financial News": [
+        {"name": "Bloomberg", "url": "https://www.bloomberg.com"},
+        {"name": "Yahoo Finance", "url": "https://finance.yahoo.com"},
+        {"name": "CNBC", "url": "https://www.cnbc.com"},
+        {"name": "MarketWatch", "url": "https://www.marketwatch.com"},
+        {"name": "Barron's", "url": "https://www.barrons.com"},
+        {"name": "Reuters", "url": "https://www.reuters.com/finance"},
+        {"name": "The Wall Street Journal", "url": "https://www.wsj.com"},
+        {"name": "Forbes", "url": "https://www.forbes.com"},
+        {"name": "Financial Times", "url": "https://www.ft.com"},
+    ],
+    "Market Data & Research": [
+        {"name": "Morningstar", "url": "https://www.morningstar.com"},
+        {"name": "TradingView", "url": "https://www.tradingview.com"},
+        {"name": "Seeking Alpha", "url": "https://seekingalpha.com"},
+        {"name": "Zacks", "url": "https://www.zacks.com"},
+        {"name": "Finviz", "url": "https://finviz.com"},
+        {"name": "Barchart", "url": "https://www.barchart.com"},
+        {"name": "YCharts", "url": "https://ycharts.com"},
+        {"name": "Macrotrends", "url": "https://www.macrotrends.net"},
+    ],
+    "Investment Firms": [
+        {"name": "Fidelity", "url": "https://www.fidelity.com"},
+        {"name": "Vanguard", "url": "https://investor.vanguard.com"},
+        {"name": "Charles Schwab", "url": "https://www.schwab.com"},
+        {"name": "J.P. Morgan", "url": "https://www.jpmorgan.com"},
+        {"name": "Envestnet", "url": "https://www.envestnet.com"},
+        {"name": "T. Rowe Price", "url": "https://www.troweprice.com"},
+        {"name": "Edward Jones", "url": "https://www.edwardjones.com"},
+    ],
+    "Government & Regulatory": [
+        {"name": "SEC", "url": "https://www.sec.gov"},
+        {"name": "FINRA", "url": "https://www.finra.org"},
+        {"name": "FDIC", "url": "https://www.fdic.gov"},
+        {
+            "name": "Federal Reserve",
+            "url": "https://www.federalreserve.gov",
+        },
+        {
+            "name": "CFPB",
+            "url": "https://www.consumerfinance.gov",
+        },
+        {"name": "IRS", "url": "https://www.irs.gov"},
+    ],
+    "Education & Tools": [
+        {
+            "name": "Investopedia",
+            "url": "https://www.investopedia.com",
+        },
+        {
+            "name": "NerdWallet",
+            "url": "https://www.nerdwallet.com",
+        },
+        {"name": "eMoney", "url": "https://emoneyadvisor.com"},
+        {
+            "name": "Khan Academy",
+            "url": (
+                "https://www.khanacademy.org/"
+                "economics-finance-domain"
+            ),
+        },
+        {"name": "SmartAsset", "url": "https://smartasset.com"},
+        {"name": "Bankrate", "url": "https://www.bankrate.com"},
+    ],
+}
 
-    # -------------------------------------------------------------------------
-    # Resources
-    # -------------------------------------------------------------------------
-    categories = {
-        "Financial News": [
-            {"name": "Bloomberg", "url": "https://www.bloomberg.com"},
-            {"name": "Yahoo Finance", "url": "https://finance.yahoo.com"},
-            {"name": "CNBC", "url": "https://www.cnbc.com"},
-            {"name": "MarketWatch", "url": "https://www.marketwatch.com"},
-            {"name": "Barron's", "url": "https://www.barrons.com"},
-            {"name": "Reuters", "url": "https://www.reuters.com/finance"},
-            {"name": "The Wall Street Journal", "url": "https://www.wsj.com"},
-            {"name": "Forbes", "url": "https://www.forbes.com"},
-            {"name": "Financial Times", "url": "https://www.ft.com"},
-        ],
-        "Market Data & Research": [
-            {"name": "Morningstar", "url": "https://www.morningstar.com"},
-            {"name": "TradingView", "url": "https://www.tradingview.com"},
-            {"name": "Seeking Alpha", "url": "https://seekingalpha.com"},
-            {"name": "Zacks", "url": "https://www.zacks.com"},
-            {"name": "Finviz", "url": "https://finviz.com"},
-            {"name": "Barchart", "url": "https://www.barchart.com"},
-            {"name": "YCharts", "url": "https://ycharts.com"},
-            {"name": "Macrotrends", "url": "https://www.macrotrends.net"},
-        ],
-        "Investment Firms": [
-            {"name": "Fidelity", "url": "https://www.fidelity.com"},
-            {"name": "Vanguard", "url": "https://investor.vanguard.com"},
-            {"name": "Charles Schwab", "url": "https://www.schwab.com"},
-            {"name": "J.P. Morgan", "url": "https://www.jpmorgan.com"},
-            {"name": "Envestnet", "url": "https://www.envestnet.com"},
-            {"name": "T. Rowe Price", "url": "https://www.troweprice.com"},
-            {"name": "Edward Jones", "url": "https://www.edwardjones.com"},
-        ],
-        "Government & Regulatory": [
-            {"name": "SEC", "url": "https://www.sec.gov"},
-            {"name": "FINRA", "url": "https://www.finra.org"},
-            {"name": "FDIC", "url": "https://www.fdic.gov"},
-            {
-                "name": "Federal Reserve",
-                "url": "https://www.federalreserve.gov",
-            },
-            {
-                "name": "CFPB",
-                "url": "https://www.consumerfinance.gov",
-            },
-            {"name": "IRS", "url": "https://www.irs.gov"},
-        ],
-        "Education & Tools": [
-            {
-                "name": "Investopedia",
-                "url": "https://www.investopedia.com",
-            },
-            {
-                "name": "NerdWallet",
-                "url": "https://www.nerdwallet.com",
-            },
-            {"name": "eMoney", "url": "https://emoneyadvisor.com"},
-            {
-                "name": "Khan Academy",
-                "url": (
-                    "https://www.khanacademy.org/"
-                    "economics-finance-domain"
-                ),
-            },
-            {"name": "SmartAsset", "url": "https://smartasset.com"},
-            {"name": "Bankrate", "url": "https://www.bankrate.com"},
-        ],
+
+EASTER_EGGS = {
+    "Bloomberg": {
+        "title": "Advisor's Note",
+        "message": (
+            "We checked.<br>"
+            "The market is still doing market things."
+        ),
+    },
+
+    "Yahoo Finance": {
+        "title": "Psst...",
+        "message": (
+            "Quietly carrying half the finance internet."
+        ),
+    },
+
+    "The Wall Street Journal": {
+        "title": "Tiny Note",
+        "message": (
+            "Hope you remembered your subscription."
+        ),
+    },
+
+    "Fidelity": {
+        "title": "Tiny Encouragement",
+        "message": (
+            "Hope today treats your portfolio kindly."
+        ),
+    },
+
+    "Envestnet": {
+        "title": "Behind the Scenes",
+        "message": (
+            "It's the teamwork app."
+        ),
+    },
+
+    "Forbes": {
+        "title": "Psst...",
+        "message": (
+            "Billionaire energy detected."
+        ),
+    },
+
+    "IRS": {
+        "title": "Friendly Reminder",
+        "message": (
+            "This page pairs well with coffee."
+        ),
+    },
+
+    "Morningstar": {
+        "title": "Coffee Break ☕",
+        "message": (
+            "Today's productivity is proudly powered by coffee."
+        ),
+    },
+}
+
+
+PAGE_STYLES = """
+<style>
+    .stMainBlockContainer {
+        max-width: 1500px;
+        padding-top: 1.4rem;
+        padding-bottom: 3rem;
     }
 
-    # -------------------------------------------------------------------------
-    # Easter-egg messages
-    # -------------------------------------------------------------------------
-    # Only sites listed here receive a hidden hover note.
-    easter_eggs = {
-        "Bloomberg": {
-            "title": "Advisor's Note",
-            "message": (
-                "We checked.<br>"
-                "The market is still doing market things."
-            ),
-        },
-        
-        "Yahoo Finance": {
-            "title": "Psst...",
-            "message": (
-                "Quietly carrying half the finance internet."
-            ),
-        },
-        
-        "The Wall Street Journal": {
-            "title": "Tiny Note",
-            "message": (
-                "Hope you remembered your subscription."
-            ),
-        },
-        
-        "Fidelity": {
-            "title": "Tiny Encouragement",
-            "message": (
-                "Hope today treats your portfolio kindly."
-            ),
-        },
-        
-        "Envestnet": {
-            "title": "Behind the Scenes",
-            "message": (
-                "It's the teamwork app."
-            ),
-        },
-        
-        "Forbes": {
-            "title": "Psst...",
-            "message": (
-                "Billionaire energy detected."
-            ),
-        },
-        
-        "IRS": {
-            "title": "Friendly Reminder",
-            "message": (
-                "This page pairs well with coffee."
-            ),
-        },
-        
-        "Morningstar": {
-            "title": "Coffee Break ☕",
-            "message": (
-                "Today's productivity is proudly powered by coffee."
-            ),
-        },
+    .resources-eyebrow {
+        color: #58708e;
+        font-size: 0.7rem;
+        font-weight: 750;
+        letter-spacing: 0.13em;
+        margin-bottom: 0.45rem;
+        text-transform: uppercase;
     }
-    # -------------------------------------------------------------------------
-    # Streamlit page styling
-    # -------------------------------------------------------------------------
-    st.markdown(
-        """
-        <style>
-            .stMainBlockContainer {
-                max-width: 1500px;
-                padding-top: 1.4rem;
-                padding-bottom: 3rem;
-            }
 
-            .resources-eyebrow {
-                color: #58708e;
-                font-size: 0.7rem;
-                font-weight: 750;
-                letter-spacing: 0.13em;
-                margin-bottom: 0.45rem;
-                text-transform: uppercase;
-            }
+    .resources-title {
+        color: #102d50;
+        font-size: clamp(2.1rem, 4vw, 3rem);
+        font-weight: 750;
+        letter-spacing: -0.04em;
+        line-height: 1.05;
+        margin: 0;
+    }
 
-            .resources-title {
-                color: #102d50;
-                font-size: clamp(2.1rem, 4vw, 3rem);
-                font-weight: 750;
-                letter-spacing: -0.04em;
-                line-height: 1.05;
-                margin: 0;
-            }
+    .resources-description {
+        color: #65788e;
+        font-size: 0.95rem;
+        line-height: 1.65;
+        margin: 0.75rem 0 1.8rem;
+        max-width: 700px;
+    }
 
-            .resources-description {
-                color: #65788e;
-                font-size: 0.95rem;
-                line-height: 1.65;
-                margin: 0.75rem 0 1.8rem;
-                max-width: 700px;
-            }
+    div[data-testid="stTextInput"] input {
+        background: #f6f9fc;
+        border: 1px solid #d4dfeb;
+        border-radius: 10px;
+        color: #173555;
+        min-height: 42px;
+    }
 
-            div[data-testid="stTextInput"] input {
-                background: #f6f9fc;
-                border: 1px solid #d4dfeb;
-                border-radius: 10px;
-                color: #173555;
-                min-height: 42px;
-            }
+    div[data-testid="stTextInput"] input:focus {
+        border-color: #7892ad;
+        box-shadow: 0 0 0 1px #7892ad;
+    }
 
-            div[data-testid="stTextInput"] input:focus {
-                border-color: #7892ad;
-                box-shadow: 0 0 0 1px #7892ad;
-            }
+    div[data-testid="stSelectbox"] > div > div {
+        background: #f6f9fc;
+        border-color: #d4dfeb;
+        border-radius: 10px;
+        min-height: 42px;
+    }
 
-            div[data-testid="stSelectbox"] > div > div {
-                background: #f6f9fc;
-                border-color: #d4dfeb;
-                border-radius: 10px;
-                min-height: 42px;
-            }
+    iframe[title="streamlit.components.v1.html"] {
+        border: 0;
+    }
+</style>
+"""
 
-            iframe[title="streamlit.components.v1.html"] {
-                border: 0;
-            }
-        </style>
-        """,
-        unsafe_allow_html=True,
-    )
 
-    # -------------------------------------------------------------------------
-    # Header
-    # -------------------------------------------------------------------------
-    st.markdown(
-        """
-        <div class="resources-eyebrow">Trusted links</div>
-        <h1 class="resources-title">Resources</h1>
-        <p class="resources-description">
-            A curated collection of financial news, market research,
-            investment, regulatory, and educational resources.
-        </p>
-        """,
-        unsafe_allow_html=True,
-    )
+@st.cache_data(show_spinner=False)
+def build_resource_component(
+    selected_category: str,
+    normalized_query: str,
+) -> tuple[str | None, int]:
+    """
+    Build the embedded resource grid once per search and category selection.
 
-    # -------------------------------------------------------------------------
-    # Search and category filters
-    # -------------------------------------------------------------------------
-    search_column, category_column = st.columns([2, 1], gap="medium")
+    Streamlit reuses the resulting HTML until either filter changes.
+    """
 
-    with search_column:
-        search_query = st.text_input(
-            "Search resources",
-            placeholder="Search by website name...",
-            label_visibility="collapsed",
-        )
-
-    with category_column:
-        selected_category = st.selectbox(
-            "Filter resources by category",
-            options=["All categories", *categories.keys()],
-            label_visibility="collapsed",
-        )
-
-    normalized_query = search_query.strip().lower()
-
-    # -------------------------------------------------------------------------
-    # Filter resources
-    # -------------------------------------------------------------------------
     visible_categories = {}
 
-    for category, sites in categories.items():
+    for category, sites in CATEGORIES.items():
         if (
             selected_category != "All categories"
             and category != selected_category
@@ -283,28 +238,8 @@ def run():
         if filtered_sites:
             visible_categories[category] = filtered_sites
 
-    # -------------------------------------------------------------------------
-    # Render resource cards
-    # -------------------------------------------------------------------------
     if not visible_categories:
-        st.markdown(
-            """
-            <div style="
-                background:#f7f9fc;
-                border:1px dashed #bdcad8;
-                border-radius:13px;
-                color:#65788e;
-                margin-top:2rem;
-                padding:2.5rem 1rem;
-                text-align:center;
-            ">
-                No resources match that search.
-                Try another website name or category.
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
-        return
+        return None, 0
 
     sections_html = ""
 
@@ -319,7 +254,7 @@ def run():
                 quote=True,
             )
 
-            easter_egg = easter_eggs.get(site["name"])
+            easter_egg = EASTER_EGGS.get(site["name"])
 
             card_attributes = (
                 f'href="{site_url}" '
@@ -647,7 +582,6 @@ def run():
     </html>
     """
 
-    # A generous height prevents the embedded grid from being cut off.
     total_height = 60
 
     for sites in visible_categories.values():
@@ -655,6 +589,70 @@ def run():
         total_height += 72 + (estimated_rows * 182)
 
     total_height += 140
+
+    return component_html, total_height
+
+
+def run():
+    st.markdown(
+        PAGE_STYLES,
+        unsafe_allow_html=True,
+    )
+
+    st.markdown(
+        """
+        <div class="resources-eyebrow">Trusted links</div>
+        <h1 class="resources-title">Resources</h1>
+        <p class="resources-description">
+            A curated collection of financial news, market research,
+            investment, regulatory, and educational resources.
+        </p>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    search_column, category_column = st.columns([2, 1], gap="medium")
+
+    with search_column:
+        search_query = st.text_input(
+            "Search resources",
+            placeholder="Search by website name...",
+            label_visibility="collapsed",
+        )
+
+    with category_column:
+        selected_category = st.selectbox(
+            "Filter resources by category",
+            options=["All categories", *CATEGORIES.keys()],
+            label_visibility="collapsed",
+        )
+
+    normalized_query = search_query.strip().lower()
+
+    component_html, total_height = build_resource_component(
+        selected_category,
+        normalized_query,
+    )
+
+    if component_html is None:
+        st.markdown(
+            """
+            <div style="
+                background:#f7f9fc;
+                border:1px dashed #bdcad8;
+                border-radius:13px;
+                color:#65788e;
+                margin-top:2rem;
+                padding:2.5rem 1rem;
+                text-align:center;
+            ">
+                No resources match that search.
+                Try another website name or category.
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+        return
 
     components.html(
         component_html,
