@@ -393,11 +393,17 @@ st.markdown(
 
         /* Active navigation button */
 
-        [data-testid="stSidebar"] .active-nav .stButton > button {
+        [data-testid="stSidebar"] .stButton > button[kind="primary"] {
             background-color: #dce7f5;
             border-color: #b8c9df;
             color: #102542;
             font-weight: 650;
+        }
+        
+        [data-testid="stSidebar"] .stButton > button[kind="primary"]:hover {
+            background-color: #dce7f5;
+            border-color: #b8c9df;
+            color: #102542;
         }
 
         /* ---------- Sidebar section labels ---------- */
@@ -508,29 +514,16 @@ def nav_button(label: str, filename: str) -> None:
 
     is_active = selected_page == filename
 
-    if is_active:
-        st.sidebar.markdown(
-            '<div class="active-nav">',
-            unsafe_allow_html=True,
-        )
-
     clicked = st.sidebar.button(
         label,
         key=f"nav_{filename}",
         use_container_width=True,
+        type="primary" if is_active else "secondary",
     )
 
-    if is_active:
-        st.sidebar.markdown(
-            "</div>",
-            unsafe_allow_html=True,
-        )
-
     if clicked:
-        # Preserve other query parameters, such as developer mode.
         st.query_params["page"] = filename
         st.rerun()
-
 
 # =========================================================
 # Sidebar navigation
