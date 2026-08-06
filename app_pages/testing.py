@@ -2065,7 +2065,7 @@ def run():
     import re
 
     st.set_page_config(
-        page_title="Writeup Generator",
+        page_title="Fund Review Builder",
         layout="wide",
     )
 
@@ -2077,17 +2077,17 @@ def run():
                ========================================================= */
 
             .block-container {
-                max-width: 1400px;
-                padding-top: 2.25rem;
-                padding-bottom: 4rem;
+                max-width: 1450px;
+                padding-top: 2rem;
+                padding-bottom: 3rem;
             }
 
             h1 {
                 color: #16243A;
-                font-size: 2.2rem;
+                font-size: 2.15rem;
                 font-weight: 720;
                 letter-spacing: -0.035em;
-                margin-bottom: 0.35rem;
+                margin-bottom: 0.3rem;
             }
 
             h2,
@@ -2101,54 +2101,54 @@ def run():
             }
 
             /* =========================================================
-               HEADER
+               PAGE HEADER
                ========================================================= */
 
             .app-subtitle {
                 color: #667085;
                 font-size: 1rem;
                 line-height: 1.55;
-                max-width: 850px;
-                margin-bottom: 1.7rem;
+                max-width: 880px;
+                margin-bottom: 1.4rem;
             }
 
             .page-rule {
                 height: 1px;
-                background: #EAECF0;
-                margin-bottom: 1.8rem;
+                background: #E4E7EC;
+                margin-bottom: 1.35rem;
             }
 
             /* =========================================================
-               SECTION TITLES
+               SECTION HEADERS
                ========================================================= */
 
             .section-header {
-                margin-top: 1.9rem;
-                margin-bottom: 0.8rem;
+                margin-top: 0.3rem;
+                margin-bottom: 1rem;
             }
 
             .section-kicker {
                 color: #667085;
-                font-size: 0.74rem;
+                font-size: 0.73rem;
                 font-weight: 700;
                 letter-spacing: 0.09em;
                 text-transform: uppercase;
-                margin-bottom: 0.25rem;
+                margin-bottom: 0.22rem;
             }
 
             .section-title {
                 color: #24364B;
-                font-size: 1.05rem;
+                font-size: 1.15rem;
                 font-weight: 700;
-                letter-spacing: -0.015em;
-                margin-bottom: 0.2rem;
+                letter-spacing: -0.018em;
+                margin-bottom: 0.22rem;
             }
 
             .section-copy {
                 color: #667085;
-                font-size: 0.87rem;
-                line-height: 1.45;
-                max-width: 850px;
+                font-size: 0.88rem;
+                line-height: 1.48;
+                max-width: 880px;
             }
 
             /* =========================================================
@@ -2157,7 +2157,7 @@ def run():
 
             div[data-testid="stFileUploader"] {
                 background: #FFFFFF;
-                border: 1px solid #D8DEE8;
+                border: 1px solid #D0D5DD;
                 border-radius: 12px;
                 padding: 0.35rem;
                 margin-bottom: 0.8rem;
@@ -2165,12 +2165,110 @@ def run():
 
             div[data-testid="stFileUploader"] section {
                 background: #FAFBFC;
-                border: 1px dashed #C8D0DC;
+                border: 1px dashed #C5CDD8;
                 border-radius: 9px;
+                min-height: 112px;
             }
 
             div[data-testid="stFileUploader"]:hover {
-                border-color: #B7C2D0;
+                border-color: #AEB9C6;
+            }
+
+            /* =========================================================
+               MAIN TABS
+               ========================================================= */
+
+            div[data-testid="stTabs"] > div[data-baseweb="tab-list"] {
+                gap: 1.55rem;
+                border-bottom: 1px solid #D9DEE7;
+                margin-bottom: 1.25rem;
+            }
+
+            div[data-testid="stTabs"]
+            button[data-baseweb="tab"] {
+                background: transparent;
+                border: none;
+                border-radius: 0;
+                color: #667085;
+                font-size: 0.88rem;
+                font-weight: 600;
+                padding: 0.7rem 0.05rem 0.75rem 0.05rem;
+                margin: 0;
+            }
+
+            div[data-testid="stTabs"]
+            button[data-baseweb="tab"]:hover {
+                color: #24364B;
+                background: transparent;
+            }
+
+            div[data-testid="stTabs"]
+            button[data-baseweb="tab"][aria-selected="true"] {
+                color: #16243A;
+                font-weight: 700;
+            }
+
+            div[data-testid="stTabs"]
+            div[data-baseweb="tab-highlight"] {
+                background-color: #162F52;
+                height: 2px;
+            }
+
+            div[data-testid="stTabs"]
+            div[data-baseweb="tab-border"] {
+                background-color: transparent;
+            }
+
+            div[data-testid="stTabPanel"] {
+                padding-top: 0.15rem;
+            }
+
+            /* =========================================================
+               NESTED ANALYSIS TABS
+               ========================================================= */
+
+            div[data-testid="stTabPanel"]
+            div[data-testid="stTabs"]
+            > div[data-baseweb="tab-list"] {
+                gap: 0.45rem;
+                border-bottom: none;
+                margin-top: 0.15rem;
+                margin-bottom: 1rem;
+                padding: 0.3rem;
+                background: #F2F4F7;
+                border: 1px solid #E4E7EC;
+                border-radius: 10px;
+            }
+
+            div[data-testid="stTabPanel"]
+            div[data-testid="stTabs"]
+            button[data-baseweb="tab"] {
+                color: #667085;
+                font-size: 0.82rem;
+                font-weight: 600;
+                padding: 0.48rem 0.85rem;
+                border-radius: 7px;
+            }
+
+            div[data-testid="stTabPanel"]
+            div[data-testid="stTabs"]
+            button[data-baseweb="tab"]:hover {
+                color: #344054;
+                background: #FFFFFF;
+            }
+
+            div[data-testid="stTabPanel"]
+            div[data-testid="stTabs"]
+            button[data-baseweb="tab"][aria-selected="true"] {
+                color: #16243A;
+                background: #FFFFFF;
+                box-shadow: 0 1px 3px rgba(16, 24, 40, 0.08);
+            }
+
+            div[data-testid="stTabPanel"]
+            div[data-testid="stTabs"]
+            div[data-baseweb="tab-highlight"] {
+                display: none;
             }
 
             /* =========================================================
@@ -2183,13 +2281,11 @@ def run():
                 border-radius: 10px;
                 overflow: hidden;
                 box-shadow: none;
-                margin-bottom: 0.6rem;
+                margin-bottom: 0.65rem;
             }
 
             div[data-testid="stExpander"] summary {
-                min-height: 48px;
-                padding-left: 0.15rem;
-                padding-right: 0.15rem;
+                min-height: 47px;
             }
 
             div[data-testid="stExpander"] summary:hover {
@@ -2198,30 +2294,13 @@ def run():
 
             div[data-testid="stExpander"] summary p {
                 color: #344054;
-                font-size: 0.91rem;
+                font-size: 0.89rem;
                 font-weight: 650;
             }
 
             div[data-testid="stExpander"] details[open] > summary {
+                background: #FAFBFC;
                 border-bottom: 1px solid #EAECF0;
-                background: #FAFBFC;
-            }
-
-            /* Nested expanders */
-
-            div[data-testid="stExpander"]
-            div[data-testid="stExpander"] {
-                background: #FAFBFC;
-                border-color: #E4E7EC;
-                border-radius: 8px;
-                margin-top: 0.45rem;
-                margin-bottom: 0.45rem;
-            }
-
-            div[data-testid="stExpander"]
-            div[data-testid="stExpander"] summary p {
-                font-size: 0.87rem;
-                font-weight: 620;
             }
 
             /* =========================================================
@@ -2314,7 +2393,7 @@ def run():
             }
 
             /* =========================================================
-               CAPTIONS AND SMALL TEXT
+               SMALL TEXT
                ========================================================= */
 
             .stCaption,
@@ -2325,7 +2404,7 @@ def run():
             hr {
                 border: none;
                 border-top: 1px solid #EAECF0;
-                margin: 1.5rem 0;
+                margin: 1.3rem 0;
             }
         </style>
         """,
@@ -2336,13 +2415,13 @@ def run():
     # PAGE HEADER
     # =========================================================
 
-    st.title("Writeup Generator")
+    st.title("Fund Review Builder")
 
     st.markdown(
         """
         <div class="app-subtitle">
-            Upload an MPI report to review fund data, generate writeup content,
-            and prepare the completed PowerPoint presentation.
+            Review MPI fund data, evaluate investment criteria, prepare
+            fund commentary, and generate the completed PowerPoint presentation.
         </div>
         <div class="page-rule"></div>
         """,
@@ -2350,7 +2429,7 @@ def run():
     )
 
     # =========================================================
-    # UPLOAD
+    # SOURCE REPORT
     # =========================================================
 
     st.markdown(
@@ -2359,8 +2438,8 @@ def run():
             <div class="section-kicker">Source Report</div>
             <div class="section-title">Upload MPI PDF</div>
             <div class="section-copy">
-                Select the report that will be used for screening, analysis,
-                writeup generation, and presentation export.
+                Select the report that will be used throughout the fund review
+                and presentation workflow.
             </div>
         </div>
         """,
@@ -2377,68 +2456,112 @@ def run():
 
     if not uploaded:
         st.caption(
-            "Upload a PDF to begin processing the report."
+            "Upload an MPI PDF to begin the review."
         )
         return
 
     with pdfplumber.open(uploaded) as pdf:
         # =========================================================
-        # REPORT SUMMARY
+        # PROCESS REPORT INFORMATION
         # =========================================================
 
-        st.markdown(
-            """
-            <div class="section-header">
-                <div class="section-kicker">Report Overview</div>
-                <div class="section-title">Report Information</div>
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
-
-        # Step 1
         first = pdf.pages[0].extract_text() or ""
         process_page1(first)
-        show_report_summary()
 
-        # Step 2
-        with st.expander(
-            "Table of Contents",
-            expanded=False,
-        ):
-            toc_text = "".join(
-                (pdf.pages[i].extract_text() or "")
-                for i in range(min(3, len(pdf.pages)))
-            )
-            process_toc(toc_text)
-
-        # =========================================================
-        # FUND DETAILS
-        # =========================================================
-
-        st.markdown(
-            """
-            <div class="section-header">
-                <div class="section-kicker">Fund Analysis</div>
-                <div class="section-title">Extracted Fund Details</div>
-                <div class="section-copy">
-                    Review the screening results, factsheet information,
-                    returns, and risk statistics identified in the report.
-                </div>
-            </div>
-            """,
-            unsafe_allow_html=True,
+        toc_text = "".join(
+            (pdf.pages[i].extract_text() or "")
+            for i in range(min(3, len(pdf.pages)))
         )
 
-        with st.expander(
-            "All Fund Details",
-            expanded=True,
-        ):
-            # 1. IPS Investment Screening
+        process_toc(toc_text)
+
+        # =========================================================
+        # MAIN NAVIGATION
+        # =========================================================
+
+        (
+            overview_tab,
+            analysis_tab,
+            writeup_tab,
+            export_tab,
+        ) = st.tabs(
+            [
+                "Report Overview",
+                "Fund Analysis",
+                "Writeup",
+                "Export",
+            ]
+        )
+
+        # =========================================================
+        # REPORT OVERVIEW TAB
+        # =========================================================
+
+        with overview_tab:
+            st.markdown(
+                """
+                <div class="section-header">
+                    <div class="section-kicker">Report Overview</div>
+                    <div class="section-title">Report Information</div>
+                    <div class="section-copy">
+                        Review the report details and the document sections
+                        identified during processing.
+                    </div>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+
+            show_report_summary()
+
             with st.expander(
-                "IPS Investment Screening",
-                expanded=True,
+                "Table of Contents",
+                expanded=False,
             ):
+                process_toc(toc_text)
+
+        # =========================================================
+        # FUND ANALYSIS TAB
+        # =========================================================
+
+        with analysis_tab:
+            st.markdown(
+                """
+                <div class="section-header">
+                    <div class="section-kicker">Fund Analysis</div>
+                    <div class="section-title">Extracted Fund Details</div>
+                    <div class="section-copy">
+                        Move between the analysis categories below to review
+                        screening, performance, factsheet, and risk information.
+                    </div>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+
+            (
+                ips_tab,
+                factsheet_tab,
+                fund_facts_tab,
+                returns_tab,
+                mpt_tab,
+                risk_tab,
+            ) = st.tabs(
+                [
+                    "IPS Screening",
+                    "Fund Factsheets",
+                    "Fund Facts",
+                    "Returns",
+                    "MPT Statistics",
+                    "Risk-Adjusted Returns",
+                ]
+            )
+
+            # ---------------------------------------------------------
+            # IPS SCREENING
+            # ---------------------------------------------------------
+
+            with ips_tab:
                 sp = st.session_state.get("scorecard_page")
                 tot = st.session_state.get("total_options")
                 pp = st.session_state.get("performance_page")
@@ -2460,11 +2583,11 @@ def run():
                         "or total options."
                     )
 
-            # 2. Fund Factsheets
-            with st.expander(
-                "Fund Factsheets",
-                expanded=True,
-            ):
+            # ---------------------------------------------------------
+            # FUND FACTSHEETS
+            # ---------------------------------------------------------
+
+            with factsheet_tab:
                 names = [
                     block["Fund Name"]
                     for block in st.session_state.get(
@@ -2478,35 +2601,35 @@ def run():
                     names,
                 )
 
-            # 3. Fund Facts
-            with st.expander(
-                "Fund Facts",
-                expanded=False,
-            ):
+            # ---------------------------------------------------------
+            # FUND FACTS
+            # ---------------------------------------------------------
+
+            with fund_facts_tab:
                 step12_process_fund_facts(pdf)
 
-            # 4. Returns
-            with st.expander(
-                "Returns",
-                expanded=False,
-            ):
+            # ---------------------------------------------------------
+            # RETURNS
+            # ---------------------------------------------------------
+
+            with returns_tab:
                 step7_extract_returns(pdf)
                 step8_calendar_returns(pdf)
 
-            # 5. MPT Statistics
-            with st.expander(
-                "MPT Statistics Summary",
-                expanded=False,
-            ):
+            # ---------------------------------------------------------
+            # MPT STATISTICS
+            # ---------------------------------------------------------
+
+            with mpt_tab:
                 step9_risk_analysis_3yr(pdf)
                 step10_risk_analysis_5yr(pdf)
                 step11_create_summary()
 
-            # 6. Risk-Adjusted Returns
-            with st.expander(
-                "Risk-Adjusted Returns",
-                expanded=False,
-            ):
+            # ---------------------------------------------------------
+            # RISK-ADJUSTED RETURNS
+            # ---------------------------------------------------------
+
+            with risk_tab:
                 step13_process_risk_adjusted_returns(pdf)
                 step14_extract_peer_risk_adjusted_return_rank(
                     pdf
@@ -2570,61 +2693,76 @@ def run():
             ]
 
         # =========================================================
-        # WRITEUP
+        # WRITEUP TAB
         # =========================================================
 
-        st.markdown(
-            """
-            <div class="section-header">
-                <div class="section-kicker">Writeup</div>
-                <div class="section-title">Review and Generate Content</div>
-                <div class="section-copy">
-                    Review IPS failures, inspect individual fund information,
-                    and prepare the final writeup language.
+        with writeup_tab:
+            st.markdown(
+                """
+                <div class="section-header">
+                    <div class="section-kicker">Writeup</div>
+                    <div class="section-title">Review and Prepare Commentary</div>
+                    <div class="section-copy">
+                        Review IPS exceptions, inspect individual fund details,
+                        and prepare the narrative used in the final presentation.
+                    </div>
                 </div>
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
+                """,
+                unsafe_allow_html=True,
+            )
 
-        # Step 14.5: IPS Fail Table
-        step14_5_ips_fail_table()
+            (
+                ips_fail_tab,
+                single_fund_tab,
+                bullet_points_tab,
+            ) = st.tabs(
+                [
+                    "IPS Exceptions",
+                    "Single Fund",
+                    "Bullet Points",
+                ]
+            )
 
-        # Step 15: Single Fund Details
-        with st.expander(
-            "Single Fund Writeup",
-            expanded=False,
-        ):
-            step15_display_selected_fund()
+            # ---------------------------------------------------------
+            # IPS FAIL TABLE
+            # ---------------------------------------------------------
 
-        # Step 16: Bullet Points
-        with st.expander(
-            "Bullet Points",
-            expanded=False,
-        ):
-            step16_bullet_points()
+            with ips_fail_tab:
+                step14_5_ips_fail_table()
+
+            # ---------------------------------------------------------
+            # SINGLE FUND WRITEUP
+            # ---------------------------------------------------------
+
+            with single_fund_tab:
+                step15_display_selected_fund()
+
+            # ---------------------------------------------------------
+            # BULLET POINTS
+            # ---------------------------------------------------------
+
+            with bullet_points_tab:
+                step16_bullet_points()
 
         # =========================================================
-        # EXPORT
+        # EXPORT TAB
         # =========================================================
 
-        st.markdown(
-            """
-            <div class="section-header">
-                <div class="section-kicker">Final Output</div>
-                <div class="section-title">PowerPoint Export</div>
-                <div class="section-copy">
-                    Generate and download the completed presentation.
+        with export_tab:
+            st.markdown(
+                """
+                <div class="section-header">
+                    <div class="section-kicker">Final Output</div>
+                    <div class="section-title">PowerPoint Presentation</div>
+                    <div class="section-copy">
+                        Review the final selections and generate the completed
+                        fund review presentation.
+                    </div>
                 </div>
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
+                """,
+                unsafe_allow_html=True,
+            )
 
-        with st.expander(
-            "Export to PowerPoint",
-            expanded=False,
-        ):
             step17_export_to_ppt()
 
 
