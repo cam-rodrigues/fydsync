@@ -2291,7 +2291,7 @@ def run():
     import re
 
     st.set_page_config(
-        page_title="Fund Review Builder",
+        page_title="Writeup",
         layout="wide",
     )
 
