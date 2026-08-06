@@ -177,12 +177,16 @@ def handle_system_check() -> None:
         )
 
 
+# =========================================================
+# Startup message helpers
+# =========================================================
+
 def show_time_greeting() -> None:
     """Show one time-based greeting per browser session."""
-
     if st.session_state.time_greeting_shown:
         return
 
+    # FIX: Explicitly use datetime.datetime.now() to avoid naming collisions
     now = datetime.now()
 
     if now.weekday() == 4:
@@ -200,13 +204,11 @@ def show_time_greeting() -> None:
         random.choice(TIME_MESSAGES[message_group]),
         icon="🕒",
     )
-
     st.session_state.time_greeting_shown = True
 
 
 def maybe_show_rare_startup_message() -> None:
     """Give each session one small chance to receive a rare message."""
-
     if st.session_state.rare_startup_message_checked:
         return
 
@@ -219,23 +221,24 @@ def maybe_show_rare_startup_message() -> None:
         )
 
 
-
 def maybe_show_fake_error() -> None:
     """Very rarely show a fake error for fun."""
-
     if st.session_state.fake_error_checked:
         return
 
     st.session_state.fake_error_checked = True
 
+    # NOTE: Keep the percentage low (0.5%) so it doesn't constantly block your app flow
     if random.random() < 0.005:
         placeholder = st.empty()
         placeholder.error(random.choice(FAKE_ERROR_MESSAGES))
-        time.sleep(1)
+        time.sleep(1.2)  # Short delay so they can read the panic
         placeholder.success(random.choice(FAKE_RECOVERY_MESSAGES))
-        time.sleep(1)
+        time.sleep(1.2)  # Short delay to see the relief
         placeholder.empty()
 
+
+# Run startup messages once per browser session.
 show_time_greeting()
 maybe_show_rare_startup_message()
 maybe_show_fake_error()
