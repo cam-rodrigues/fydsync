@@ -2059,7 +2059,7 @@ def step17_export_to_ppt():
     )
 
 
-#───Main App──────────────────────────────────────────────────────────────────
+# ─── Main App ────────────────────────────────────────────────────────────────
 
 def run():
     import re
@@ -2084,9 +2084,7 @@ def run():
 
             h1 {
                 color: #16243A;
-                font-size: 2.15rem;
-                font-weight: 720;
-                letter-spacing: -0.035em;
+                letter-spacing: -0.03em;
                 margin-bottom: 0.3rem;
             }
 
@@ -2096,59 +2094,47 @@ def run():
                 letter-spacing: -0.02em;
             }
 
-            p {
-                color: #475467;
-            }
-
-            /* =========================================================
-               PAGE HEADER
-               ========================================================= */
-
             .app-subtitle {
                 color: #667085;
                 font-size: 1rem;
                 line-height: 1.55;
-                max-width: 880px;
-                margin-bottom: 1.4rem;
-            }
-
-            .page-rule {
-                height: 1px;
-                background: #E4E7EC;
                 margin-bottom: 1.35rem;
+                max-width: 900px;
             }
-
-            /* =========================================================
-               SECTION HEADERS
-               ========================================================= */
 
             .section-header {
-                margin-top: 0.3rem;
+                margin-top: 0.4rem;
                 margin-bottom: 1rem;
             }
 
-            .section-kicker {
+            .section-label {
                 color: #667085;
-                font-size: 0.73rem;
+                font-size: 0.74rem;
                 font-weight: 700;
                 letter-spacing: 0.09em;
                 text-transform: uppercase;
-                margin-bottom: 0.22rem;
+                margin-bottom: 0.25rem;
             }
 
             .section-title {
                 color: #24364B;
-                font-size: 1.15rem;
+                font-size: 1.1rem;
                 font-weight: 700;
-                letter-spacing: -0.018em;
-                margin-bottom: 0.22rem;
+                letter-spacing: -0.015em;
+                margin-bottom: 0.25rem;
             }
 
-            .section-copy {
+            .section-description {
                 color: #667085;
-                font-size: 0.88rem;
-                line-height: 1.48;
-                max-width: 880px;
+                font-size: 0.87rem;
+                line-height: 1.5;
+                max-width: 900px;
+            }
+
+            .page-divider {
+                height: 1px;
+                background: #E4E7EC;
+                margin-bottom: 1.35rem;
             }
 
             /* =========================================================
@@ -2156,18 +2142,17 @@ def run():
                ========================================================= */
 
             div[data-testid="stFileUploader"] {
-                background: #FFFFFF;
                 border: 1px solid #D0D5DD;
                 border-radius: 12px;
-                padding: 0.35rem;
+                background: #FFFFFF;
+                padding: 0.4rem;
                 margin-bottom: 0.8rem;
             }
 
             div[data-testid="stFileUploader"] section {
                 background: #FAFBFC;
-                border: 1px dashed #C5CDD8;
+                border: 1px dashed #C8D0DC;
                 border-radius: 9px;
-                min-height: 112px;
             }
 
             div[data-testid="stFileUploader"]:hover {
@@ -2175,12 +2160,27 @@ def run():
             }
 
             /* =========================================================
+               PROGRESS
+               ========================================================= */
+
+            div[data-testid="stProgress"] {
+                margin-top: 0.4rem;
+                margin-bottom: 0.2rem;
+            }
+
+            div[data-testid="stProgress"] > div > div {
+                border-radius: 999px;
+            }
+
+            /* =========================================================
                MAIN TABS
                ========================================================= */
 
-            div[data-testid="stTabs"] > div[data-baseweb="tab-list"] {
-                gap: 1.55rem;
+            div[data-testid="stTabs"]
+            > div[data-baseweb="tab-list"] {
+                gap: 1.5rem;
                 border-bottom: 1px solid #D9DEE7;
+                margin-top: 0.5rem;
                 margin-bottom: 1.25rem;
             }
 
@@ -2193,7 +2193,6 @@ def run():
                 font-size: 0.88rem;
                 font-weight: 600;
                 padding: 0.7rem 0.05rem 0.75rem 0.05rem;
-                margin: 0;
             }
 
             div[data-testid="stTabs"]
@@ -2220,55 +2219,7 @@ def run():
             }
 
             div[data-testid="stTabPanel"] {
-                padding-top: 0.15rem;
-            }
-
-            /* =========================================================
-               NESTED ANALYSIS TABS
-               ========================================================= */
-
-            div[data-testid="stTabPanel"]
-            div[data-testid="stTabs"]
-            > div[data-baseweb="tab-list"] {
-                gap: 0.45rem;
-                border-bottom: none;
-                margin-top: 0.15rem;
-                margin-bottom: 1rem;
-                padding: 0.3rem;
-                background: #F2F4F7;
-                border: 1px solid #E4E7EC;
-                border-radius: 10px;
-            }
-
-            div[data-testid="stTabPanel"]
-            div[data-testid="stTabs"]
-            button[data-baseweb="tab"] {
-                color: #667085;
-                font-size: 0.82rem;
-                font-weight: 600;
-                padding: 0.48rem 0.85rem;
-                border-radius: 7px;
-            }
-
-            div[data-testid="stTabPanel"]
-            div[data-testid="stTabs"]
-            button[data-baseweb="tab"]:hover {
-                color: #344054;
-                background: #FFFFFF;
-            }
-
-            div[data-testid="stTabPanel"]
-            div[data-testid="stTabs"]
-            button[data-baseweb="tab"][aria-selected="true"] {
-                color: #16243A;
-                background: #FFFFFF;
-                box-shadow: 0 1px 3px rgba(16, 24, 40, 0.08);
-            }
-
-            div[data-testid="stTabPanel"]
-            div[data-testid="stTabs"]
-            div[data-baseweb="tab-highlight"] {
-                display: none;
+                padding-top: 0.2rem;
             }
 
             /* =========================================================
@@ -2277,7 +2228,7 @@ def run():
 
             div[data-testid="stExpander"] {
                 background: #FFFFFF;
-                border: 1px solid #E1E6ED;
+                border: 1px solid #E4E7EC;
                 border-radius: 10px;
                 overflow: hidden;
                 box-shadow: none;
@@ -2294,7 +2245,7 @@ def run():
 
             div[data-testid="stExpander"] summary p {
                 color: #344054;
-                font-size: 0.89rem;
+                font-size: 0.9rem;
                 font-weight: 650;
             }
 
@@ -2304,12 +2255,12 @@ def run():
             }
 
             /* =========================================================
-               METRICS
+               METRICS AND TABLES
                ========================================================= */
 
             div[data-testid="stMetric"] {
                 background: #FFFFFF;
-                border: 1px solid #E1E6ED;
+                border: 1px solid #E4E7EC;
                 border-radius: 10px;
                 padding: 0.85rem 1rem;
                 box-shadow: none;
@@ -2326,13 +2277,9 @@ def run():
                 font-weight: 700;
             }
 
-            /* =========================================================
-               TABLES
-               ========================================================= */
-
             div[data-testid="stDataFrame"],
             div[data-testid="stTable"] {
-                border: 1px solid #E1E6ED;
+                border: 1px solid #E4E7EC;
                 border-radius: 10px;
                 overflow: hidden;
                 box-shadow: none;
@@ -2378,11 +2325,6 @@ def run():
                 border-radius: 8px !important;
             }
 
-            div[data-baseweb="select"] > div:hover,
-            div[data-baseweb="input"] > div:hover {
-                border-color: #AEB9C6;
-            }
-
             /* =========================================================
                ALERTS
                ========================================================= */
@@ -2390,21 +2332,6 @@ def run():
             div[data-testid="stAlert"] {
                 border-radius: 9px;
                 border-width: 1px;
-            }
-
-            /* =========================================================
-               SMALL TEXT
-               ========================================================= */
-
-            .stCaption,
-            small {
-                color: #667085;
-            }
-
-            hr {
-                border: none;
-                border-top: 1px solid #EAECF0;
-                margin: 1.3rem 0;
             }
         </style>
         """,
@@ -2420,26 +2347,26 @@ def run():
     st.markdown(
         """
         <div class="app-subtitle">
-            Review MPI fund data, evaluate investment criteria, prepare
-            fund commentary, and generate the completed PowerPoint presentation.
+            Review MPI fund data, evaluate investment criteria, prepare fund
+            commentary, and generate the completed PowerPoint presentation.
         </div>
-        <div class="page-rule"></div>
+        <div class="page-divider"></div>
         """,
         unsafe_allow_html=True,
     )
 
     # =========================================================
-    # SOURCE REPORT
+    # REPORT UPLOAD
     # =========================================================
 
     st.markdown(
         """
         <div class="section-header">
-            <div class="section-kicker">Source Report</div>
+            <div class="section-label">Source Report</div>
             <div class="section-title">Upload MPI PDF</div>
-            <div class="section-copy">
-                Select the report that will be used throughout the fund review
-                and presentation workflow.
+            <div class="section-description">
+                Select the report that will be used throughout the fund review,
+                writeup, and presentation workflow.
             </div>
         </div>
         """,
@@ -2455,18 +2382,46 @@ def run():
     )
 
     if not uploaded:
-        st.caption(
-            "Upload an MPI PDF to begin the review."
-        )
+        st.caption("Upload an MPI PDF to begin processing.")
         return
+
+    # =========================================================
+    # PROGRESS DISPLAY
+    # =========================================================
+
+    progress_bar = st.progress(0)
+    progress_message = st.empty()
+
+    def update_progress(percent, message):
+        progress_message.caption(message)
+        progress_bar.progress(percent)
+
+    update_progress(
+        2,
+        "Opening report...",
+    )
 
     with pdfplumber.open(uploaded) as pdf:
         # =========================================================
-        # PROCESS REPORT INFORMATION
+        # STEP 1: REPORT INFORMATION
         # =========================================================
+
+        update_progress(
+            8,
+            "Reading report information...",
+        )
 
         first = pdf.pages[0].extract_text() or ""
         process_page1(first)
+
+        # =========================================================
+        # STEP 2: TABLE OF CONTENTS
+        # =========================================================
+
+        update_progress(
+            15,
+            "Reading report structure...",
+        )
 
         toc_text = "".join(
             (pdf.pages[i].extract_text() or "")
@@ -2476,7 +2431,7 @@ def run():
         process_toc(toc_text)
 
         # =========================================================
-        # MAIN NAVIGATION
+        # MAIN PAGE TABS
         # =========================================================
 
         (
@@ -2501,11 +2456,10 @@ def run():
             st.markdown(
                 """
                 <div class="section-header">
-                    <div class="section-kicker">Report Overview</div>
+                    <div class="section-label">Report Overview</div>
                     <div class="section-title">Report Information</div>
-                    <div class="section-copy">
-                        Review the report details and the document sections
-                        identified during processing.
+                    <div class="section-description">
+                        Review the report details identified during processing.
                     </div>
                 </div>
                 """,
@@ -2518,9 +2472,43 @@ def run():
                 "Table of Contents",
                 expanded=False,
             ):
-                process_toc(toc_text)
+                st.write(
+                    "The report structure has been identified and saved "
+                    "for the fund analysis process."
+                )
 
-        # =========================================================
+                toc_details = {
+                    "Fund Scorecard Page": st.session_state.get(
+                        "scorecard_page"
+                    ),
+                    "Performance Page": st.session_state.get(
+                        "performance_page"
+                    ),
+                    "Calendar-Year Returns Page": st.session_state.get(
+                        "calendar_year_page"
+                    ),
+                    "3-Year MPT Page": st.session_state.get(
+                        "r3yr_page"
+                    ),
+                    "5-Year MPT Page": st.session_state.get(
+                        "r5yr_page"
+                    ),
+                    "Fund Factsheets Page": st.session_state.get(
+                        "factsheets_page"
+                    ),
+                }
+
+                for label, page_number in toc_details.items():
+                    displayed_page = (
+                        page_number
+                        if page_number is not None
+                        else "Not included"
+                    )
+
+                    st.write(
+                        f"**{label}:** {displayed_page}"
+                    )
+
         # =========================================================
         # FUND ANALYSIS TAB
         # =========================================================
@@ -2529,38 +2517,42 @@ def run():
             st.markdown(
                 """
                 <div class="section-header">
-                    <div class="section-kicker">Fund Analysis</div>
+                    <div class="section-label">Fund Analysis</div>
                     <div class="section-title">Extracted Fund Details</div>
-                    <div class="section-copy">
-                        Select an analysis category to review the information
-                        extracted from the report.
+                    <div class="section-description">
+                        Review the screening, factsheet, returns, and risk
+                        information extracted from the report.
                     </div>
                 </div>
                 """,
                 unsafe_allow_html=True,
             )
 
-            analysis_view = st.selectbox(
-                "Analysis Category",
-                [
-                    "IPS Screening",
-                    "Fund Factsheets",
-                    "Fund Facts",
-                    "Returns",
-                    "MPT Statistics",
-                    "Risk-Adjusted Returns",
-                ],
-                key="fund_review_analysis_view",
+            # -----------------------------------------------------
+            # IPS INVESTMENT SCREENING
+            # -----------------------------------------------------
+
+            update_progress(
+                25,
+                "Processing IPS investment screening...",
             )
 
-            # ---------------------------------------------------------
-            # IPS SCREENING
-            # ---------------------------------------------------------
+            with st.expander(
+                "IPS Investment Screening",
+                expanded=True,
+            ):
+                sp = st.session_state.get(
+                    "scorecard_page"
+                )
 
-            if analysis_view == "IPS Screening":
-                sp = st.session_state.get("scorecard_page")
-                tot = st.session_state.get("total_options")
-                pp = st.session_state.get("performance_page")
+                tot = st.session_state.get(
+                    "total_options"
+                )
+
+                pp = st.session_state.get(
+                    "performance_page"
+                )
+
                 factsheets_page = st.session_state.get(
                     "factsheets_page"
                 )
@@ -2579,11 +2571,19 @@ def run():
                         "in this report."
                     )
 
-            # ---------------------------------------------------------
+            # -----------------------------------------------------
             # FUND FACTSHEETS
-            # ---------------------------------------------------------
+            # -----------------------------------------------------
 
-            elif analysis_view == "Fund Factsheets":
+            update_progress(
+                42,
+                "Processing fund factsheets...",
+            )
+
+            with st.expander(
+                "Fund Factsheets",
+                expanded=False,
+            ):
                 names = [
                     block["Fund Name"]
                     for block in st.session_state.get(
@@ -2597,91 +2597,170 @@ def run():
                         pdf,
                         names,
                     )
-                else:
-                    st.info(
-                        "No fund factsheets were found in this report."
+
+                    factsheet_data = st.session_state.get(
+                        "fund_factsheets_data",
+                        [],
                     )
 
-            # ---------------------------------------------------------
-            # FUND FACTS
-            # ---------------------------------------------------------
+                    if factsheet_data:
+                        st.success(
+                            f"Processed {len(factsheet_data)} "
+                            "fund factsheets."
+                        )
+                    else:
+                        st.info(
+                            "No fund factsheets were found "
+                            "in this report."
+                        )
+                else:
+                    st.info(
+                        "No funds were available for factsheet processing."
+                    )
 
-            elif analysis_view == "Fund Facts":
+            # -----------------------------------------------------
+            # FUND FACTS
+            # -----------------------------------------------------
+
+            update_progress(
+                52,
+                "Extracting fund facts...",
+            )
+
+            with st.expander(
+                "Fund Facts",
+                expanded=False,
+            ):
                 step12_process_fund_facts(pdf)
 
-            # ---------------------------------------------------------
-            # RETURNS
-            # ---------------------------------------------------------
+                fund_facts = st.session_state.get(
+                    "step12_fund_facts_table",
+                    [],
+                )
 
-            elif analysis_view == "Returns":
+                if fund_facts:
+                    st.success(
+                        f"Fund facts were extracted for "
+                        f"{len(fund_facts)} funds."
+                    )
+                else:
+                    st.info(
+                        "No additional fund facts were found."
+                    )
+
+            # -----------------------------------------------------
+            # RETURNS
+            # -----------------------------------------------------
+
+            update_progress(
+                62,
+                "Processing fund returns...",
+            )
+
+            with st.expander(
+                "Returns",
+                expanded=False,
+            ):
                 step7_extract_returns(pdf)
                 step8_calendar_returns(pdf)
 
-            # ---------------------------------------------------------
+            # -----------------------------------------------------
             # MPT STATISTICS
-            # ---------------------------------------------------------
+            # -----------------------------------------------------
 
-            elif analysis_view == "MPT Statistics":
+            update_progress(
+                72,
+                "Checking for MPT statistics...",
+            )
+
+            with st.expander(
+                "MPT Statistics Summary",
+                expanded=False,
+            ):
                 has_mpt_3yr = (
-                    st.session_state.get("r3yr_page") is not None
+                    st.session_state.get("r3yr_page")
+                    is not None
                 )
 
                 has_mpt_5yr = (
-                    st.session_state.get("r5yr_page") is not None
+                    st.session_state.get("r5yr_page")
+                    is not None
                 )
 
-                if not has_mpt_3yr and not has_mpt_5yr:
+                if has_mpt_3yr:
+                    step9_risk_analysis_3yr(pdf)
+
+                if has_mpt_5yr:
+                    step10_risk_analysis_5yr(pdf)
+
+                mpt3 = st.session_state.get(
+                    "step9_mpt_stats",
+                    [],
+                )
+
+                mpt5 = st.session_state.get(
+                    "step10_mpt_stats",
+                    [],
+                )
+
+                if mpt3 and mpt5:
+                    step11_create_summary()
+
+                elif mpt3 and not mpt5:
+                    st.info(
+                        "Three-year MPT statistics were included, "
+                        "but five-year statistics were not available."
+                    )
+
+                    st.dataframe(
+                        pd.DataFrame(mpt3),
+                        use_container_width=True,
+                        hide_index=True,
+                    )
+
+                elif mpt5 and not mpt3:
+                    st.info(
+                        "Five-year MPT statistics were included, "
+                        "but three-year statistics were not available."
+                    )
+
+                    st.dataframe(
+                        pd.DataFrame(mpt5),
+                        use_container_width=True,
+                        hide_index=True,
+                    )
+
+                else:
                     st.info(
                         "No MPT statistics were included in this report."
                     )
 
-                else:
-                    if has_mpt_3yr:
-                        step9_risk_analysis_3yr(pdf)
-
-                    if has_mpt_5yr:
-                        step10_risk_analysis_5yr(pdf)
-
-                    mpt3 = st.session_state.get(
-                        "step9_mpt_stats",
-                        [],
-                    )
-
-                    mpt5 = st.session_state.get(
-                        "step10_mpt_stats",
-                        [],
-                    )
-
-                    if mpt3 and mpt5:
-                        step11_create_summary()
-                    elif mpt3:
-                        st.info(
-                            "Three-year MPT statistics were found, "
-                            "but five-year statistics were not included."
-                        )
-                    elif mpt5:
-                        st.info(
-                            "Five-year MPT statistics were found, "
-                            "but three-year statistics were not included."
-                        )
-                    else:
-                        st.info(
-                            "No MPT statistics could be extracted "
-                            "from this report."
-                        )
-
-            # ---------------------------------------------------------
+            # -----------------------------------------------------
             # RISK-ADJUSTED RETURNS
-            # ---------------------------------------------------------
+            # -----------------------------------------------------
 
-            elif analysis_view == "Risk-Adjusted Returns":
+            update_progress(
+                82,
+                "Processing risk-adjusted returns...",
+            )
+
+            with st.expander(
+                "Risk-Adjusted Returns",
+                expanded=False,
+            ):
                 step13_process_risk_adjusted_returns(pdf)
                 step14_extract_peer_risk_adjusted_return_rank(
                     pdf
                 )
+
         # =========================================================
-        # DATA PREPARATION
+        # DATA PREPARATION FOR WRITEUP
         # =========================================================
+
+        update_progress(
+            88,
+            "Preparing writeup data...",
+        )
 
         report_date = st.session_state.get(
             "report_date",
@@ -2690,7 +2769,7 @@ def run():
 
         match = re.match(
             r"(\d)(?:st|nd|rd|th)\s+QTR,\s*(\d{4})",
-            report_date,
+            report_date or "",
         )
 
         quarter = match.group(1) if match else ""
@@ -2700,8 +2779,13 @@ def run():
             "fund_performance_data",
             [],
         ):
-            qtd = float(itm.get("QTD") or 0)
-            bench_qtd = float(itm.get("Bench QTD") or 0)
+            qtd = float(
+                itm.get("QTD") or 0
+            )
+
+            bench_qtd = float(
+                itm.get("Bench QTD") or 0
+            )
 
             itm["Perf Direction"] = (
                 "overperformed"
@@ -2717,7 +2801,9 @@ def run():
                 1,
             )
 
-            itm["QTD_bps_diff"] = str(diff_bps)
+            itm["QTD_bps_diff"] = str(
+                diff_bps
+            )
 
             fund_pct = f"{qtd:.2f}%"
             bench_pct = f"{bench_qtd:.2f}%"
@@ -2731,7 +2817,9 @@ def run():
             )
 
         if "bullet_point_templates" not in st.session_state:
-            st.session_state["bullet_point_templates"] = [
+            st.session_state[
+                "bullet_point_templates"
+            ] = [
                 "[Fund Scorecard Name] [Perf Direction] its benchmark in Q[Quarter], "
                 "[Year] by [QTD_bps_diff] bps ([QTD_vs])."
             ]
@@ -2739,51 +2827,64 @@ def run():
         # =========================================================
         # WRITEUP TAB
         # =========================================================
+
         with writeup_tab:
             st.markdown(
                 """
                 <div class="section-header">
-                    <div class="section-kicker">Writeup</div>
+                    <div class="section-label">Writeup</div>
                     <div class="section-title">Review and Prepare Commentary</div>
-                    <div class="section-copy">
-                        Review exceptions, inspect individual funds, and prepare
-                        the final presentation commentary.
+                    <div class="section-description">
+                        Review watchlist funds, inspect an individual fund,
+                        and prepare the commentary used in the presentation.
                     </div>
                 </div>
                 """,
                 unsafe_allow_html=True,
             )
-        
-            writeup_view = st.selectbox(
-                "Writeup Section",
-                [
-                    "IPS Exceptions",
-                    "Single Fund",
-                    "Bullet Points",
-                ],
-                key="fund_review_writeup_view",
-            )
-        
-            if writeup_view == "IPS Exceptions":
-                step14_5_ips_fail_table()
-        
-            elif writeup_view == "Single Fund":
+
+            # -----------------------------------------------------
+            # IPS FAIL TABLE
+            # -----------------------------------------------------
+
+            step14_5_ips_fail_table()
+
+            # -----------------------------------------------------
+            # SINGLE FUND WRITEUP
+            # -----------------------------------------------------
+
+            with st.expander(
+                "Single Fund Writeup",
+                expanded=True,
+            ):
                 step15_display_selected_fund()
-        
-            elif writeup_view == "Bullet Points":
+
+            # -----------------------------------------------------
+            # BULLET POINTS
+            # -----------------------------------------------------
+
+            with st.expander(
+                "Bullet Points",
+                expanded=False,
+            ):
                 step16_bullet_points()
 
         # =========================================================
         # EXPORT TAB
         # =========================================================
 
+        update_progress(
+            96,
+            "Preparing presentation export...",
+        )
+
         with export_tab:
             st.markdown(
                 """
                 <div class="section-header">
-                    <div class="section-kicker">Final Output</div>
+                    <div class="section-label">Final Output</div>
                     <div class="section-title">PowerPoint Presentation</div>
-                    <div class="section-copy">
+                    <div class="section-description">
                         Review the final selections and generate the completed
                         fund review presentation.
                     </div>
@@ -2793,6 +2894,15 @@ def run():
             )
 
             step17_export_to_ppt()
+
+        # =========================================================
+        # COMPLETE
+        # =========================================================
+
+        progress_bar.progress(100)
+        progress_message.success(
+            "Report processing complete."
+        )
 
 
 if __name__ == "__main__":
