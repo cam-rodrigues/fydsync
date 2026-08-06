@@ -211,38 +211,6 @@ def run():
     )
 
     # =====================================================
-    # Summary metrics
-    # =====================================================
-
-    metric_col1, metric_col2, metric_col3, metric_col4 = st.columns(4)
-
-    with metric_col1:
-        st.metric(
-            label="Current Capabilities",
-            value="6",
-        )
-
-    with metric_col2:
-        st.metric(
-            label="Potential Features",
-            value="6",
-        )
-
-    with metric_col3:
-        st.metric(
-            label="Development Phases",
-            value="4",
-        )
-
-    with metric_col4:
-        st.metric(
-            label="File Retention",
-            value="0",
-        )
-
-    st.markdown("")
-
-    # =====================================================
     # Tabs
     # =====================================================
 
@@ -261,7 +229,7 @@ def run():
     with current_tab:
         st.markdown(
             """
-            <div class="section-heading">Current capabilities</div>
+            <div class="section-heading">Current Capabilities</div>
             <div class="section-description">
                 Core functionality already supported by FidSync and its
                 existing tools.
