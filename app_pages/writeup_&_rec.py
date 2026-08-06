@@ -1484,68 +1484,142 @@ def step14_extract_peer_risk_adjusted_return_rank(pdf):
 
 def step14_5_ips_fail_table():
     import streamlit as st
-    import pandas as pd
 
     df = st.session_state.get("ips_icon_table")
+
+    st.markdown("#### Funds on Watch")
+
     if df is None or df.empty:
+        st.info("No watch-status data was found.")
         return
 
-    fail_df = df[df["IPS Watch Status"].isin(["FW", "IW"])][["Fund Name", "IPS Watch Status"]]
+    fail_df = df[
+        df["IPS Watch Status"].isin(["FW", "IW"])
+    ][["Fund Name", "IPS Watch Status"]].copy()
+
     if fail_df.empty:
+        st.success("No funds are currently on watch.")
         return
 
-    table_html = fail_df.rename(columns={
-        "Fund Name": "Fund",
-        "IPS Watch Status": "Watch Status"
-    }).to_html(index=False, border=0, justify="center", classes="ips-fail-table")
+    status_labels = {
+        "IW": "Informal Watch",
+        "FW": "Formal Watch",
+    }
 
-    st.markdown(f"""
-    <div style='
-        background: linear-gradient(120deg, #e6f0fb 85%, #c8e0f6 100%);
-        color: #23395d;
-        border-radius: 1.3rem;
-        box-shadow: 0 2px 14px rgba(44,85,130,0.08), 0 1px 4px rgba(36,67,105,0.07);
-        padding: 1.6rem 2.0rem 1.6rem 2.0rem;
-        max-width: 650px;
-        margin: 1.4rem auto 1.2rem auto;
-        border: 1.5px solid #b5d0eb;'>
-        <div style='font-weight:700; color:#23395d; font-size:1.15rem; margin-bottom:0.5rem; letter-spacing:-0.5px;'>
-            Funds on Watch
-        </div>
-        <div style='font-size:1rem; margin-bottom:1rem; color:#23395d;'>
-            The following funds failed five or more IPS criteria and are currently on watch.
-        </div>
-        {table_html}
-    </div>
-    """, unsafe_allow_html=True)
+    fail_df["Watch Status"] = fail_df[
+        "IPS Watch Status"
+    ].map(status_labels)
 
-    st.markdown("""
-    <style>
-    .ips-fail-table {
-        width: 100%;
-        border-collapse: collapse;
-        margin-top: 0.7em;
-        font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
-    }
-    .ips-fail-table th, .ips-fail-table td {
-        border: none;
-        padding: 0.48em 1.1em;
-        text-align: left;
-        font-size: 1.07em;
-    }
-    .ips-fail-table th {
-        background: #244369;
-        color: #fff;
-        font-weight: 700;
-        letter-spacing: 0.01em;
-    }
-    .ips-fail-table td {
-        color: #244369;
-    }
-    .ips-fail-table tr:nth-child(even) {background: #e6f0fb;}
-    .ips-fail-table tr:nth-child(odd)  {background: #f8fafc;}
-    </style>
-    """, unsafe_allow_html=True)
+    informal_count = int(
+        (fail_df["IPS Watch Status"] == "IW").sum()
+    )
+    formal_count = int(
+        (fail_df["IPS Watch Status"] == "FW").sum()
+    )
+
+    total_col, informal_col, formal_col = st.columns(3, gap="small")
+
+    with total_col:
+        st.metric("Total", len(fail_df))
+
+    with informal_col:
+        st.metric("Informal", informal_count)
+
+    with formal_col:
+        st.metric("Formal", formal_count)
+
+    display_df = fail_df.rename(
+        columns={"Fund Name": "Fund"}
+    )[["Fund", "Watch Status"]]
+
+    def style_watch_status(value):
+        if value == "Formal Watch":
+            return (
+                "background-color: #FDECEC; "
+                "color: #B42318; "
+                "font-weight: 700;"
+            )
+        if value == "Informal Watch":
+            return (
+                "background-color: #FFF6DB; "
+                "color: #8A6100; "
+                "font-weight: 700;"
+            )
+        return ""
+
+    styled_df = display_df.style.map(
+        style_watch_status,
+        subset=["Watch Status"],
+    )
+
+    st.dataframe(
+        styled_df,
+        use_container_width=True,
+        hide_index=True,
+        height=214,
+        column_config={
+            "Fund": st.column_config.TextColumn(
+                "Fund",
+                width="large",
+            ),
+            "Watch Status": st.column_config.TextColumn(
+                "Status",
+                width="medium",
+            ),
+        },
+    )
+
+
+def render_confirmed_proposed_funds_overview():
+    import pandas as pd
+    import streamlit as st
+
+    proposed_df = st.session_state.get(
+        "proposed_funds_confirmed_df",
+        pd.DataFrame(),
+    )
+
+    st.markdown("#### Confirmed Proposed Funds")
+
+    if proposed_df is None or proposed_df.empty:
+        st.info("No confirmed proposed funds were found.")
+        return
+
+    available_columns = [
+        column
+        for column in ["Fund Scorecard Name", "Ticker"]
+        if column in proposed_df.columns
+    ]
+
+    if not available_columns:
+        st.info("No confirmed proposed funds were found.")
+        return
+
+    display_df = (
+        proposed_df[available_columns]
+        .copy()
+        .drop_duplicates()
+        .rename(columns={"Fund Scorecard Name": "Fund"})
+    )
+
+    st.metric("Confirmed", len(display_df))
+
+    st.dataframe(
+        display_df,
+        use_container_width=True,
+        hide_index=True,
+        height=214,
+        column_config={
+            "Fund": st.column_config.TextColumn(
+                "Fund",
+                width="large",
+            ),
+            "Ticker": st.column_config.TextColumn(
+                "Ticker",
+                width="small",
+            ),
+        },
+    )
 
 #───Step 14.7: Proposal──────────────────────────────────────────────────────────────────
 
@@ -1561,15 +1635,9 @@ def step15_display_selected_fund():
         st.info("Run Steps 1–14 to populate data before viewing fund details.")
         return
 
-    fund_names = [f["Matched Fund Name"] for f in facts]
-    selected_fund = st.selectbox(
-        "Select the fund being considered for replacement",
-        fund_names,
-        key="recommendation_fund_selector",
-    )
-    st.session_state.selected_fund = selected_fund
-
-    # Pull confirmed proposed funds once, independent of selection.
+    # Pull proposed funds first so they can be excluded from the
+    # current-fund selector. The two selectors must represent
+    # separate groups: existing funds and proposed replacements.
     confirmed_proposed_df = st.session_state.get(
         "proposed_funds_confirmed_df",
         pd.DataFrame(),
@@ -1588,6 +1656,33 @@ def step15_display_selected_fund():
         )
     else:
         proposed_fund_names = []
+
+    proposed_name_set = {
+        name.strip().casefold()
+        for name in proposed_fund_names
+        if name and name.strip()
+    }
+
+    current_fund_names = []
+    for record in facts:
+        name = str(record.get("Matched Fund Name") or "").strip()
+        if not name:
+            continue
+        if name.casefold() in proposed_name_set:
+            continue
+        if name not in current_fund_names:
+            current_fund_names.append(name)
+
+    if not current_fund_names:
+        st.info("No existing funds were available for replacement review.")
+        return
+
+    selected_fund = st.selectbox(
+        "Select the current fund being considered for replacement",
+        current_fund_names,
+        key="recommendation_fund_selector",
+    )
+    st.session_state.selected_fund = selected_fund
 
     if not proposed_fund_names:
         selected_proposed_fund = None
@@ -3779,7 +3874,7 @@ def run():
         unsafe_allow_html=True,
     )
 
-    st.title("Writeup & Rec")
+    st.title("Fund Review & Recommendation")
 
     st.markdown(
         """
@@ -3989,9 +4084,6 @@ def run():
                 <div class="section-header">
                     <div class="section-label">Report Overview</div>
                     <div class="section-title">Report Information</div>
-                    <div class="section-description">
-                        Review the report details, watch status, and proposed funds.
-                    </div>
                 </div>
                 """,
                 unsafe_allow_html=True,
@@ -3999,65 +4091,15 @@ def run():
 
             show_report_summary()
 
-            fail_card_html, fail_css = get_ips_fail_card_html()
-            proposed_card_html, proposed_css = get_proposed_fund_card_html()
-            watch_summary_card_html, watch_summary_css = (
-                get_watch_summary_card_html()
-            )
+            watch_col, proposed_col = st.columns(2, gap="medium")
 
-            left_col, right_col = st.columns(2, gap="large")
+            with watch_col:
+                with st.container(border=True):
+                    step14_5_ips_fail_table()
 
-            with left_col:
-                if proposed_card_html:
-                    st.markdown(
-                        proposed_card_html,
-                        unsafe_allow_html=True,
-                    )
-
-                if watch_summary_card_html:
-                    st.markdown(
-                        watch_summary_card_html,
-                        unsafe_allow_html=True,
-                    )
-
-            with right_col:
-                if fail_card_html:
-                    st.markdown(
-                        fail_card_html,
-                        unsafe_allow_html=True,
-                    )
-
-            st.markdown(
-                f"{fail_css}\n{proposed_css}\n{watch_summary_css}",
-                unsafe_allow_html=True,
-            )
-
-            with st.expander("Table of Contents", expanded=False):
-                toc_details = {
-                    "Fund Scorecard Page": st.session_state.get(
-                        "scorecard_page"
-                    ),
-                    "Proposed Scorecard Page": st.session_state.get(
-                        "scorecard_proposed_page"
-                    ),
-                    "Performance Page": st.session_state.get(
-                        "performance_page"
-                    ),
-                    "Calendar Returns Page": st.session_state.get(
-                        "calendar_year_page"
-                    ),
-                    "3-Year MPT Page": st.session_state.get("r3yr_page"),
-                    "5-Year MPT Page": st.session_state.get("r5yr_page"),
-                    "Factsheets Page": st.session_state.get(
-                        "factsheets_page"
-                    ),
-                }
-
-                for label, page_number in toc_details.items():
-                    st.write(
-                        f"**{label}:** "
-                        f"{page_number if page_number is not None else 'Not included'}"
-                    )
+            with proposed_col:
+                with st.container(border=True):
+                    render_confirmed_proposed_funds_overview()
 
         with recommendation_tab:
             st.markdown(
