@@ -706,7 +706,7 @@ def load_page(filename: str) -> None:
         module.run()
 
     except Exception as error:
-        st.error("This page could not be loaded.")
+        st.error("This page could not be loaded. Open debugger for help.")
 
         with st.expander(
             "View technical details",
