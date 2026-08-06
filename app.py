@@ -53,7 +53,7 @@ PAGE_GROUPS = {
         "Writeup & Recommendation": "writeup_&_rec.py",
     },
     "Under Construction": {
-        "Testing": "fund_metric_upgrade_test.py",
+        "Testing": "testing.py",
     },
 }
 
