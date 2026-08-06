@@ -1380,88 +1380,180 @@ def step15_display_selected_fund():
     selected_fund = st.selectbox("Select a fund to view details:", fund_names)
     st.session_state.selected_fund = selected_fund
 
-    st.write(f"Details for: {selected_fund}")
-    factsheets = st.session_state.get("fund_factsheets_data", [])
-    factsheet_rec = next((row for row in factsheets if row["Matched Fund Name"] == selected_fund), None)
-    
-    fund_facts_table = st.session_state.get("step12_fund_facts_table", [])
-    
+    # =========================================================
+    # SELECTED FUND OVERVIEW
+    # =========================================================
+
+    st.markdown(f"### {selected_fund}")
+
+    factsheets = st.session_state.get(
+        "fund_factsheets_data",
+        [],
+    )
+
+    factsheet_rec = next(
+        (
+            row
+            for row in factsheets
+            if row["Matched Fund Name"] == selected_fund
+        ),
+        None,
+    )
+
+    fund_facts_table = st.session_state.get(
+        "step12_fund_facts_table",
+        [],
+    )
+
     # Filter out metadata rows if present
-    fund_facts_table = [row for row in fund_facts_table if row.get("Fund Name") and row.get("Fund Name").lower() != "metadata"]
-    
-    # Robust matching
-    facts_rec = next((row for row in fund_facts_table if row.get("Fund Name") == selected_fund), None)
+    fund_facts_table = [
+        row
+        for row in fund_facts_table
+        if row.get("Fund Name")
+        and row.get("Fund Name").lower() != "metadata"
+    ]
+
+    # Match the selected fund to its fund-facts record
+    facts_rec = next(
+        (
+            row
+            for row in fund_facts_table
+            if row.get("Fund Name") == selected_fund
+        ),
+        None,
+    )
+
     if not facts_rec and factsheet_rec:
-        factsheet_ticker = factsheet_rec.get("Matched Ticker")
-        facts_rec = next((row for row in fund_facts_table if row.get("Ticker") == factsheet_ticker), None)
+        factsheet_ticker = factsheet_rec.get(
+            "Matched Ticker"
+        )
+
+        facts_rec = next(
+            (
+                row
+                for row in fund_facts_table
+                if row.get("Ticker") == factsheet_ticker
+            ),
+            None,
+        )
+
     if not facts_rec:
         facts_rec = next(
-            (row for row in fund_facts_table if selected_fund.lower() in row.get("Fund Name", "").lower()),
-            None
+            (
+                row
+                for row in fund_facts_table
+                if selected_fund.lower()
+                in row.get("Fund Name", "").lower()
+            ),
+            None,
         )
-    
-    left_box = (
-        f"""<div style='
-            background: linear-gradient(120deg, #e6f0fb 80%, #c8e0f6 100%);
-            color: #244369;
-            border-radius: 1.2rem;
-            box-shadow: 0 2px 12px rgba(44,85,130,0.09), 0 1px 4px rgba(36,67,105,0.07);
-            padding: 1rem 1.2rem;
-            min-width: 220px;
-            max-width: 260px;
-            margin: 0.3rem 1.2rem 0.3rem 0;
-            border: 1.2px solid #b5d0eb;
-            font-size: 1rem;
-            display: inline-block;
-            vertical-align: top;'>
-            <div><b>Category:</b> {factsheet_rec.get("Category", "—")}</div>
-            <div><b>Benchmark:</b> {factsheet_rec.get("Benchmark", "—")}</div>
-            <div><b>Net Assets:</b> {factsheet_rec.get("Net Assets", "—")}</div>
-            <div><b>Manager:</b> {factsheet_rec.get("Manager Name", "—")}</div>
-            <div><b>Avg. Market Cap:</b> {factsheet_rec.get("Avg. Market Cap", "—")}</div>
-        </div>"""
-        if factsheet_rec else "<div style='display:inline-block; min-width:220px; color:#666;'>No factsheet info found.</div>"
+
+    overview_col, statistics_col = st.columns(
+        2,
+        gap="medium",
     )
-    
-    right_box = (
-        f"""<div style='
-            background: linear-gradient(120deg, #e6f0fb 80%, #c8e0f6 100%);
-            color: #244369;
-            border-radius: 1.2rem;
-            box-shadow: 0 2px 12px rgba(44,85,130,0.09), 0 1px 4px rgba(36,67,105,0.07);
-            padding: 1rem 1.2rem;
-            min-width: 220px;
-            max-width: 260px;
-            margin: 0.3rem 0 0.3rem 0;
-            border: 1.2px solid #b5d0eb;
-            font-size: 1rem;
-            display: inline-block;
-            vertical-align: top;'>
-            <div><b>Manager Tenure:</b> {facts_rec.get("Manager Tenure Yrs.", "—")}</div>
-            <div><b>Expense Ratio:</b> {facts_rec.get("Expense Ratio", "—")}</div>
-            <div><b>Expense Ratio Rank:</b> {facts_rec.get("Expense Ratio Rank", "—")}</div>
-            <div><b>Total Number of Holdings:</b> {facts_rec.get("Total Number of Holdings", "—")}</div>
-            <div><b>Turnover Ratio:</b> {facts_rec.get("Turnover Ratio", "—")}</div>
-        </div>"""
-        if facts_rec else "<div style='display:inline-block; min-width:220px; color:#666;'>No Fund Facts available.</div>"
-    )
-    
-    st.markdown(
-        f"""
-        <div style='
-            width:100%;
-            display:flex;
-            flex-wrap:wrap;
-            justify-content:center;
-            align-items:flex-start;
-            gap:24px;
-            margin: 0.6rem 0 2rem 0;
-        '>
-            {left_box}{right_box}
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
+
+    # ---------------------------------------------------------
+    # FUND OVERVIEW
+    # ---------------------------------------------------------
+
+    with overview_col:
+        with st.container(border=True):
+            st.markdown("#### Fund Overview")
+
+            if factsheet_rec:
+                overview_data = {
+                    "Category": factsheet_rec.get(
+                        "Category",
+                        "—",
+                    ),
+                    "Benchmark": factsheet_rec.get(
+                        "Benchmark",
+                        "—",
+                    ),
+                    "Net Assets": factsheet_rec.get(
+                        "Net Assets",
+                        "—",
+                    ),
+                    "Manager": factsheet_rec.get(
+                        "Manager Name",
+                        "—",
+                    ),
+                    "Average Market Cap": factsheet_rec.get(
+                        "Avg. Market Cap",
+                        "—",
+                    ),
+                }
+
+                for label, value in overview_data.items():
+                    row_label, row_value = st.columns(
+                        [0.42, 0.58],
+                        gap="small",
+                    )
+
+                    with row_label:
+                        st.markdown(f"**{label}**")
+
+                    with row_value:
+                        st.write(value or "—")
+
+            else:
+                st.info(
+                    "No factsheet information was found "
+                    "for this fund."
+                )
+
+    # ---------------------------------------------------------
+    # FUND STATISTICS
+    # ---------------------------------------------------------
+
+    with statistics_col:
+        with st.container(border=True):
+            st.markdown("#### Fund Statistics")
+
+            if facts_rec:
+                statistics_data = {
+                    "Manager Tenure": facts_rec.get(
+                        "Manager Tenure Yrs.",
+                        "—",
+                    ),
+                    "Expense Ratio": facts_rec.get(
+                        "Expense Ratio",
+                        "—",
+                    ),
+                    "Expense Ratio Rank": facts_rec.get(
+                        "Expense Ratio Rank",
+                        "—",
+                    ),
+                    "Total Holdings": facts_rec.get(
+                        "Total Number of Holdings",
+                        "—",
+                    ),
+                    "Turnover Ratio": facts_rec.get(
+                        "Turnover Ratio",
+                        "—",
+                    ),
+                }
+
+                for label, value in statistics_data.items():
+                    row_label, row_value = st.columns(
+                        [0.55, 0.45],
+                        gap="small",
+                    )
+
+                    with row_label:
+                        st.markdown(f"**{label}**")
+
+                    with row_value:
+                        st.write(value or "—")
+
+            else:
+                st.info(
+                    "No additional fund statistics were found "
+                    "for this fund."
+                )
+
+    st.markdown("")
 
 
     # --- Slide 1 Table: IPS Results ---
@@ -2889,38 +2981,28 @@ def run():
         # =========================================================
         # WRITEUP TAB
         # =========================================================
-
         with writeup_tab:
+        
             st.markdown(
                 """
                 <div class="section-header">
-                    <div class="section-label">Writeup</div>
-                    <div class="section-title">Review and Prepare Commentary</div>
+                    <div class="section-label">WRITEUP</div>
+                    <div class="section-title">
+                        Review and Prepare Commentary
+                    </div>
                     <div class="section-description">
-                        Review watchlist funds, inspect an individual fund,
-                        and prepare the commentary used in the presentation.
+                        Review the selected fund and prepare the commentary
+                        for the presentation.
                     </div>
                 </div>
                 """,
                 unsafe_allow_html=True,
             )
-
-
-
-            # -----------------------------------------------------
-            # SINGLE FUND WRITEUP
-            # -----------------------------------------------------
-
-            with st.expander(
-                "Single Fund Writeup",
-                expanded=True,
-            ):
-                step15_display_selected_fund()
-
-            # -----------------------------------------------------
-            # BULLET POINTS
-            # -----------------------------------------------------
-
+        
+            step15_display_selected_fund()
+        
+            st.markdown("---")
+        
             with st.expander(
                 "Bullet Points",
                 expanded=False,
