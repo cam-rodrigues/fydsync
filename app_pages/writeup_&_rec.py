@@ -1563,7 +1563,7 @@ def step15_display_selected_fund():
 
     fund_names = [f["Matched Fund Name"] for f in facts]
     selected_fund = st.selectbox(
-        "Select Fund",
+        "Select the fund being considered for replacement",
         fund_names,
         key="recommendation_fund_selector",
     )
@@ -1573,6 +1573,39 @@ def step15_display_selected_fund():
     confirmed_proposed_df = st.session_state.get(
         "proposed_funds_confirmed_df",
         pd.DataFrame(),
+    )
+
+    if (
+        not confirmed_proposed_df.empty
+        and "Fund Scorecard Name" in confirmed_proposed_df.columns
+    ):
+        proposed_fund_names = (
+            confirmed_proposed_df["Fund Scorecard Name"]
+            .dropna()
+            .astype(str)
+            .drop_duplicates()
+            .tolist()
+        )
+    else:
+        proposed_fund_names = []
+
+    if not proposed_fund_names:
+        selected_proposed_fund = None
+        st.info("No proposed replacement funds were found in this report.")
+    elif len(proposed_fund_names) == 1:
+        selected_proposed_fund = proposed_fund_names[0]
+        st.caption(
+            f"Proposed replacement: {selected_proposed_fund}"
+        )
+    else:
+        selected_proposed_fund = st.selectbox(
+            "Select the proposed replacement fund",
+            proposed_fund_names,
+            key="proposed_replacement_fund_selector",
+        )
+
+    st.session_state["selected_proposed_fund"] = (
+        selected_proposed_fund
     )
 
     factsheets = st.session_state.get("fund_factsheets_data", [])
@@ -1776,11 +1809,10 @@ def step15_display_selected_fund():
     
     # Proposed fund(s) — persistent, independent of selection
     proposed_rows = []
-    confirmed_proposed_df = st.session_state.get("proposed_funds_confirmed_df", pd.DataFrame())
-    if not confirmed_proposed_df.empty:
-        proposed_names = confirmed_proposed_df["Fund Scorecard Name"].unique().tolist()
-        for pf in proposed_names:
-            proposed_rows.append(build_expense_row(pf))
+    if selected_proposed_fund:
+        proposed_rows.append(
+            build_expense_row(selected_proposed_fund)
+        )
     
     # Assemble final table: selected fund first, then proposed(s)
     all_rows = [row_selected] + proposed_rows
@@ -1825,11 +1857,10 @@ def step15_display_selected_fund():
     
     # Proposed fund(s)
     proposed_rows = []
-    confirmed_proposed_df = st.session_state.get("proposed_funds_confirmed_df", pd.DataFrame())
-    if not confirmed_proposed_df.empty:
-        proposed_names = confirmed_proposed_df["Fund Scorecard Name"].unique().tolist()
-        for pf in proposed_names:
-            proposed_rows.append(build_return_row(pf))
+    if selected_proposed_fund:
+        proposed_rows.append(
+            build_return_row(selected_proposed_fund)
+        )
     
     # Benchmark row (same as before)
     fs_rec = next((f for f in st.session_state.get("fund_factsheets_data", []) if f["Matched Fund Name"] == selected_fund), {})
@@ -1892,14 +1923,11 @@ def step15_display_selected_fund():
     
     # Proposed fund(s)
     proposed_rows = []
-    confirmed_proposed_df = st.session_state.get("proposed_funds_confirmed_df", pd.DataFrame())
-    if not confirmed_proposed_df.empty:
-        proposed_names = confirmed_proposed_df["Fund Scorecard Name"].unique().tolist()
-        for pf in proposed_names:
-            tup = build_cy_row(pf)
-            if tup:
-                row_pf, _ = tup
-                proposed_rows.append(row_pf)
+    if selected_proposed_fund:
+        tup = build_cy_row(selected_proposed_fund)
+        if tup:
+            row_pf, _ = tup
+            proposed_rows.append(row_pf)
     
     # Benchmark for selected fund
     bench_rec = None
@@ -1954,11 +1982,10 @@ def step15_display_selected_fund():
     
     # Proposed fund(s)
     proposed_rows = []
-    confirmed_proposed_df = st.session_state.get("proposed_funds_confirmed_df", pd.DataFrame())
-    if not confirmed_proposed_df.empty:
-        proposed_names = confirmed_proposed_df["Fund Scorecard Name"].unique().tolist()
-        for pf in proposed_names:
-            proposed_rows.append(build_mpt_row(pf, mpt3, mpt5))
+    if selected_proposed_fund:
+        proposed_rows.append(
+            build_mpt_row(selected_proposed_fund, mpt3, mpt5)
+        )
     
     # Assemble: selected then proposed(s)
     all_rows = [row_selected] + proposed_rows
@@ -1995,10 +2022,10 @@ def step15_display_selected_fund():
     rows = [build_ratio_row(selected_fund)]
     
     # Proposed fund(s)
-    confirmed_proposed_df = st.session_state.get("proposed_funds_confirmed_df", pd.DataFrame())
-    if not confirmed_proposed_df.empty:
-        for pf in confirmed_proposed_df["Fund Scorecard Name"].unique().tolist():
-            rows.append(build_ratio_row(pf))
+    if selected_proposed_fund:
+        rows.append(
+            build_ratio_row(selected_proposed_fund)
+        )
     
     df_raj_table2 = pd.DataFrame(rows)
 
@@ -2026,10 +2053,10 @@ def step15_display_selected_fund():
         }
     
     rows = [build_tenure_row(selected_fund)]
-    confirmed_proposed_df = st.session_state.get("proposed_funds_confirmed_df", pd.DataFrame())
-    if not confirmed_proposed_df.empty:
-        for pf in confirmed_proposed_df["Fund Scorecard Name"].unique().tolist():
-            rows.append(build_tenure_row(pf))
+    if selected_proposed_fund:
+        rows.append(
+            build_tenure_row(selected_proposed_fund)
+        )
     
     df_qualfact_table1 = pd.DataFrame(rows)
 
@@ -2059,10 +2086,10 @@ def step15_display_selected_fund():
         }
     
     rows = [build_asset_row(selected_fund)]
-    confirmed_proposed_df = st.session_state.get("proposed_funds_confirmed_df", pd.DataFrame())
-    if not confirmed_proposed_df.empty:
-        for pf in confirmed_proposed_df["Fund Scorecard Name"].unique().tolist():
-            rows.append(build_asset_row(pf))
+    if selected_proposed_fund:
+        rows.append(
+            build_asset_row(selected_proposed_fund)
+        )
 
 
     df_qualfact_table2 = pd.DataFrame(rows)
@@ -2313,17 +2340,35 @@ def step16_bullet_points(pdf=None):
 
     # Bullet 3: Action for Formal Watch only
     if ips_status == "FW":
-        confirmed = st.session_state.get("proposed_funds_confirmed_df", pd.DataFrame())
-        proposals = []
-        if not confirmed.empty:
-            seen = set()
-            for name, ticker in zip(confirmed["Fund Scorecard Name"], confirmed["Ticker"]):
-                display = f"{name} ({ticker})" if ticker else name
-                if display not in seen:
-                    seen.add(display)
-                    proposals.append(display)
-        replacement = ", ".join(proposals) if proposals else "a proposed fund"
-        b3 = f"**Action:** Consider replacing this fund with {replacement}."
+        selected_replacement = st.session_state.get(
+            "selected_proposed_fund"
+        )
+        confirmed = st.session_state.get(
+            "proposed_funds_confirmed_df",
+            pd.DataFrame(),
+        )
+
+        replacement = "a proposed fund"
+        if selected_replacement:
+            ticker = ""
+            if not confirmed.empty and "Fund Scorecard Name" in confirmed.columns:
+                match = confirmed[
+                    confirmed["Fund Scorecard Name"]
+                    == selected_replacement
+                ]
+                if not match.empty and "Ticker" in match.columns:
+                    ticker = str(match.iloc[0].get("Ticker", "") or "")
+
+            replacement = (
+                f"{selected_replacement} ({ticker})"
+                if ticker
+                else selected_replacement
+            )
+
+        b3 = (
+            "**Action:** Consider replacing this fund with "
+            f"{replacement}."
+        )
         bullets.append(b3)
 
     # Persist updated bullets
@@ -2374,6 +2419,19 @@ def step16_5_locate_proposed_factsheets_with_overview(pdf, context_lines=3, min_
         return False
 
     confirmed = st.session_state.get("proposed_funds_confirmed_df", pd.DataFrame())
+    selected_replacement = st.session_state.get(
+        "selected_proposed_fund"
+    )
+    if (
+        selected_replacement
+        and not confirmed.empty
+        and "Fund Scorecard Name" in confirmed.columns
+    ):
+        confirmed = confirmed[
+            confirmed["Fund Scorecard Name"]
+            == selected_replacement
+        ].copy()
+
     factsheets_start = st.session_state.get("factsheets_page") or 1
     results: dict[str, dict] = {}
 
@@ -2592,16 +2650,34 @@ def step17_export_to_ppt():
         st.error("❌ No fund selected. Please select a fund in Step 15.")
         return
 
-    # Get confirmed proposed funds (name + ticker)
-    confirmed_proposed_df = st.session_state.get("proposed_funds_confirmed_df", pd.DataFrame())
+    # Use the proposed replacement selected in Step 15.
+    confirmed_proposed_df = st.session_state.get(
+        "proposed_funds_confirmed_df",
+        pd.DataFrame(),
+    )
+    selected_replacement = st.session_state.get(
+        "selected_proposed_fund"
+    )
     proposed = []
-    if not confirmed_proposed_df.empty:
-        for _, row in confirmed_proposed_df.iterrows():
-            name = row.get("Fund Scorecard Name", "")
-            ticker = row.get("Ticker", "")
-            label = f"{name} ({ticker})" if ticker else name
-            proposed.append(label)
-    proposed = proposed[:2]  # template supports up to two
+
+    if selected_replacement:
+        ticker = ""
+        if (
+            not confirmed_proposed_df.empty
+            and "Fund Scorecard Name" in confirmed_proposed_df.columns
+        ):
+            match = confirmed_proposed_df[
+                confirmed_proposed_df["Fund Scorecard Name"]
+                == selected_replacement
+            ]
+            if not match.empty and "Ticker" in match.columns:
+                ticker = str(match.iloc[0].get("Ticker", "") or "")
+
+        proposed.append(
+            f"{selected_replacement} ({ticker})"
+            if ticker
+            else selected_replacement
+        )
 
     template_path = "assets/writeup&rec_templates.pptx"
     try:
@@ -2685,19 +2761,14 @@ def step17_export_to_ppt():
         pd.DataFrame(),
     )
     
-    if (
-        confirmed_df.empty
-        or "Fund Scorecard Name" not in confirmed_df.columns
-    ):
-        proposal_names = []
+    selected_replacement = st.session_state.get(
+        "selected_proposed_fund"
+    )
+
+    if selected_replacement:
+        proposal_names = [selected_replacement]
     else:
-        proposal_names = (
-            confirmed_df["Fund Scorecard Name"]
-            .dropna()
-            .astype(str)
-            .unique()
-            .tolist()
-        )
+        proposal_names = []
     
     # ───── 2) Pull in session data ──────────────────────────────────────────────────────
     selected = st.session_state.get("selected_fund", "")
@@ -2803,15 +2874,33 @@ def step17_export_to_ppt():
     # (Place this after you’ve loaded `prs = Presentation(...)`)
     
     # 1) Build “proposed” labels (e.g. “Fund Name (TICK)”)
-    confirmed_df = st.session_state.get("proposed_funds_confirmed_df", pd.DataFrame())
+    confirmed_df = st.session_state.get(
+        "proposed_funds_confirmed_df",
+        pd.DataFrame(),
+    )
+    selected_replacement = st.session_state.get(
+        "selected_proposed_fund"
+    )
     proposed = []
-    if not confirmed_df.empty:
-        for _, row in confirmed_df.iterrows():
-            name, ticker = row.get("Fund Scorecard Name", ""), row.get("Ticker", "")
-            label = f"{name} ({ticker})" if ticker else name
-            proposed.append(label)
-    # limit to template support (up to 5)
-    proposed = proposed[:5]
+
+    if selected_replacement:
+        ticker = ""
+        if (
+            not confirmed_df.empty
+            and "Fund Scorecard Name" in confirmed_df.columns
+        ):
+            match = confirmed_df[
+                confirmed_df["Fund Scorecard Name"]
+                == selected_replacement
+            ]
+            if not match.empty and "Ticker" in match.columns:
+                ticker = str(match.iloc[0].get("Ticker", "") or "")
+
+        proposed.append(
+            f"{selected_replacement} ({ticker})"
+            if ticker
+            else selected_replacement
+        )
     
     # 2) Grab your overview lookup from step16_5
     overview_map = st.session_state.get("step16_5_proposed_overview_lookup", {})
@@ -3690,7 +3779,7 @@ def run():
         unsafe_allow_html=True,
     )
 
-    st.title("Fund Review & Recommendation")
+    st.title("Writeup & Rec")
 
     st.markdown(
         """
