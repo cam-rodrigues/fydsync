@@ -361,7 +361,7 @@ def step3_5_6_scorecard_and_ips(pdf, scorecard_page, performance_page, factsheet
     df_icon, df_raw = scorecard_to_ips(fund_blocks, fund_types, tickers)
 
     # --- IPS Results ---
-    st.subheader("IPS Screening Results")
+    section_label("IPS Screening Results")
     st.markdown(
         '<div style="display:flex; gap:1rem; margin-bottom:0.5rem;">'
         '<div style="padding:4px 10px; background:#d6f5df; border-radius:4px; font-weight:600;">NW: No Watch</div>'
@@ -649,18 +649,120 @@ def extract_proposed_scorecard_blocks(pdf):
     st.session_state["proposed_funds_confirmed_df"] = df_confirmed
     return df_confirmed
 
+
+
+def apply_page_style():
+    st.markdown(
+        """
+        <style>
+            .block-container {
+                max-width: 1450px;
+                padding-top: 2rem;
+                padding-bottom: 3rem;
+            }
+
+            h1 {
+                color: #16243A;
+                letter-spacing: -0.03em;
+                margin-bottom: 0.3rem;
+            }
+
+            .app-subtitle {
+                color: #667085;
+                font-size: 1rem;
+                line-height: 1.55;
+                margin-bottom: 1.35rem;
+                max-width: 860px;
+            }
+
+            .section-label {
+                color: #475467;
+                font-size: 0.77rem;
+                font-weight: 700;
+                letter-spacing: 0.08em;
+                text-transform: uppercase;
+                margin-top: 1.3rem;
+                margin-bottom: 0.5rem;
+            }
+
+            div[data-testid="stFileUploader"] {
+                border: 1px solid #D0D5DD;
+                border-radius: 14px;
+                background: #FFFFFF;
+                padding: 0.4rem;
+            }
+
+            div[data-testid="stMetric"] {
+                background: #FFFFFF;
+                border: 1px solid #E4E7EC;
+                border-radius: 12px;
+                padding: 0.85rem 1rem;
+                box-shadow: 0 3px 12px rgba(16, 24, 40, 0.04);
+            }
+
+            div[data-testid="stDataFrame"] {
+                border: 1px solid #E4E7EC;
+                border-radius: 12px;
+                overflow: hidden;
+            }
+
+            .stDownloadButton > button {
+                border-radius: 9px;
+                font-weight: 600;
+            }
+
+            div[data-testid="stExpander"] {
+                border: 1px solid #E4E7EC;
+                border-radius: 12px;
+                overflow: hidden;
+            }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
+def section_label(text):
+    st.markdown(
+        f'<div class="section-label">{text}</div>',
+        unsafe_allow_html=True,
+    )
+
+
 # ─── Main App ───────────────────────────────────────────────────────────────
 
 def run():
-    st.title("IPS Screening")
-    uploaded = st.file_uploader("Upload MPI PDF to Generate IPS Screening", type="pdf")
+    apply_page_style()
+
+    st.title("IPS Investment Screening")
+    st.markdown(
+        """
+        <div class="app-subtitle">
+            Upload an MPI-style PDF fund scorecard. The app will evaluate each
+            fund against the IPS Investment Criteria, confirm fund classifications,
+            and organize the screening results for review.
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    section_label("Upload")
+    uploaded = st.file_uploader(
+        "Upload MPI PDF",
+        type=["pdf"],
+        help="Upload a text-based MPI fund scorecard PDF.",
+        key="ips_screening_pdf_uploader",
+    )
     if not uploaded:
+        st.info("Upload an MPI fund scorecard PDF to begin.")
         return
 
     with pdfplumber.open(uploaded) as pdf:
         # Step 1
         first = pdf.pages[0].extract_text() or ""
         process_page1(first)
+
+        section_label("Report Overview")
         show_report_summary()
 
         # Step 2
