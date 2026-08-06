@@ -2063,76 +2063,583 @@ def step17_export_to_ppt():
 
 def run():
     import re
+
+    st.set_page_config(
+        page_title="Writeup Generator",
+        layout="wide",
+    )
+
+    st.markdown(
+        """
+        <style>
+            /* =========================================================
+               PAGE LAYOUT
+               ========================================================= */
+
+            .block-container {
+                max-width: 1450px;
+                padding-top: 2rem;
+                padding-bottom: 4rem;
+            }
+
+            h1 {
+                color: #16243A;
+                font-weight: 750;
+                letter-spacing: -0.035em;
+                margin-bottom: 0.25rem;
+            }
+
+            h2,
+            h3 {
+                color: #24364B;
+                letter-spacing: -0.02em;
+            }
+
+            p {
+                color: #475467;
+            }
+
+            /* =========================================================
+               PAGE HEADER
+               ========================================================= */
+
+            .app-subtitle {
+                color: #667085;
+                font-size: 1rem;
+                line-height: 1.6;
+                margin-bottom: 1.4rem;
+                max-width: 900px;
+            }
+
+            .page-divider {
+                height: 1px;
+                background: #EAECF0;
+                margin: 0.2rem 0 1.6rem 0;
+            }
+
+            /* =========================================================
+               SECTION HEADERS
+               ========================================================= */
+
+            .section-heading {
+                display: flex;
+                align-items: center;
+                gap: 0.7rem;
+                margin-top: 2rem;
+                margin-bottom: 0.75rem;
+            }
+
+            .section-number {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                width: 28px;
+                height: 28px;
+                border-radius: 8px;
+                background: #EAF0F8;
+                color: #24466F;
+                font-size: 0.78rem;
+                font-weight: 750;
+                flex-shrink: 0;
+            }
+
+            .section-title {
+                color: #24364B;
+                font-size: 0.93rem;
+                font-weight: 750;
+                letter-spacing: -0.01em;
+            }
+
+            .section-description {
+                color: #667085;
+                font-size: 0.84rem;
+                line-height: 1.5;
+                margin-top: -0.35rem;
+                margin-bottom: 0.9rem;
+                max-width: 900px;
+            }
+
+            .section-label {
+                color: #475467;
+                font-size: 0.76rem;
+                font-weight: 750;
+                letter-spacing: 0.085em;
+                text-transform: uppercase;
+                margin-top: 1.35rem;
+                margin-bottom: 0.55rem;
+            }
+
+            /* =========================================================
+               UPLOAD AREA
+               ========================================================= */
+
+            div[data-testid="stFileUploader"] {
+                border: 1px solid #D0D5DD;
+                border-radius: 14px;
+                background: #FFFFFF;
+                padding: 0.45rem;
+                box-shadow: 0 4px 14px rgba(16, 24, 40, 0.04);
+                transition:
+                    border-color 0.18s ease,
+                    box-shadow 0.18s ease;
+            }
+
+            div[data-testid="stFileUploader"]:hover {
+                border-color: #AAB8C8;
+                box-shadow: 0 6px 18px rgba(16, 24, 40, 0.06);
+            }
+
+            div[data-testid="stFileUploader"] section {
+                border-radius: 10px;
+            }
+
+            /* =========================================================
+               STATUS AND INFORMATION CARDS
+               ========================================================= */
+
+            .status-card {
+                display: flex;
+                align-items: flex-start;
+                gap: 0.85rem;
+                background: #F8FAFC;
+                border: 1px solid #E4E7EC;
+                border-radius: 12px;
+                padding: 0.9rem 1rem;
+                margin-top: 0.8rem;
+                margin-bottom: 1.2rem;
+            }
+
+            .status-icon {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                width: 30px;
+                height: 30px;
+                border-radius: 8px;
+                background: #EAF0F8;
+                color: #24466F;
+                font-size: 0.82rem;
+                font-weight: 750;
+                flex-shrink: 0;
+            }
+
+            .status-title {
+                color: #344054;
+                font-size: 0.88rem;
+                font-weight: 700;
+                margin-bottom: 0.12rem;
+            }
+
+            .status-text {
+                color: #667085;
+                font-size: 0.82rem;
+                line-height: 1.45;
+            }
+
+            /* =========================================================
+               EXPANDERS
+               ========================================================= */
+
+            div[data-testid="stExpander"] {
+                background: #FFFFFF;
+                border: 1px solid #E4E7EC;
+                border-radius: 12px;
+                overflow: hidden;
+                box-shadow: 0 3px 12px rgba(16, 24, 40, 0.035);
+                margin-bottom: 0.65rem;
+            }
+
+            div[data-testid="stExpander"] details {
+                border-radius: 12px;
+            }
+
+            div[data-testid="stExpander"] summary {
+                min-height: 48px;
+                padding-top: 0.15rem;
+                padding-bottom: 0.15rem;
+                font-weight: 650;
+                color: #344054;
+            }
+
+            div[data-testid="stExpander"] summary:hover {
+                background: #F8FAFC;
+            }
+
+            div[data-testid="stExpander"] summary p {
+                color: #344054;
+                font-weight: 650;
+            }
+
+            /* Slight visual distinction for nested expanders */
+            div[data-testid="stExpander"]
+            div[data-testid="stExpander"] {
+                background: #FCFCFD;
+                box-shadow: none;
+                margin-top: 0.45rem;
+            }
+
+            /* =========================================================
+               METRICS, TABLES, AND DATAFRAMES
+               ========================================================= */
+
+            div[data-testid="stMetric"] {
+                background: #FFFFFF;
+                border: 1px solid #E4E7EC;
+                border-radius: 12px;
+                padding: 0.9rem 1rem;
+                box-shadow: 0 3px 12px rgba(16, 24, 40, 0.04);
+            }
+
+            div[data-testid="stMetricLabel"] {
+                color: #667085;
+                font-weight: 600;
+            }
+
+            div[data-testid="stMetricValue"] {
+                color: #16243A;
+                font-weight: 750;
+            }
+
+            div[data-testid="stDataFrame"],
+            div[data-testid="stTable"] {
+                border: 1px solid #E4E7EC;
+                border-radius: 12px;
+                overflow: hidden;
+                box-shadow: 0 3px 12px rgba(16, 24, 40, 0.035);
+            }
+
+            /* =========================================================
+               BUTTONS
+               ========================================================= */
+
+            .stButton > button,
+            .stDownloadButton > button {
+                min-height: 39px;
+                border-radius: 9px;
+                border: 1px solid #D0D5DD;
+                background: #FFFFFF;
+                color: #344054;
+                font-weight: 650;
+                padding-left: 1rem;
+                padding-right: 1rem;
+                transition:
+                    background 0.16s ease,
+                    border-color 0.16s ease,
+                    box-shadow 0.16s ease,
+                    transform 0.16s ease;
+            }
+
+            .stButton > button:hover,
+            .stDownloadButton > button:hover {
+                background: #F8FAFC;
+                border-color: #AAB8C8;
+                box-shadow: 0 3px 10px rgba(16, 24, 40, 0.07);
+                transform: translateY(-1px);
+            }
+
+            .stButton > button:active,
+            .stDownloadButton > button:active {
+                transform: translateY(0);
+            }
+
+            /* =========================================================
+               ALERTS
+               ========================================================= */
+
+            div[data-testid="stAlert"] {
+                border-radius: 11px;
+                border-width: 1px;
+            }
+
+            /* =========================================================
+               FORM FIELDS
+               ========================================================= */
+
+            div[data-baseweb="select"] > div,
+            div[data-baseweb="input"] > div,
+            textarea {
+                border-radius: 9px !important;
+            }
+
+            /* =========================================================
+               HORIZONTAL RULES
+               ========================================================= */
+
+            hr {
+                border: none;
+                border-top: 1px solid #EAECF0;
+                margin-top: 1.5rem;
+                margin-bottom: 1.5rem;
+            }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    # =========================================================
+    # PAGE HEADER
+    # =========================================================
+
     st.title("Writeup Generator")
-    uploaded = st.file_uploader("Upload MPI PDF to Generate Writup PPTX", type="pdf")
+
+    st.markdown(
+        """
+        <div class="app-subtitle">
+            Upload an MPI-style PDF report to extract the fund data needed for
+            investment screening, performance analysis, writeup generation,
+            and PowerPoint export.
+        </div>
+        <div class="page-divider"></div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    # =========================================================
+    # REPORT UPLOAD
+    # =========================================================
+
+    st.markdown(
+        """
+        <div class="section-heading">
+            <div class="section-number">1</div>
+            <div class="section-title">Upload Report</div>
+        </div>
+        <div class="section-description">
+            Select the source MPI report that will be used throughout the
+            writeup and presentation-generation process.
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    uploaded = st.file_uploader(
+        "Upload MPI PDF",
+        type=["pdf"],
+        help="Upload a text-based MPI report PDF to generate the writeup.",
+        key="writeup_generator_pdf_uploader",
+    )
+
     if not uploaded:
+        st.markdown(
+            """
+            <div class="status-card">
+                <div class="status-icon">PDF</div>
+                <div>
+                    <div class="status-title">No report uploaded</div>
+                    <div class="status-text">
+                        Upload an MPI PDF above to begin extracting fund details
+                        and generating the writeup.
+                    </div>
+                </div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
         return
 
+    st.markdown(
+        """
+        <div class="status-card">
+            <div class="status-icon">OK</div>
+            <div>
+                <div class="status-title">Report uploaded</div>
+                <div class="status-text">
+                    The report is ready for review. Expand the sections below
+                    to inspect the extracted information and generated content.
+                </div>
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
     with pdfplumber.open(uploaded) as pdf:
+        # =========================================================
+        # REPORT OVERVIEW
+        # =========================================================
+
+        st.markdown(
+            """
+            <div class="section-heading">
+                <div class="section-number">2</div>
+                <div class="section-title">Report Overview</div>
+            </div>
+            <div class="section-description">
+                Review the report-level details and the identified document
+                structure before examining individual fund results.
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+
         # Step 1
         first = pdf.pages[0].extract_text() or ""
         process_page1(first)
         show_report_summary()
 
         # Step 2
-        with st.expander("Table of Contents", expanded=False):
-            toc_text = "".join((pdf.pages[i].extract_text() or "") for i in range(min(3, len(pdf.pages))))
+        with st.expander(
+            "Table of Contents",
+            expanded=False,
+        ):
+            toc_text = "".join(
+                (pdf.pages[i].extract_text() or "")
+                for i in range(min(3, len(pdf.pages)))
+            )
             process_toc(toc_text)
 
-        # --- Combined core details grouped ---
-        with st.expander("All Fund Details", expanded=True):
+        # =========================================================
+        # FUND ANALYSIS
+        # =========================================================
+
+        st.markdown(
+            """
+            <div class="section-heading">
+                <div class="section-number">3</div>
+                <div class="section-title">Fund Analysis</div>
+            </div>
+            <div class="section-description">
+                Review the investment screening, factsheet data, returns,
+                MPT statistics, and risk-adjusted performance extracted for
+                each fund.
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+
+        # Combined core details grouped
+        with st.expander(
+            "All Fund Details",
+            expanded=True,
+        ):
             # 1. IPS Investment Screening
-            with st.expander("IPS Investment Screening", expanded=True):
-                sp = st.session_state.get('scorecard_page')
-                tot = st.session_state.get('total_options')
-                pp = st.session_state.get('performance_page')
-                factsheets_page = st.session_state.get('factsheets_page')
+            with st.expander(
+                "IPS Investment Screening",
+                expanded=True,
+            ):
+                sp = st.session_state.get("scorecard_page")
+                tot = st.session_state.get("total_options")
+                pp = st.session_state.get("performance_page")
+                factsheets_page = st.session_state.get(
+                    "factsheets_page"
+                )
+
                 if sp and tot is not None and pp:
-                    step3_5_6_scorecard_and_ips(pdf, sp, pp, factsheets_page, tot)
+                    step3_5_6_scorecard_and_ips(
+                        pdf,
+                        sp,
+                        pp,
+                        factsheets_page,
+                        tot,
+                    )
                 else:
-                    st.error("Missing scorecard, performance page, or total options")
+                    st.error(
+                        "Missing scorecard, performance page, "
+                        "or total options."
+                    )
 
             # 2. Fund Factsheets
-            with st.expander("Fund Factsheets", expanded=True):
-                names = [b['Fund Name'] for b in st.session_state.get('fund_blocks', [])]
-                step6_process_factsheets(pdf, names)
-                
-            # 3. Extract Fund Facts sub-headings (Step 12) so Step 15 has data
-            with st.expander("Fund Facts (sub-headings)", expanded=False):
+            with st.expander(
+                "Fund Factsheets",
+                expanded=True,
+            ):
+                names = [
+                    block["Fund Name"]
+                    for block in st.session_state.get(
+                        "fund_blocks",
+                        [],
+                    )
+                ]
+
+                step6_process_factsheets(
+                    pdf,
+                    names,
+                )
+
+            # 3. Extract Fund Facts sub-headings
+            # so the later writeup step has data.
+            with st.expander(
+                "Fund Facts",
+                expanded=False,
+            ):
                 step12_process_fund_facts(pdf)
-                
-            with st.expander("Returns", expanded=False):
+
+            with st.expander(
+                "Returns",
+                expanded=False,
+            ):
                 step7_extract_returns(pdf)
                 step8_calendar_returns(pdf)
-    
-            with st.expander("MPT Statistics Summary", expanded=False):
+
+            with st.expander(
+                "MPT Statistics Summary",
+                expanded=False,
+            ):
                 step9_risk_analysis_3yr(pdf)
                 step10_risk_analysis_5yr(pdf)
                 step11_create_summary()
 
             # 5. Risk-Adjusted Returns and Peer Rank
-            with st.expander("Risk-Adjusted Returns", expanded=False):
+            with st.expander(
+                "Risk-Adjusted Returns",
+                expanded=False,
+            ):
                 step13_process_risk_adjusted_returns(pdf)
-                step14_extract_peer_risk_adjusted_return_rank(pdf)
+                step14_extract_peer_risk_adjusted_return_rank(
+                    pdf
+                )
 
-        # Data prep for bullet points (unchanged)
-        report_date = st.session_state.get("report_date", "")
-        m = re.match(r"(\d)(?:st|nd|rd|th)\s+QTR,\s*(\d{4})", report_date)
-        quarter = m.group(1) if m else ""
-        year = m.group(2) if m else ""
+        # =========================================================
+        # DATA PREPARATION
+        # =========================================================
 
-        for itm in st.session_state.get("fund_performance_data", []):
+        # Data preparation for bullet points
+        report_date = st.session_state.get(
+            "report_date",
+            "",
+        )
+
+        match = re.match(
+            r"(\d)(?:st|nd|rd|th)\s+QTR,\s*(\d{4})",
+            report_date,
+        )
+
+        quarter = match.group(1) if match else ""
+        year = match.group(2) if match else ""
+
+        for itm in st.session_state.get(
+            "fund_performance_data",
+            [],
+        ):
             qtd = float(itm.get("QTD") or 0)
             bench_qtd = float(itm.get("Bench QTD") or 0)
-            itm["Perf Direction"] = "overperformed" if qtd >= bench_qtd else "underperformed"
+
+            itm["Perf Direction"] = (
+                "overperformed"
+                if qtd >= bench_qtd
+                else "underperformed"
+            )
+
             itm["Quarter"] = quarter
             itm["Year"] = year
-            diff_bps = round((qtd - bench_qtd) * 100, 1)
+
+            diff_bps = round(
+                (qtd - bench_qtd) * 100,
+                1,
+            )
+
             itm["QTD_bps_diff"] = str(diff_bps)
+
             fund_pct = f"{qtd:.2f}%"
             bench_pct = f"{bench_qtd:.2f}%"
-            itm["QTD_pct_diff"] = f"{(qtd - bench_qtd):.2f}%"
-            itm["QTD_vs"] = f"{fund_pct} vs. {bench_pct}"
+
+            itm["QTD_pct_diff"] = (
+                f"{(qtd - bench_qtd):.2f}%"
+            )
+
+            itm["QTD_vs"] = (
+                f"{fund_pct} vs. {bench_pct}"
+            )
 
         if "bullet_point_templates" not in st.session_state:
             st.session_state["bullet_point_templates"] = [
@@ -2140,20 +2647,67 @@ def run():
                 "[Year] by [QTD_bps_diff] bps ([QTD_vs])."
             ]
 
+        # =========================================================
+        # WRITEUP OUTPUT
+        # =========================================================
+
+        st.markdown(
+            """
+            <div class="section-heading">
+                <div class="section-number">4</div>
+                <div class="section-title">Writeup Review</div>
+            </div>
+            <div class="section-description">
+                Review screening exceptions, inspect an individual fund,
+                and prepare the narrative bullet points used in the final
+                presentation.
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+
         # Step 14.5: IPS Fail Table
         step14_5_ips_fail_table()
 
         # Step 15: View Single Fund Details
-        with st.expander("Single Fund Write Up", expanded=False):
+        with st.expander(
+            "Single Fund Writeup",
+            expanded=False,
+        ):
             step15_display_selected_fund()
 
         # Bullet Points
-        with st.expander("Bullet Points", expanded=False):
+        with st.expander(
+            "Generated Bullet Points",
+            expanded=False,
+        ):
             step16_bullet_points()
 
+        # =========================================================
+        # EXPORT
+        # =========================================================
+
+        st.markdown(
+            """
+            <div class="section-heading">
+                <div class="section-number">5</div>
+                <div class="section-title">Export Presentation</div>
+            </div>
+            <div class="section-description">
+                Review the final fund selections and generate the completed
+                PowerPoint writeup.
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+
         # PowerPoint
-        with st.expander("Export to Powerpoint", expanded=False):
+        with st.expander(
+            "Export to PowerPoint",
+            expanded=False,
+        ):
             step17_export_to_ppt()
+
 
 if __name__ == "__main__":
     run()
