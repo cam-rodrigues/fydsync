@@ -200,7 +200,7 @@ def run():
         """
         <div class="page-header">
             <div class="page-label">Platform Overview</div>
-            <h1>Capabilities & Potential</h1>
+            <h1>Roadmap</h1>
             <p>
                 Review FidSync's current functionality, planned improvements,
                 and long-term opportunities for expanding the platform.
