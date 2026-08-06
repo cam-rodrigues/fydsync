@@ -217,7 +217,7 @@ def run():
     current_tab, potential_tab, roadmap_tab = st.tabs(
         [
             "Current Capabilities",
-            "Future Potential",
+            "Potential Additions",
             "Development Roadmap",
         ]
     )
@@ -255,7 +255,7 @@ def run():
 
                 st.markdown(
                     """
-                    **Key functions**
+                    **Key Functions**
 
                     - In-memory data processing
                     - Temporary upload handling
@@ -275,7 +275,7 @@ def run():
 
                 st.markdown(
                     """
-                    **Key functions**
+                    **Key Functions**
 
                     - Removes unnecessary formatting residue
                     - Standardizes column names
@@ -295,7 +295,7 @@ def run():
 
                 st.markdown(
                     """
-                    **Key functions**
+                    **Key Functions**
 
                     - Fuzzy string matching
                     - Name normalization
@@ -319,7 +319,7 @@ def run():
 
                 st.markdown(
                     """
-                    **Key functions**
+                    **Key Functions**
 
                     - Fund name extraction
                     - Metric identification
@@ -338,7 +338,7 @@ def run():
 
                 st.markdown(
                     """
-                    **Key functions**
+                    **Key Functions**
 
                     - Compliance scoring rules
                     - Peer-group thresholds
@@ -357,7 +357,7 @@ def run():
 
                 st.markdown(
                     """
-                    **Key functions**
+                    **Key Functions**
 
                     - Standardized report columns
                     - Conditional formatting
@@ -385,7 +385,7 @@ def run():
     with potential_tab:
         st.markdown(
             """
-            <div class="section-heading">Future potential</div>
+            <div class="section-heading">Potential Additions</div>
             <div class="section-description">
                 Possible additions that could expand FidSync into a broader
                 financial research, portfolio analysis, and workflow platform.
@@ -476,22 +476,23 @@ def run():
                 unsafe_allow_html=True,
             )
 
-        st.markdown("### Potential development priorities")
+        st.markdown("### Potential Development Priorities")
 
         priority_options = [
-            "Benchmark comparison tools",
-            "Portfolio diagnostics",
-            "Platform integrations",
-            "Enterprise administration",
-            "Workflow automation",
-            "Assisted recommendations",
+            "Benchmark Comparison Tools",
+            "Portfolio Diagnostics",
+            "Platform Integrations",
+            "Enterprise Administration",
+            "Workflow Automation",
+            "Assisted Recommendations",
         ]
 
         selected_priority = st.selectbox(
             "Select an area to review",
             options=priority_options,
+            key="development_priority",
         )
-
+        
         priority_details = {
             "Benchmark comparison tools": (
                 "This would likely be one of the most practical next additions "
@@ -518,7 +519,8 @@ def run():
                 "replace advisor judgment or compliance oversight."
             ),
         }
-
+        
+        st.markdown(f"#### {selected_priority}")
         st.info(priority_details[selected_priority])
 
     # =====================================================
@@ -528,7 +530,7 @@ def run():
     with roadmap_tab:
         st.markdown(
             """
-            <div class="section-heading">Development roadmap</div>
+            <div class="section-heading">Development Roadmap</div>
             <div class="section-description">
                 A possible order for expanding FidSync while keeping the platform
                 manageable, secure, and useful.
