@@ -1244,69 +1244,125 @@ def step14_extract_peer_risk_adjusted_return_rank(pdf):
 #───Step 14.5: IPS Fail Table──────────────────────────────────────────────────────────────────
 
 def step14_5_ips_fail_table():
-    import streamlit as st
     import pandas as pd
+    import streamlit as st
 
     df = st.session_state.get("ips_icon_table")
+
     if df is None or df.empty:
         return
 
-    fail_df = df[df["IPS Watch Status"].isin(["FW", "IW"])][["Fund Name", "IPS Watch Status"]]
+    fail_df = df[
+        df["IPS Watch Status"].isin(["FW", "IW"])
+    ][
+        [
+            "Fund Name",
+            "IPS Watch Status",
+        ]
+    ].copy()
+
     if fail_df.empty:
+        st.success("No funds are currently on watch.")
         return
 
-    table_html = fail_df.rename(columns={
-        "Fund Name": "Fund",
-        "IPS Watch Status": "Watch Status"
-    }).to_html(index=False, border=0, justify="center", classes="ips-fail-table")
+    status_labels = {
+        "IW": "Informal Watch",
+        "FW": "Formal Watch",
+    }
 
-    st.markdown(f"""
-    <div style='
-        background: linear-gradient(120deg, #e6f0fb 85%, #c8e0f6 100%);
-        color: #23395d;
-        border-radius: 1.3rem;
-        box-shadow: 0 2px 14px rgba(44,85,130,0.08), 0 1px 4px rgba(36,67,105,0.07);
-        padding: 1.6rem 2.0rem 1.6rem 2.0rem;
-        max-width: 650px;
-        margin: 1.4rem auto 1.2rem auto;
-        border: 1.5px solid #b5d0eb;'>
-        <div style='font-weight:700; color:#23395d; font-size:1.15rem; margin-bottom:0.5rem; letter-spacing:-0.5px;'>
-            Funds on Watch
-        </div>
-        <div style='font-size:1rem; margin-bottom:1rem; color:#23395d;'>
-            The following funds failed five or more IPS criteria and are currently on watch.
-        </div>
-        {table_html}
-    </div>
-    """, unsafe_allow_html=True)
+    fail_df["Watch Status"] = fail_df[
+        "IPS Watch Status"
+    ].map(status_labels)
 
-    st.markdown("""
-    <style>
-    .ips-fail-table {
-        width: 100%;
-        border-collapse: collapse;
-        margin-top: 0.7em;
-        font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
-    }
-    .ips-fail-table th, .ips-fail-table td {
-        border: none;
-        padding: 0.48em 1.1em;
-        text-align: left;
-        font-size: 1.07em;
-    }
-    .ips-fail-table th {
-        background: #244369;
-        color: #fff;
-        font-weight: 700;
-        letter-spacing: 0.01em;
-    }
-    .ips-fail-table td {
-        color: #244369;
-    }
-    .ips-fail-table tr:nth-child(even) {background: #e6f0fb;}
-    .ips-fail-table tr:nth-child(odd)  {background: #f8fafc;}
-    </style>
-    """, unsafe_allow_html=True)
+    informal_count = int(
+        (fail_df["IPS Watch Status"] == "IW").sum()
+    )
+
+    formal_count = int(
+        (fail_df["IPS Watch Status"] == "FW").sum()
+    )
+
+    total_count = len(fail_df)
+
+    st.markdown("### Funds on Watch")
+    st.caption(
+        "Funds that failed five or more IPS criteria "
+        "and require additional review."
+    )
+
+    total_col, informal_col, formal_col = st.columns(
+        3,
+        gap="small",
+    )
+
+    with total_col:
+        st.metric(
+            "Total on Watch",
+            total_count,
+        )
+
+    with informal_col:
+        st.metric(
+            "Informal Watch",
+            informal_count,
+        )
+
+    with formal_col:
+        st.metric(
+            "Formal Watch",
+            formal_count,
+        )
+
+    display_df = fail_df.rename(
+        columns={
+            "Fund Name": "Fund",
+        }
+    )[
+        [
+            "Fund",
+            "Watch Status",
+        ]
+    ]
+
+    def style_watch_status(value):
+        if value == "Formal Watch":
+            return (
+                "background-color: #FDECEC; "
+                "color: #B42318; "
+                "font-weight: 700;"
+            )
+
+        if value == "Informal Watch":
+            return (
+                "background-color: #FFF6DB; "
+                "color: #8A6100; "
+                "font-weight: 700;"
+            )
+
+        return ""
+
+    styled_df = display_df.style.applymap(
+        style_watch_status,
+        subset=["Watch Status"],
+    )
+
+    st.dataframe(
+        styled_df,
+        use_container_width=True,
+        hide_index=True,
+        column_config={
+            "Fund": st.column_config.TextColumn(
+                "Fund",
+                width="large",
+            ),
+            "Watch Status": st.column_config.TextColumn(
+                "Watch Status",
+                width="medium",
+            ),
+        },
+    )
+
+    st.markdown("---")
 
 #───Step 15: Single Fund──────────────────────────────────────────────────────────────────
 
@@ -1324,88 +1380,180 @@ def step15_display_selected_fund():
     selected_fund = st.selectbox("Select a fund to view details:", fund_names)
     st.session_state.selected_fund = selected_fund
 
-    st.write(f"Details for: {selected_fund}")
-    factsheets = st.session_state.get("fund_factsheets_data", [])
-    factsheet_rec = next((row for row in factsheets if row["Matched Fund Name"] == selected_fund), None)
-    
-    fund_facts_table = st.session_state.get("step12_fund_facts_table", [])
-    
+    # =========================================================
+    # SELECTED FUND OVERVIEW
+    # =========================================================
+
+    st.markdown(f"### {selected_fund}")
+
+    factsheets = st.session_state.get(
+        "fund_factsheets_data",
+        [],
+    )
+
+    factsheet_rec = next(
+        (
+            row
+            for row in factsheets
+            if row["Matched Fund Name"] == selected_fund
+        ),
+        None,
+    )
+
+    fund_facts_table = st.session_state.get(
+        "step12_fund_facts_table",
+        [],
+    )
+
     # Filter out metadata rows if present
-    fund_facts_table = [row for row in fund_facts_table if row.get("Fund Name") and row.get("Fund Name").lower() != "metadata"]
-    
-    # Robust matching
-    facts_rec = next((row for row in fund_facts_table if row.get("Fund Name") == selected_fund), None)
+    fund_facts_table = [
+        row
+        for row in fund_facts_table
+        if row.get("Fund Name")
+        and row.get("Fund Name").lower() != "metadata"
+    ]
+
+    # Match the selected fund to its fund-facts record
+    facts_rec = next(
+        (
+            row
+            for row in fund_facts_table
+            if row.get("Fund Name") == selected_fund
+        ),
+        None,
+    )
+
     if not facts_rec and factsheet_rec:
-        factsheet_ticker = factsheet_rec.get("Matched Ticker")
-        facts_rec = next((row for row in fund_facts_table if row.get("Ticker") == factsheet_ticker), None)
+        factsheet_ticker = factsheet_rec.get(
+            "Matched Ticker"
+        )
+
+        facts_rec = next(
+            (
+                row
+                for row in fund_facts_table
+                if row.get("Ticker") == factsheet_ticker
+            ),
+            None,
+        )
+
     if not facts_rec:
         facts_rec = next(
-            (row for row in fund_facts_table if selected_fund.lower() in row.get("Fund Name", "").lower()),
-            None
+            (
+                row
+                for row in fund_facts_table
+                if selected_fund.lower()
+                in row.get("Fund Name", "").lower()
+            ),
+            None,
         )
-    
-    left_box = (
-        f"""<div style='
-            background: linear-gradient(120deg, #e6f0fb 80%, #c8e0f6 100%);
-            color: #244369;
-            border-radius: 1.2rem;
-            box-shadow: 0 2px 12px rgba(44,85,130,0.09), 0 1px 4px rgba(36,67,105,0.07);
-            padding: 1rem 1.2rem;
-            min-width: 220px;
-            max-width: 260px;
-            margin: 0.3rem 1.2rem 0.3rem 0;
-            border: 1.2px solid #b5d0eb;
-            font-size: 1rem;
-            display: inline-block;
-            vertical-align: top;'>
-            <div><b>Category:</b> {factsheet_rec.get("Category", "—")}</div>
-            <div><b>Benchmark:</b> {factsheet_rec.get("Benchmark", "—")}</div>
-            <div><b>Net Assets:</b> {factsheet_rec.get("Net Assets", "—")}</div>
-            <div><b>Manager:</b> {factsheet_rec.get("Manager Name", "—")}</div>
-            <div><b>Avg. Market Cap:</b> {factsheet_rec.get("Avg. Market Cap", "—")}</div>
-        </div>"""
-        if factsheet_rec else "<div style='display:inline-block; min-width:220px; color:#666;'>No factsheet info found.</div>"
+
+    overview_col, statistics_col = st.columns(
+        2,
+        gap="medium",
     )
-    
-    right_box = (
-        f"""<div style='
-            background: linear-gradient(120deg, #e6f0fb 80%, #c8e0f6 100%);
-            color: #244369;
-            border-radius: 1.2rem;
-            box-shadow: 0 2px 12px rgba(44,85,130,0.09), 0 1px 4px rgba(36,67,105,0.07);
-            padding: 1rem 1.2rem;
-            min-width: 220px;
-            max-width: 260px;
-            margin: 0.3rem 0 0.3rem 0;
-            border: 1.2px solid #b5d0eb;
-            font-size: 1rem;
-            display: inline-block;
-            vertical-align: top;'>
-            <div><b>Manager Tenure:</b> {facts_rec.get("Manager Tenure Yrs.", "—")}</div>
-            <div><b>Expense Ratio:</b> {facts_rec.get("Expense Ratio", "—")}</div>
-            <div><b>Expense Ratio Rank:</b> {facts_rec.get("Expense Ratio Rank", "—")}</div>
-            <div><b>Total Number of Holdings:</b> {facts_rec.get("Total Number of Holdings", "—")}</div>
-            <div><b>Turnover Ratio:</b> {facts_rec.get("Turnover Ratio", "—")}</div>
-        </div>"""
-        if facts_rec else "<div style='display:inline-block; min-width:220px; color:#666;'>No Fund Facts available.</div>"
-    )
-    
-    st.markdown(
-        f"""
-        <div style='
-            width:100%;
-            display:flex;
-            flex-wrap:wrap;
-            justify-content:center;
-            align-items:flex-start;
-            gap:24px;
-            margin: 0.6rem 0 2rem 0;
-        '>
-            {left_box}{right_box}
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
+
+    # ---------------------------------------------------------
+    # FUND OVERVIEW
+    # ---------------------------------------------------------
+
+    with overview_col:
+        with st.container(border=True):
+            st.markdown("#### Fund Overview")
+
+            if factsheet_rec:
+                overview_data = {
+                    "Category": factsheet_rec.get(
+                        "Category",
+                        "—",
+                    ),
+                    "Benchmark": factsheet_rec.get(
+                        "Benchmark",
+                        "—",
+                    ),
+                    "Net Assets": factsheet_rec.get(
+                        "Net Assets",
+                        "—",
+                    ),
+                    "Manager": factsheet_rec.get(
+                        "Manager Name",
+                        "—",
+                    ),
+                    "Average Market Cap": factsheet_rec.get(
+                        "Avg. Market Cap",
+                        "—",
+                    ),
+                }
+
+                for label, value in overview_data.items():
+                    row_label, row_value = st.columns(
+                        [0.42, 0.58],
+                        gap="small",
+                    )
+
+                    with row_label:
+                        st.markdown(f"**{label}**")
+
+                    with row_value:
+                        st.write(value or "—")
+
+            else:
+                st.info(
+                    "No factsheet information was found "
+                    "for this fund."
+                )
+
+    # ---------------------------------------------------------
+    # FUND STATISTICS
+    # ---------------------------------------------------------
+
+    with statistics_col:
+        with st.container(border=True):
+            st.markdown("#### Fund Statistics")
+
+            if facts_rec:
+                statistics_data = {
+                    "Manager Tenure": facts_rec.get(
+                        "Manager Tenure Yrs.",
+                        "—",
+                    ),
+                    "Expense Ratio": facts_rec.get(
+                        "Expense Ratio",
+                        "—",
+                    ),
+                    "Expense Ratio Rank": facts_rec.get(
+                        "Expense Ratio Rank",
+                        "—",
+                    ),
+                    "Total Holdings": facts_rec.get(
+                        "Total Number of Holdings",
+                        "—",
+                    ),
+                    "Turnover Ratio": facts_rec.get(
+                        "Turnover Ratio",
+                        "—",
+                    ),
+                }
+
+                for label, value in statistics_data.items():
+                    row_label, row_value = st.columns(
+                        [0.55, 0.45],
+                        gap="small",
+                    )
+
+                    with row_label:
+                        st.markdown(f"**{label}**")
+
+                    with row_value:
+                        st.write(value or "—")
+
+            else:
+                st.info(
+                    "No additional fund statistics were found "
+                    "for this fund."
+                )
+
+    st.markdown("")
 
 
     # --- Slide 1 Table: IPS Results ---
@@ -2059,19 +2207,23 @@ def step17_export_to_ppt():
     )
 
 
-#───Main App──────────────────────────────────────────────────────────────────
+# ─── Main App ────────────────────────────────────────────────────────────────
 
 def run():
     import re
 
     st.set_page_config(
-        page_title="Writeup Generator",
+        page_title="Fund Review Builder",
         layout="wide",
     )
 
     st.markdown(
         """
         <style>
+            /* =========================================================
+               PAGE
+               ========================================================= */
+
             .block-container {
                 max-width: 1450px;
                 padding-top: 2rem;
@@ -2084,118 +2236,477 @@ def run():
                 margin-bottom: 0.3rem;
             }
 
+            h2,
+            h3 {
+                color: #24364B;
+                letter-spacing: -0.02em;
+            }
+
             .app-subtitle {
                 color: #667085;
                 font-size: 1rem;
                 line-height: 1.55;
                 margin-bottom: 1.35rem;
-                max-width: 860px;
+                max-width: 900px;
+            }
+
+            .section-header {
+                margin-top: 0.4rem;
+                margin-bottom: 1rem;
             }
 
             .section-label {
-                color: #475467;
-                font-size: 0.77rem;
+                color: #667085;
+                font-size: 0.74rem;
                 font-weight: 700;
-                letter-spacing: 0.08em;
+                letter-spacing: 0.09em;
                 text-transform: uppercase;
-                margin-top: 1.3rem;
-                margin-bottom: 0.5rem;
+                margin-bottom: 0.25rem;
             }
+
+            .section-title {
+                color: #24364B;
+                font-size: 1.1rem;
+                font-weight: 700;
+                letter-spacing: -0.015em;
+                margin-bottom: 0.25rem;
+            }
+
+            .section-description {
+                color: #667085;
+                font-size: 0.87rem;
+                line-height: 1.5;
+                max-width: 900px;
+            }
+
+            .page-divider {
+                height: 1px;
+                background: #E4E7EC;
+                margin-bottom: 1.35rem;
+            }
+
+            /* =========================================================
+               FILE UPLOADER
+               ========================================================= */
 
             div[data-testid="stFileUploader"] {
                 border: 1px solid #D0D5DD;
-                border-radius: 14px;
+                border-radius: 12px;
                 background: #FFFFFF;
                 padding: 0.4rem;
+                margin-bottom: 0.8rem;
             }
+
+            div[data-testid="stFileUploader"] section {
+                background: #FAFBFC;
+                border: 1px dashed #C8D0DC;
+                border-radius: 9px;
+            }
+
+            div[data-testid="stFileUploader"]:hover {
+                border-color: #AEB9C6;
+            }
+
+            /* =========================================================
+               PROGRESS
+               ========================================================= */
+
+            div[data-testid="stProgress"] {
+                margin-top: 0.4rem;
+                margin-bottom: 0.2rem;
+            }
+
+            div[data-testid="stProgress"] > div > div {
+                border-radius: 999px;
+            }
+
+            /* =========================================================
+               MAIN TABS
+               ========================================================= */
+
+            div[data-testid="stTabs"]
+            > div[data-baseweb="tab-list"] {
+                gap: 1.5rem;
+                border-bottom: 1px solid #D9DEE7;
+                margin-top: 0.5rem;
+                margin-bottom: 1.25rem;
+            }
+
+            div[data-testid="stTabs"]
+            button[data-baseweb="tab"] {
+                background: transparent;
+                border: none;
+                border-radius: 0;
+                color: #667085;
+                font-size: 0.88rem;
+                font-weight: 600;
+                padding: 0.7rem 0.05rem 0.75rem 0.05rem;
+            }
+
+            div[data-testid="stTabs"]
+            button[data-baseweb="tab"]:hover {
+                color: #24364B;
+                background: transparent;
+            }
+
+            div[data-testid="stTabs"]
+            button[data-baseweb="tab"][aria-selected="true"] {
+                color: #16243A;
+                font-weight: 700;
+            }
+
+            div[data-testid="stTabs"]
+            div[data-baseweb="tab-highlight"] {
+                background-color: #162F52;
+                height: 2px;
+            }
+
+            div[data-testid="stTabs"]
+            div[data-baseweb="tab-border"] {
+                background-color: transparent;
+            }
+
+            div[data-testid="stTabPanel"] {
+                padding-top: 0.2rem;
+            }
+
+            /* =========================================================
+               EXPANDERS
+               ========================================================= */
+
+            div[data-testid="stExpander"] {
+                background: #FFFFFF;
+                border: 1px solid #E4E7EC;
+                border-radius: 10px;
+                overflow: hidden;
+                box-shadow: none;
+                margin-bottom: 0.65rem;
+            }
+
+            div[data-testid="stExpander"] summary {
+                min-height: 47px;
+            }
+
+            div[data-testid="stExpander"] summary:hover {
+                background: #F8FAFC;
+            }
+
+            div[data-testid="stExpander"] summary p {
+                color: #344054;
+                font-size: 0.9rem;
+                font-weight: 650;
+            }
+
+            div[data-testid="stExpander"] details[open] > summary {
+                background: #FAFBFC;
+                border-bottom: 1px solid #EAECF0;
+            }
+
+            /* =========================================================
+               METRICS AND TABLES
+               ========================================================= */
 
             div[data-testid="stMetric"] {
                 background: #FFFFFF;
                 border: 1px solid #E4E7EC;
-                border-radius: 12px;
+                border-radius: 10px;
                 padding: 0.85rem 1rem;
-                box-shadow: 0 3px 12px rgba(16, 24, 40, 0.04);
+                box-shadow: none;
             }
 
-            div[data-testid="stDataFrame"] {
-                border: 1px solid #E4E7EC;
-                border-radius: 12px;
-                overflow: hidden;
-            }
-
-            .stDownloadButton > button {
-                border-radius: 9px;
+            div[data-testid="stMetricLabel"] {
+                color: #667085;
+                font-size: 0.8rem;
                 font-weight: 600;
             }
 
-            div[data-testid="stExpander"] {
+            div[data-testid="stMetricValue"] {
+                color: #16243A;
+                font-weight: 700;
+            }
+
+            div[data-testid="stDataFrame"],
+            div[data-testid="stTable"] {
                 border: 1px solid #E4E7EC;
-                border-radius: 12px;
+                border-radius: 10px;
                 overflow: hidden;
+                box-shadow: none;
+            }
+
+            /* =========================================================
+               BUTTONS
+               ========================================================= */
+
+            .stButton > button,
+            .stDownloadButton > button {
+                border-radius: 8px;
+                border: 1px solid #CDD5DF;
+                background: #FFFFFF;
+                color: #344054;
+                font-weight: 620;
+                min-height: 39px;
+                padding-left: 1rem;
+                padding-right: 1rem;
+                box-shadow: none;
+            }
+
+            .stButton > button:hover,
+            .stDownloadButton > button:hover {
+                background: #F8FAFC;
+                border-color: #AEB9C6;
+                color: #24364B;
+            }
+
+            .stButton > button:active,
+            .stDownloadButton > button:active {
+                background: #F2F4F7;
+            }
+
+            /* =========================================================
+               INPUTS
+               ========================================================= */
+
+            div[data-baseweb="select"] > div,
+            div[data-baseweb="input"] > div,
+            div[data-baseweb="textarea"] > div,
+            textarea {
+                border-radius: 8px !important;
+            }
+
+            /* =========================================================
+               ALERTS
+               ========================================================= */
+
+            div[data-testid="stAlert"] {
+                border-radius: 9px;
+                border-width: 1px;
             }
         </style>
         """,
         unsafe_allow_html=True,
     )
 
-    st.title("Writeup Generator")
+    # =========================================================
+    # PAGE HEADER
+    # =========================================================
+
+    st.title("Fund Review Builder")
 
     st.markdown(
         """
         <div class="app-subtitle">
-            Upload an MPI-style PDF report. The app will review the report,
-            organize the relevant fund information, generate the writeup content,
-            and prepare the results for PowerPoint export.
+            Review MPI fund data, evaluate investment criteria, prepare fund
+            commentary, and generate the completed PowerPoint presentation.
         </div>
+        <div class="page-divider"></div>
         """,
         unsafe_allow_html=True,
     )
 
+    # =========================================================
+    # REPORT UPLOAD
+    # =========================================================
+
     st.markdown(
-        '<div class="section-label">Report Upload</div>',
+        """
+        <div class="section-header">
+            <div class="section-label">Source Report</div>
+            <div class="section-title">Upload MPI PDF</div>
+            <div class="section-description">
+                Select the report that will be used throughout the fund review,
+                writeup, and presentation workflow.
+            </div>
+        </div>
+        """,
         unsafe_allow_html=True,
     )
 
     uploaded = st.file_uploader(
         "Upload MPI PDF",
         type=["pdf"],
-        help="Upload a text-based MPI report PDF to generate the writeup.",
+        help="Upload a text-based MPI report PDF.",
         key="writeup_generator_pdf_uploader",
+        label_visibility="collapsed",
     )
 
     if not uploaded:
+        st.caption("Upload an MPI PDF to begin processing.")
         return
 
+    # =========================================================
+    # PROGRESS DISPLAY
+    # =========================================================
+
+    progress_bar = st.progress(0)
+    progress_message = st.empty()
+
+    def update_progress(percent, message):
+        progress_message.caption(message)
+        progress_bar.progress(percent)
+
+    update_progress(
+        2,
+        "Opening report...",
+    )
+
     with pdfplumber.open(uploaded) as pdf:
-        # Step 1
+        # =========================================================
+        # STEP 1: REPORT INFORMATION
+        # =========================================================
+
+        update_progress(
+            8,
+            "Reading report information...",
+        )
+
         first = pdf.pages[0].extract_text() or ""
         process_page1(first)
-        show_report_summary()
 
-        # Step 2
-        with st.expander(
-            "Table of Contents",
-            expanded=False,
-        ):
-            toc_text = "".join(
-                (pdf.pages[i].extract_text() or "")
-                for i in range(min(3, len(pdf.pages)))
+        # =========================================================
+        # STEP 2: TABLE OF CONTENTS
+        # =========================================================
+
+        update_progress(
+            15,
+            "Reading report structure...",
+        )
+
+        toc_text = "".join(
+            (pdf.pages[i].extract_text() or "")
+            for i in range(min(3, len(pdf.pages)))
+        )
+
+        process_toc(toc_text)
+
+        # =========================================================
+        # MAIN PAGE TABS
+        # =========================================================
+
+        (
+            overview_tab,
+            analysis_tab,
+            writeup_tab,
+            export_tab,
+        ) = st.tabs(
+            [
+                "Report Overview",
+                "Fund Analysis",
+                "Writeup",
+                "Export",
+            ]
+        )
+
+        # =========================================================
+        # REPORT OVERVIEW TAB
+        # =========================================================
+
+        with overview_tab:
+            st.markdown(
+                """
+                <div class="section-header">
+                    <div class="section-label">Report Overview</div>
+                    <div class="section-title">Report Information</div>
+                    <div class="section-description">
+                        Review the report details identified during processing.
+                    </div>
+                </div>
+                """,
+                unsafe_allow_html=True,
             )
-            process_toc(toc_text)
 
-        # Combined core details grouped
-        with st.expander(
-            "All Fund Details",
-            expanded=True,
-        ):
-            # 1. IPS Investment Screening
+            show_report_summary()
+           
+            # -----------------------------------------------------
+            # IPS FAIL TABLE
+            # -----------------------------------------------------
+
+            step14_5_ips_fail_table()
+          
+            with st.expander(
+                "Table of Contents",
+                expanded=False,
+            ):
+                st.write(
+                    "The report structure has been identified and saved "
+                    "for the fund analysis process."
+                )
+
+                toc_details = {
+                    "Fund Scorecard Page": st.session_state.get(
+                        "scorecard_page"
+                    ),
+                    "Performance Page": st.session_state.get(
+                        "performance_page"
+                    ),
+                    "Calendar-Year Returns Page": st.session_state.get(
+                        "calendar_year_page"
+                    ),
+                    "3-Year MPT Page": st.session_state.get(
+                        "r3yr_page"
+                    ),
+                    "5-Year MPT Page": st.session_state.get(
+                        "r5yr_page"
+                    ),
+                    "Fund Factsheets Page": st.session_state.get(
+                        "factsheets_page"
+                    ),
+                }
+
+                for label, page_number in toc_details.items():
+                    displayed_page = (
+                        page_number
+                        if page_number is not None
+                        else "Not included"
+                    )
+
+                    st.write(
+                        f"**{label}:** {displayed_page}"
+                    )
+
+        # =========================================================
+        # FUND ANALYSIS TAB
+        # =========================================================
+
+        with analysis_tab:
+            st.markdown(
+                """
+                <div class="section-header">
+                    <div class="section-label">Fund Analysis</div>
+                    <div class="section-title">Extracted Fund Details</div>
+                    <div class="section-description">
+                        Review the screening, factsheet, returns, and risk
+                        information extracted from the report.
+                    </div>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+
+            # -----------------------------------------------------
+            # IPS INVESTMENT SCREENING
+            # -----------------------------------------------------
+
+            update_progress(
+                25,
+                "Processing IPS investment screening...",
+            )
+
             with st.expander(
                 "IPS Investment Screening",
                 expanded=True,
             ):
-                sp = st.session_state.get("scorecard_page")
-                tot = st.session_state.get("total_options")
-                pp = st.session_state.get("performance_page")
+                sp = st.session_state.get(
+                    "scorecard_page"
+                )
+
+                tot = st.session_state.get(
+                    "total_options"
+                )
+
+                pp = st.session_state.get(
+                    "performance_page"
+                )
+
                 factsheets_page = st.session_state.get(
                     "factsheets_page"
                 )
@@ -2209,15 +2720,23 @@ def run():
                         tot,
                     )
                 else:
-                    st.error(
-                        "Missing scorecard, performance page, "
-                        "or total options."
+                    st.info(
+                        "IPS screening information was not found "
+                        "in this report."
                     )
 
-            # 2. Fund Factsheets
+            # -----------------------------------------------------
+            # FUND FACTSHEETS
+            # -----------------------------------------------------
+
+            update_progress(
+                42,
+                "Processing fund factsheets...",
+            )
+
             with st.expander(
                 "Fund Factsheets",
-                expanded=True,
+                expanded=False,
             ):
                 names = [
                     block["Fund Name"]
@@ -2227,18 +2746,70 @@ def run():
                     )
                 ]
 
-                step6_process_factsheets(
-                    pdf,
-                    names,
-                )
+                if names:
+                    step6_process_factsheets(
+                        pdf,
+                        names,
+                    )
 
-            # 3. Extract Fund Facts sub-headings
-            # so the later writeup step has data.
+                    factsheet_data = st.session_state.get(
+                        "fund_factsheets_data",
+                        [],
+                    )
+
+                    if factsheet_data:
+                        st.success(
+                            f"Processed {len(factsheet_data)} "
+                            "fund factsheets."
+                        )
+                    else:
+                        st.info(
+                            "No fund factsheets were found "
+                            "in this report."
+                        )
+                else:
+                    st.info(
+                        "No funds were available for factsheet processing."
+                    )
+
+            # -----------------------------------------------------
+            # FUND FACTS
+            # -----------------------------------------------------
+
+            update_progress(
+                52,
+                "Extracting fund facts...",
+            )
+
             with st.expander(
                 "Fund Facts",
                 expanded=False,
             ):
                 step12_process_fund_facts(pdf)
+
+                fund_facts = st.session_state.get(
+                    "step12_fund_facts_table",
+                    [],
+                )
+
+                if fund_facts:
+                    st.success(
+                        f"Fund facts were extracted for "
+                        f"{len(fund_facts)} funds."
+                    )
+                else:
+                    st.info(
+                        "No additional fund facts were found."
+                    )
+
+            # -----------------------------------------------------
+            # RETURNS
+            # -----------------------------------------------------
+
+            update_progress(
+                62,
+                "Processing fund returns...",
+            )
 
             with st.expander(
                 "Returns",
@@ -2247,15 +2818,86 @@ def run():
                 step7_extract_returns(pdf)
                 step8_calendar_returns(pdf)
 
+            # -----------------------------------------------------
+            # MPT STATISTICS
+            # -----------------------------------------------------
+
+            update_progress(
+                72,
+                "Checking for MPT statistics...",
+            )
+
             with st.expander(
                 "MPT Statistics Summary",
                 expanded=False,
             ):
-                step9_risk_analysis_3yr(pdf)
-                step10_risk_analysis_5yr(pdf)
-                step11_create_summary()
+                has_mpt_3yr = (
+                    st.session_state.get("r3yr_page")
+                    is not None
+                )
 
-            # 5. Risk-Adjusted Returns and Peer Rank
+                has_mpt_5yr = (
+                    st.session_state.get("r5yr_page")
+                    is not None
+                )
+
+                if has_mpt_3yr:
+                    step9_risk_analysis_3yr(pdf)
+
+                if has_mpt_5yr:
+                    step10_risk_analysis_5yr(pdf)
+
+                mpt3 = st.session_state.get(
+                    "step9_mpt_stats",
+                    [],
+                )
+
+                mpt5 = st.session_state.get(
+                    "step10_mpt_stats",
+                    [],
+                )
+
+                if mpt3 and mpt5:
+                    step11_create_summary()
+
+                elif mpt3 and not mpt5:
+                    st.info(
+                        "Three-year MPT statistics were included, "
+                        "but five-year statistics were not available."
+                    )
+
+                    st.dataframe(
+                        pd.DataFrame(mpt3),
+                        use_container_width=True,
+                        hide_index=True,
+                    )
+
+                elif mpt5 and not mpt3:
+                    st.info(
+                        "Five-year MPT statistics were included, "
+                        "but three-year statistics were not available."
+                    )
+
+                    st.dataframe(
+                        pd.DataFrame(mpt5),
+                        use_container_width=True,
+                        hide_index=True,
+                    )
+
+                else:
+                    st.info(
+                        "No MPT statistics were included in this report."
+                    )
+
+            # -----------------------------------------------------
+            # RISK-ADJUSTED RETURNS
+            # -----------------------------------------------------
+
+            update_progress(
+                82,
+                "Processing risk-adjusted returns...",
+            )
+
             with st.expander(
                 "Risk-Adjusted Returns",
                 expanded=False,
@@ -2265,7 +2907,15 @@ def run():
                     pdf
                 )
 
-        # Data preparation for bullet points
+        # =========================================================
+        # DATA PREPARATION FOR WRITEUP
+        # =========================================================
+
+        update_progress(
+            88,
+            "Preparing writeup data...",
+        )
+
         report_date = st.session_state.get(
             "report_date",
             "",
@@ -2273,44 +2923,127 @@ def run():
 
         match = re.match(
             r"(\d)(?:st|nd|rd|th)\s+QTR,\s*(\d{4})",
-            report_date,
+            report_date or "",
         )
 
         quarter = match.group(1) if match else ""
         year = match.group(2) if match else ""
-        for itm in st.session_state.get("fund_performance_data", []):
-            qtd = float(itm.get("QTD") or 0)
-            bench_qtd = float(itm.get("Bench QTD") or 0)
-            itm["Perf Direction"] = "overperformed" if qtd >= bench_qtd else "underperformed"
+
+        for itm in st.session_state.get(
+            "fund_performance_data",
+            [],
+        ):
+            qtd = float(
+                itm.get("QTD") or 0
+            )
+
+            bench_qtd = float(
+                itm.get("Bench QTD") or 0
+            )
+
+            itm["Perf Direction"] = (
+                "overperformed"
+                if qtd >= bench_qtd
+                else "underperformed"
+            )
+
             itm["Quarter"] = quarter
             itm["Year"] = year
-            diff_bps = round((qtd - bench_qtd) * 100, 1)
-            itm["QTD_bps_diff"] = str(diff_bps)
+
+            diff_bps = round(
+                (qtd - bench_qtd) * 100,
+                1,
+            )
+
+            itm["QTD_bps_diff"] = str(
+                diff_bps
+            )
+
             fund_pct = f"{qtd:.2f}%"
             bench_pct = f"{bench_qtd:.2f}%"
-            itm["QTD_pct_diff"] = f"{(qtd - bench_qtd):.2f}%"
-            itm["QTD_vs"] = f"{fund_pct} vs. {bench_pct}"
+
+            itm["QTD_pct_diff"] = (
+                f"{(qtd - bench_qtd):.2f}%"
+            )
+
+            itm["QTD_vs"] = (
+                f"{fund_pct} vs. {bench_pct}"
+            )
 
         if "bullet_point_templates" not in st.session_state:
-            st.session_state["bullet_point_templates"] = [
+            st.session_state[
+                "bullet_point_templates"
+            ] = [
                 "[Fund Scorecard Name] [Perf Direction] its benchmark in Q[Quarter], "
                 "[Year] by [QTD_bps_diff] bps ([QTD_vs])."
             ]
 
-        # Step 14.5: IPS Fail Table
-        step14_5_ips_fail_table()
-
-        # Step 15: View Single Fund Details
-        with st.expander("Single Fund Write Up", expanded=False):
+        # =========================================================
+        # WRITEUP TAB
+        # =========================================================
+        with writeup_tab:
+        
+            st.markdown(
+                """
+                <div class="section-header">
+                    <div class="section-label">WRITEUP</div>
+                    <div class="section-title">
+                        Review and Prepare Commentary
+                    </div>
+                    <div class="section-description">
+                        Review the selected fund and prepare the commentary
+                        for the presentation.
+                    </div>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+        
             step15_display_selected_fund()
+        
+            st.markdown("---")
+        
+            with st.expander(
+                "Bullet Points",
+                expanded=False,
+            ):
+                step16_bullet_points()
 
-        # Bullet Points
-        with st.expander("Bullet Points", expanded=False):
-            step16_bullet_points()
+        # =========================================================
+        # EXPORT TAB
+        # =========================================================
 
-        # PowerPoint
-        with st.expander("Export to Powerpoint", expanded=False):
+        update_progress(
+            96,
+            "Preparing presentation export...",
+        )
+
+        with export_tab:
+            st.markdown(
+                """
+                <div class="section-header">
+                    <div class="section-label">Final Output</div>
+                    <div class="section-title">PowerPoint Presentation</div>
+                    <div class="section-description">
+                        Review the final selections and generate the completed
+                        fund review presentation.
+                    </div>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+
             step17_export_to_ppt()
+
+        # =========================================================
+        # COMPLETE
+        # =========================================================
+
+        progress_bar.progress(100)
+        progress_message.success(
+            "Report processing complete."
+        )
+
 
 if __name__ == "__main__":
     run()
