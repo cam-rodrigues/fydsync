@@ -1552,88 +1552,153 @@ def step14_5_ips_fail_table():
 #───Step 15: Single Fund──────────────────────────────────────────────────────────────────
 
 def apply_dropdown_styling():
-    """Apply a cleaner, rounded style to standard Streamlit selectboxes."""
+    """Style the modern fund picker and its searchable popover."""
     st.markdown(
         """
         <style>
-        /* Selectbox container */
-        div[data-testid="stSelectbox"] {
-            max-width: 520px;
-            margin-bottom: 1.2rem;
+        /* Modern fund-picker wrapper */
+        div[data-testid="stPopover"] {
+            width: 100%;
+            max-width: 620px;
         }
 
-        /* Selectbox label */
-        div[data-testid="stSelectbox"] label {
-            color: #244369 !important;
-            font-size: 0.92rem !important;
-            font-weight: 650 !important;
-            margin-bottom: 0.35rem !important;
-        }
-
-        /* Main dropdown field */
-        div[data-testid="stSelectbox"] div[data-baseweb="select"] > div {
-            min-height: 48px;
-            background-color: #f8fbff;
-            border: 1px solid #b5d0eb;
-            border-radius: 14px;
+        div[data-testid="stPopover"] > button {
+            width: 100%;
+            min-height: 52px;
+            justify-content: space-between;
+            padding: 0.72rem 1rem;
+            background: linear-gradient(180deg, #ffffff 0%, #f6faff 100%);
+            border: 1px solid #c4d8ec;
+            border-radius: 15px;
             color: #244369;
-            box-shadow: 0 2px 8px rgba(36, 67, 105, 0.06);
-            transition: border-color 0.2s ease,
-                        box-shadow 0.2s ease,
-                        background-color 0.2s ease;
+            font-size: 0.98rem;
+            font-weight: 600;
+            box-shadow: 0 4px 14px rgba(36, 67, 105, 0.07);
+            transition: transform 0.16s ease, border-color 0.16s ease,
+                        box-shadow 0.16s ease, background 0.16s ease;
         }
 
-        /* Hover and focus appearance */
-        div[data-testid="stSelectbox"] div[data-baseweb="select"] > div:hover,
-        div[data-testid="stSelectbox"] div[data-baseweb="select"] > div:focus-within {
-            background-color: #ffffff;
-            border-color: #7ea8d1;
-            box-shadow: 0 4px 12px rgba(36, 67, 105, 0.10);
+        div[data-testid="stPopover"] > button:hover {
+            transform: translateY(-1px);
+            background: #ffffff;
+            border-color: #7fa9d1;
+            box-shadow: 0 7px 20px rgba(36, 67, 105, 0.12);
         }
 
-        /* Selected text and placeholder */
-        div[data-testid="stSelectbox"] div[data-baseweb="select"] span {
+        div[data-testid="stPopover"] > button:focus-visible {
+            outline: none;
+            border-color: #5d8fbe;
+            box-shadow: 0 0 0 3px rgba(93, 143, 190, 0.17);
+        }
+
+        /* Popover panel */
+        div[data-baseweb="popover"] > div {
+            border: 1px solid #d5e2ef;
+            border-radius: 16px;
+            box-shadow: 0 16px 42px rgba(36, 67, 105, 0.17);
+            overflow: hidden;
+        }
+
+        /* Search field inside picker */
+        div[data-baseweb="popover"] div[data-testid="stTextInput"] input {
+            min-height: 44px;
+            border-radius: 11px;
+            border: 1px solid #cfdeec;
+            background: #f8fbff;
+            color: #244369;
+        }
+
+        div[data-baseweb="popover"] div[data-testid="stTextInput"] input:focus {
+            border-color: #7fa9d1;
+            box-shadow: 0 0 0 3px rgba(127, 169, 209, 0.14);
+        }
+
+        /* Fund choices */
+        div[data-baseweb="popover"] div[data-testid="stButton"] > button {
+            width: 100%;
+            min-height: 42px;
+            justify-content: flex-start;
+            padding: 0.55rem 0.75rem;
+            background: transparent;
+            border: 0;
+            border-radius: 10px;
             color: #244369;
             font-weight: 500;
+            box-shadow: none;
         }
 
-        div[data-testid="stSelectbox"] div[data-baseweb="select"] input::placeholder {
-            color: #7890aa;
-            opacity: 1;
+        div[data-baseweb="popover"] div[data-testid="stButton"] > button:hover {
+            background: #eaf3fc;
+            color: #193a60;
+            border: 0;
+            transform: none;
         }
 
-        /* Dropdown arrow */
-        div[data-testid="stSelectbox"] svg {
-            fill: #52779d;
-        }
-
-        /* Open dropdown menu */
-        div[data-baseweb="popover"] ul {
-            padding: 0.35rem;
-            background-color: #ffffff;
-            border: 1px solid #d2e1f0;
-            border-radius: 14px;
-            box-shadow: 0 10px 28px rgba(36, 67, 105, 0.14);
-        }
-
-        /* Individual dropdown options */
-        div[data-baseweb="popover"] li {
-            min-height: 42px;
-            margin: 2px 0;
-            padding: 0.55rem 0.75rem;
-            border-radius: 9px;
+        .fund-picker-label {
+            margin: 0 0 0.38rem 0.12rem;
             color: #244369;
+            font-size: 0.9rem;
+            font-weight: 700;
+            letter-spacing: 0.01em;
         }
 
-        /* Option hover and selected state */
-        div[data-baseweb="popover"] li:hover,
-        div[data-baseweb="popover"] li[aria-selected="true"] {
-            background-color: #eaf3fc;
+        .fund-picker-help {
+            margin-top: 0.45rem;
+            color: #71869b;
+            font-size: 0.86rem;
         }
         </style>
         """,
         unsafe_allow_html=True,
     )
+
+
+def modern_fund_picker(fund_names):
+    """A cleaner searchable alternative to Streamlit's native selectbox."""
+    selected = st.session_state.get("selected_fund")
+    button_text = selected if selected else "Select a fund"
+
+    st.markdown('<div class="fund-picker-label">Fund</div>', unsafe_allow_html=True)
+
+    with st.popover(button_text, use_container_width=True):
+        search = st.text_input(
+            "Search funds",
+            placeholder="Type a fund name or ticker...",
+            label_visibility="collapsed",
+            key="fund_picker_search",
+        )
+
+        query = search.strip().lower()
+        filtered = [name for name in fund_names if query in name.lower()]
+
+        if selected:
+            if st.button("Clear selection", key="clear_fund_picker", use_container_width=True):
+                st.session_state.pop("selected_fund", None)
+                st.session_state["fund_picker_search"] = ""
+                st.rerun()
+
+        if not filtered:
+            st.caption("No matching funds found.")
+        else:
+            for index, fund_name in enumerate(filtered):
+                label = f"✓  {fund_name}" if fund_name == selected else fund_name
+                if st.button(
+                    label,
+                    key=f"fund_picker_option_{index}_{abs(hash(fund_name))}",
+                    use_container_width=True,
+                ):
+                    st.session_state["selected_fund"] = fund_name
+                    st.session_state["fund_picker_search"] = ""
+                    st.rerun()
+
+    if not selected:
+        st.markdown(
+            '<div class="fund-picker-help">Choose a fund to view its performance and details.</div>',
+            unsafe_allow_html=True,
+        )
+
+    return selected
+
 
 def step15_display_selected_fund():
     import pandas as pd
@@ -1651,19 +1716,10 @@ def step15_display_selected_fund():
         if f.get("Matched Fund Name")
     })
 
-    selected_fund = st.selectbox(
-        "Fund",
-        options=fund_names,
-        index=None,
-        placeholder="Search or select a fund",
-        key="selected_fund_dropdown",
-    )
+    selected_fund = modern_fund_picker(fund_names)
 
     if not selected_fund:
-        st.caption("Choose a fund above to view its performance and details.")
         return
-
-    st.session_state.selected_fund = selected_fund
 
     # --- NEW: pull confirmed proposed funds once, independent of selection ---
     confirmed_proposed_df = st.session_state.get("proposed_funds_confirmed_df", pd.DataFrame())
