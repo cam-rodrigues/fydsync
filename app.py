@@ -1,10 +1,7 @@
 # app.py
 
-from datetime import datetime
-from zoneinfo import ZoneInfo
 import importlib.util
 import os
-import random
 import uuid
 
 import streamlit as st
@@ -19,8 +16,6 @@ ASSETS_DIR = "assets"
 
 APP_VERSION = "0.9"
 APP_STAGE = "Beta"
-APP_TIMEZONE = ZoneInfo("America/New_York")
-
 ICON_PATH = os.path.join(
     ASSETS_DIR,
     "fidsync_icon.png",
@@ -68,60 +63,6 @@ LEGACY_REDIRECTS = {
     "data_scanner.py": "company_lookup.py",
 }
 
-TIME_MESSAGES = {
-    "early": [
-        "Early start detected. Coffee may be required.",
-        "You are beating the market to work today.",
-        "The spreadsheets appreciate your punctuality.",
-    ],
-    "morning": [
-        "Good morning. The markets are open.",
-        "Fresh coffee. Fresh data.",
-        "Morning research mode activated.",
-    ],
-    "afternoon": [
-        "Afternoon research session underway.",
-        "Hope lunch treated you well.",
-        "Spreadsheet endurance test: continuing.",
-    ],
-    "evening": [
-        "Do not forget to take a break.",
-        "Don't strain your eyes.",
-        "Maybe it's time for a coffee break.",
-    ],
-    "friday": [
-        "Friday detected. The weekend is almost priced in.",
-        "Friday afternoon. Productivity may fluctuate.",
-        "Markets close soon. So should your laptop.",
-    ],
-}
-
-RARE_STARTUP_MESSAGES = [
-    "Somewhere, a workbook named FINAL_final_v9_REAL.xlsx still exists.",
-    "Merged cells remain the leading cause of sadness.",
-    "No spreadsheets were harmed during startup.",
-    "The financial crystal ball is still unavailable.",
-    "Everything eventually becomes a CSV.",
-]
-
-
-FAKE_ERROR_MESSAGES = [
-    "ERROR",
-    "CRITICAL ERROR",
-    "PANIC",
-    "Unexpected Spreadsheet Behavior",
-    "Financial Reality Distortion Detected",
-]
-
-FAKE_RECOVERY_MESSAGES = [
-    "Just kidding. Everything is fine.",
-    "False alarm.",
-    "The spreadsheets survived.",
-    "Crisis successfully avoided.",
-    "No data was harmed.",
-    "Carry on.",
-]
-
 # =========================================================
 # Page configuration
 # =========================================================
@@ -142,13 +83,9 @@ def initialize_app_state() -> None:
     """Initialize app-wide session values."""
 
     defaults = {
-        "app_system_check_clicks": 0,
         "app_secret_mode": False,
         "app_diagnostics_unlocked": False,
-        "time_greeting_shown": False,
-        "rare_startup_message_checked": False,
-        "fake_error_checked": False,
-        "last_startup_message": None,
+        "welcome_message_shown": False,
     }
 
     for key, value in defaults.items():
@@ -182,124 +119,23 @@ def handle_secret_query_mode() -> None:
         st.session_state.app_secret_mode = False
 
 
-def handle_system_check() -> None:
-    """Handle repeated clicks on the sidebar system-check button."""
-
-    st.session_state.app_system_check_clicks += 1
-    click_count = st.session_state.app_system_check_clicks
-
-    if click_count == 1:
-        st.toast("System check complete.")
-
-    elif click_count == 2:
-        st.toast("System remains checked.")
-
-    elif click_count == 3:
-        st.toast("Still checking.")
-
-    elif click_count == 4:
-        st.toast("One more check should probably do it.")
-
-    elif click_count == 5:
-        st.session_state.app_secret_mode = True
-        st.session_state.app_diagnostics_unlocked = True
-
-        st.balloons()
-        st.toast("Hidden diagnostics unlocked.")
-
-    else:
-        st.toast(
-            f"System has now been checked {click_count} times."
-        )
-
-
 # =========================================================
-# Startup message helpers
+# Welcome message
 # =========================================================
 
-def show_time_greeting() -> None:
-    """Show one time-based greeting per browser session."""
-    if st.session_state.time_greeting_shown:
+def show_welcome_message() -> None:
+    """Display one welcome message per browser session."""
+
+    if st.session_state.welcome_message_shown:
         return
 
-    now = datetime.now(APP_TIMEZONE)
-
-    if now.hour < 8:
-        message_group = "early"
-    elif now.hour < 12:
-        message_group = "morning"
-    elif now.hour < 17:
-        message_group = "afternoon"
-    else:
-        message_group = "evening"
-
-    available_messages = list(TIME_MESSAGES[message_group])
-
-    if now.weekday() == 4:
-        available_messages.extend(TIME_MESSAGES["friday"])
-
-    previous_message = st.session_state.last_startup_message
-    non_repeating_messages = [
-        message
-        for message in available_messages
-        if message != previous_message
-    ]
-
-    selected_message = random.choice(
-        non_repeating_messages or available_messages
-    )
-
-    st.toast(
-        selected_message,
-        icon="🕒",
-    )
-
-    st.session_state.last_startup_message = selected_message
-    st.session_state.time_greeting_shown = True
+    st.toast("Welcome to FidSync Beta.")
+    st.session_state.welcome_message_shown = True
 
 
-def maybe_show_rare_startup_message() -> None:
-    """Give each session one small chance to receive a rare message."""
-    if st.session_state.rare_startup_message_checked:
-        return
-
-    st.session_state.rare_startup_message_checked = True
-
-    if random.random() < 0.01:
-        st.toast(
-            random.choice(RARE_STARTUP_MESSAGES),
-            icon="✨",
-        )
-
-
-def maybe_show_fake_error() -> None:
-    """Very rarely show a nonblocking fake error in developer mode."""
-    if st.session_state.fake_error_checked:
-        return
-
-    st.session_state.fake_error_checked = True
-
-    if (
-        st.session_state.app_secret_mode
-        and random.random() < 0.05
-    ):
-        st.toast(
-            random.choice(FAKE_ERROR_MESSAGES),
-            icon="🚨",
-        )
-        st.toast(
-            random.choice(FAKE_RECOVERY_MESSAGES),
-            icon="✅",
-        )
-
-
-# Read developer mode before startup messages run.
+# Read developer mode before the welcome message runs.
 handle_secret_query_mode()
-
-# Run startup messages once per browser session.
-show_time_greeting()
-maybe_show_rare_startup_message()
-maybe_show_fake_error()
+show_welcome_message()
 
 
 # =========================================================
@@ -592,15 +428,6 @@ with st.sidebar.expander(
         on_click=open_duck_debugger,
     )
 
-    st.divider()
-
-    if st.button(
-        "Run System Check",
-        key="app_system_check",
-        use_container_width=True,
-    ):
-        handle_system_check()
-
     if st.session_state.app_secret_mode:
         st.markdown(
             """
@@ -637,7 +464,6 @@ with st.sidebar.expander(
                 "Found" if os.path.exists(current_page_path) else "Missing",
             )
             st.write("Current page:", selected_page)
-            st.write("Current timezone:", str(APP_TIMEZONE))
             st.write(
                 "Registered pages:",
                 len(ALLOWED_PAGES),
@@ -650,11 +476,6 @@ with st.sidebar.expander(
                 )
             else:
                 st.success("All registered page files were found.")
-
-            st.metric(
-                "System Checks",
-                st.session_state.app_system_check_clicks,
-            )
 
             st.caption(
                 "Disable developer mode by adding "
