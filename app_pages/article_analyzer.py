@@ -22,41 +22,26 @@ INPUT_METHODS = [
     "Upload PDF",
 ]
 
-
 ANALYSIS_LOADING_MESSAGES = [
-    "Retrieving and processing the article...",
-    "Retrieving and processing the article...",
     "Separating the article from the advertisements...",
-    "Looking for the important paragraph...",
-    "Counting words so you do not have to...",
     "Removing suspicious amounts of whitespace...",
     "Consulting the editorial department...",
     "Trying to find the point of the article...",
 ]
 
-
 PDF_LOADING_MESSAGES = [
-    "Extracting text from the PDF...",
     "Extracting text from the PDF...",
     "Reading the fine print...",
     "Checking every page for actual text...",
     "Attempting diplomatic relations with the PDF...",
-    "Looking for selectable text...",
 ]
 
-
 SOURCE_MESSAGES = {
-    "reuters.com": (
-        "Reuters detected. Concise reporting mode activated."
-    ),
     "finance.yahoo.com": (
         "Yahoo Finance detected. Market terminology incoming."
     ),
     "yahoo.com": (
         "Yahoo detected. Comments section successfully avoided."
-    ),
-    "bloomberg.com": (
-        "Bloomberg detected. Terminal not included."
     ),
     "wsj.com": (
         "The Wall Street Journal detected. Paywall probability elevated."
@@ -67,45 +52,13 @@ SOURCE_MESSAGES = {
     "forbes.com": (
         "Forbes detected. Listicle probability elevated."
     ),
-    "sec.gov": (
-        "SEC filing detected. Reading stamina may be required."
-    ),
-    "investopedia.com": (
-        "Investopedia detected. Definition mode activated."
-    ),
-    "wikipedia.org": (
-        "Wikipedia detected. Citation trail recommended."
-    ),
-    "reddit.com": (
-        "Reddit detected. Confidence and accuracy may not be correlated."
-    ),
-    "medium.com": (
-        "Medium detected. Estimated reading time is probably "
-        "already displayed."
-    ),
-    "substack.com": (
-        "Substack detected. Newsletter mode activated."
-    ),
-    "marketwatch.com": (
-        "MarketWatch detected. Market anxiety may be included."
-    ),
-    "fool.com": (
-        "The Motley Fool detected. Subscription invitation probable."
-    ),
     "nytimes.com": (
         "The New York Times detected. Crossword not included."
     ),
     "cnn.com": (
         "CNN detected. Breaking-news banner has been removed."
     ),
-    "foxbusiness.com": (
-        "Fox Business detected. Market commentary incoming."
-    ),
-    "apnews.com": (
-        "Associated Press detected. Straight-to-the-point mode activated."
-    ),
 }
-
 
 HEADLINE_MESSAGES = {
     "breaking": (
@@ -117,29 +70,11 @@ HEADLINE_MESSAGES = {
     "shocking": (
         "Shocking headline detected. Proceed with measured skepticism."
     ),
-    "you won't believe": (
-        "Clickbait probability elevated."
-    ),
-    "you wont believe": (
-        "Clickbait probability elevated."
-    ),
     "must see": (
         "Urgency language detected."
     ),
-    "crash": (
-        "Market drama detected."
-    ),
     "surge": (
         "Upward-arrow energy detected."
-    ),
-    "skyrocket": (
-        "Rocket terminology detected. Gravity still applies."
-    ),
-    "plunge": (
-        "Downward-arrow energy detected."
-    ),
-    "secret": (
-        "A secret has been placed directly in the headline."
     ),
     "urgent": (
         "Urgency detected. Breathing remains permitted."
@@ -148,26 +83,10 @@ HEADLINE_MESSAGES = {
 
 
 PDF_FILENAME_MESSAGES = {
-    "final_final": (
-        "The final version has been located. Allegedly."
-    ),
     "final-final": (
         "The final version has been located. Allegedly."
-    ),
-    "final v": (
-        "Final-version numbering detected."
-    ),
     "draft": (
         "Draft detected. Expectations adjusted."
-    ),
-    "v7": (
-        "Version seven detected. Progress has occurred."
-    ),
-    "v8": (
-        "Version eight detected. This must be the real final version."
-    ),
-    "confidential": (
-        "Confidential filename detected. Handle carefully."
     ),
     "report": (
         "Report mode activated."
@@ -203,37 +122,6 @@ HIDDEN_ARTICLE_COMMANDS = {
         "message": "Internal memorandum discovered.",
     },
 
-    "CLIPPY": {
-        "title": "A Message from Clippy",
-        "authors": "Clippy",
-        "publish_date": "1997",
-        "source": "Microsoft Office Archives",
-        "text": (
-            "It looks like you are trying to analyze an article. Would you "
-            "like help adding unnecessary formatting, creating a table, "
-            "moving every image slightly out of alignment, or saving the "
-            "document in the wrong folder? Clippy remains available for "
-            "support whether or not that support was requested."
-        ),
-        "message": "Clippy has entered the analysis.",
-    },
-
-    "WARREN": {
-        "title": "Long-Term Investment Research",
-        "authors": "Definitely Not Warren Buffett",
-        "publish_date": "Whenever the Market Opens",
-        "source": "Omaha",
-        "text": (
-            "The preferred holding period remains forever, provided the "
-            "underlying business is strong, management is capable, and the "
-            "researcher has not become distracted by short-term market noise. "
-            "Investors are reminded that an exciting chart does not replace "
-            "understanding the company, its financial position, or the price "
-            "paid for ownership."
-        ),
-        "message": "Long-term mode activated.",
-    },
-
     "GUITARCENTER": {
         "title": "Local Musician Announces Final Guitar Purchase",
         "authors": "Financially Concerned Sources",
@@ -250,126 +138,6 @@ HIDDEN_ARTICLE_COMMANDS = {
         "message": "Music-business reporting mode activated.",
     },
 
-    "404": {
-        "title": "Article Not Found",
-        "authors": "Unknown",
-        "publish_date": "Unavailable",
-        "source": "Somewhere on the Internet",
-        "text": (
-            "The requested article could not be located. Investigators "
-            "searched the archive, the recycle bin, the browser history, "
-            "and several folders named Downloads. The document may have been "
-            "moved, deleted, renamed, or may never have existed in the first "
-            "place. Reality remains unavailable at this time."
-        ),
-        "message": "Reality may also be unavailable.",
-    },
-
-    "STONKS": {
-        "title": "Markets Continue Moving to the Right",
-        "authors": "Internet Economics Division",
-        "publish_date": "Today",
-        "source": "The Chart",
-        "text": (
-            "Financial markets continued their historic pattern of moving "
-            "from left to right today. Analysts remain divided over whether "
-            "the line will move upward, downward, or become unusually "
-            "horizontal. Experts advised investors to examine the labels "
-            "on both axes before forming strong conclusions."
-        ),
-        "message": "Advanced market analysis unlocked.",
-    },
-
-    "EXCEL": {
-        "title": "Global Economy Continues Running on Excel",
-        "authors": "Spreadsheet Correspondent",
-        "publish_date": "FINAL_v3",
-        "source": "Workbook1",
-        "text": (
-            "The global economy continued operating through interconnected "
-            "spreadsheets today. Officials confirmed that several critical "
-            "processes remain dependent on formulas copied from a workbook "
-            "created in 2008. Risk factors include merged cells, hidden rows, "
-            "broken external links, and an employee who knows how the main "
-            "macro works but is currently on vacation."
-        ),
-        "message": "Spreadsheet intelligence detected.",
-    },
-
-    "NOTION": {
-        "title": "Productivity System Requires Another Redesign",
-        "authors": "Organizational Research Team",
-        "publish_date": "After the Template Is Finished",
-        "source": "A Very Organized Dashboard",
-        "text": (
-            "A productivity system entered its fourth redesign this week "
-            "after the user concluded that the current task database was not "
-            "sufficiently aesthetic. Approximately four hours were spent "
-            "adjusting properties, icons, tags, and views. Twelve minutes "
-            "remained available for completing the original assignment."
-        ),
-        "message": "A new database has been created for this article.",
-    },
-
-    "COFFEE": {
-        "title": "Caffeine Temporarily Improves Productivity",
-        "authors": "Morning Research Desk",
-        "publish_date": "Before 9:00 AM",
-        "source": "The Nearest Coffee Shop",
-        "text": (
-            "Researchers confirmed that coffee may temporarily increase "
-            "alertness, motivation, and confidence in unfinished work. "
-            "Benefits were strongest during the first hour and declined "
-            "rapidly after lunch. Additional testing is required, preferably "
-            "after another iced coffee."
-        ),
-        "message": "Caffeine-powered analysis activated.",
-    },
-
-    "LOREM": {
-        "title": "Placeholder Journalism Reaches New Heights",
-        "authors": "Lorem Ipsum",
-        "publish_date": "Since Approximately 1500",
-        "source": "The Typesetting Desk",
-        "text": (
-            "Lorem ipsum dolor sit amet, consectetur adipiscing elit. "
-            "Industry observers confirmed that placeholder text remains "
-            "widely used despite containing very little actionable "
-            "information. Analysts praised its visual consistency while "
-            "acknowledging that readers rarely learn anything from it."
-        ),
-        "message": "Placeholder mode activated.",
-    },
-
-    "TERMSANDCONDITIONS": {
-        "title": "Terms and Conditions Successfully Ignored",
-        "authors": "Everyone",
-        "publish_date": "Immediately Before Clicking Accept",
-        "source": "The Bottom of the Page",
-        "text": (
-            "Users confirmed that they had read and understood all applicable "
-            "terms and conditions despite scrolling directly to the final "
-            "checkbox. Researchers found that average reading speed increased "
-            "dramatically when the accept button became visible."
-        ),
-        "message": "Legal reading speed set to maximum.",
-    },
-
-    "CLICKBAIT": {
-        "title": "You Won't Believe What Happened Next",
-        "authors": "Engagement Optimization Department",
-        "publish_date": "Right Now",
-        "source": "A Suspiciously Urgent Website",
-        "text": (
-            "Readers were told that they would not believe what happened next. "
-            "What happened next was a paragraph containing information that "
-            "could have been communicated directly in the headline. The "
-            "publisher confirmed that seventeen additional slides were "
-            "available."
-        ),
-        "message": "Clickbait containment procedures activated.",
-    },
-
     "SOLITAIRE": {
         "title": "Screen-Time Analysis Complete",
         "authors": "FidSync Wellness Department",
@@ -384,42 +152,18 @@ HIDDEN_ARTICLE_COMMANDS = {
         "message": "Productivity has been temporarily suspended.",
     },
     
-    "TLDR": {
-        "title": "Article Considered Too Long",
-        "authors": "The Summary Department",
-        "publish_date": "Eventually",
-        "source": "The Final Paragraph",
-        "text": (
-            "The article was long. The summary was shorter. Important details "
-            "were located somewhere in the middle. Readers requested a more "
-            "concise version and were informed that this was the concise "
-            "version."
-        ),
-        "message": "Maximum concision mode activated.",
-    },
 }
-
 
 ANALYZER_THOUGHTS = [
     "That was a lot of words to reach the final paragraph.",
-    "The headline appears more confident than the article.",
-    "Another document has been successfully documented.",
-    "The important information was hiding in paragraph twelve.",
     "This article contains a statistically significant number of commas.",
-    "The summary is shorter. That is already progress.",
-    "No spreadsheets were harmed during this analysis.",
     "The article has been reduced to a more manageable amount of article.",
-    "Several paragraphs were apparently necessary to say that.",
 ]
 
-
 RARE_COMPLETION_MESSAGES = [
-    "The editor has been notified.",
-    "Paragraphs successfully contained.",
     "No footnotes escaped.",
     "Article domestication complete.",
     "The document has agreed to cooperate.",
-    "All available words have been counted.",
 ]
 
 
@@ -459,7 +203,6 @@ IGNORED_COMMON_WORDS = {
     "with",
     "would",
 }
-
 
 # =========================================================
 # Article processing
@@ -616,7 +359,6 @@ def clean_author_metadata(authors):
         return "Not detected"
 
     return ", ".join(cleaned_parts)
-
 
 @st.cache_data(show_spinner=False, ttl=1800)
 def extract_article_from_url(url):
@@ -1001,7 +743,6 @@ def initialize_session_state():
         if key not in st.session_state:
             st.session_state[key] = value
 
-
 def clear_analysis():
     """
     Clear the current article and results.
@@ -1041,7 +782,6 @@ def unlock_article_achievement(
     )
 
     return True
-
 
 def record_article_analysis(
     input_mode,
@@ -1111,7 +851,6 @@ def record_article_analysis(
             "discovered a hidden article.",
         )
 
-
 def show_article_achievements():
     """Display newly unlocked achievements."""
 
@@ -1125,87 +864,6 @@ def show_article_achievements():
         )
 
     st.session_state.article_pending_achievements = []
-
-
-def render_analyzer_greeting():
-    """Display a time-based message once per session."""
-
-    if st.session_state.article_greeting_shown:
-        return
-
-    current_time = datetime.now()
-    message = None
-
-    if current_time.hour < 8:
-        message = (
-            "Early-morning research session detected."
-        )
-
-    elif current_time.hour >= 20:
-        message = (
-            "Late-night reading mode activated."
-        )
-
-    elif current_time.weekday() == 4:
-        message = (
-            "Friday research session. "
-            "Keep the article concise."
-        )
-
-    if message:
-        st.toast(message)
-
-    st.session_state.article_greeting_shown = True
-
-
-def maybe_show_headline_message():
-    """Show a headline reaction once per completed analysis."""
-
-    current_count = (
-        st.session_state.article_analysis_count
-    )
-
-    if (
-        current_count
-        == st.session_state.article_last_headline_message_count
-    ):
-        return
-
-    message = get_headline_message(
-        st.session_state.article_title
-    )
-
-    if message:
-        st.toast(message)
-
-    st.session_state.article_last_headline_message_count = (
-        current_count
-    )
-
-
-def maybe_show_rare_completion_message():
-    """Occasionally show a rare completion message once per analysis."""
-
-    current_count = (
-        st.session_state.article_analysis_count
-    )
-
-    if (
-        current_count
-        == st.session_state.article_last_rare_message_count
-    ):
-        return
-
-    if random.random() < 0.08:
-        st.toast(
-            random.choice(
-                RARE_COMPLETION_MESSAGES
-            )
-        )
-
-    st.session_state.article_last_rare_message_count = (
-        current_count
-    )
 
 
 def maybe_render_analyzer_thought():
