@@ -3874,13 +3874,13 @@ def run():
         unsafe_allow_html=True,
     )
 
-    st.title("Fund Review & Recommendation")
+    st.title("Writeup & Rec")
 
     st.markdown(
         """
         <div class="app-subtitle">
-            Review current funds, compare proposed replacements, prepare
-            recommendation commentary, and generate the completed PowerPoint.
+            Review, compare replacements, prepare
+            commentary, and generate a completed PowerPoint.
         </div>
         <div class="page-divider"></div>
         """,
@@ -3890,7 +3890,6 @@ def run():
     st.markdown(
         """
         <div class="section-header">
-            <div class="section-label">Source Report</div>
             <div class="section-title">Upload MPI PDF</div>
             <div class="section-description">
                 Select the report used for the review and recommendation workflow.
