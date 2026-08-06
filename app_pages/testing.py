@@ -2524,29 +2524,24 @@ def run():
         # FUND ANALYSIS TAB
         # =========================================================
 
+        
         with analysis_tab:
-            st.markdown(
-                """
-                <div class="section-header">
-                    <div class="section-kicker">Fund Analysis</div>
-                    <div class="section-title">Extracted Fund Details</div>
-                    <div class="section-copy">
-                        Move between the analysis categories below to review
-                        screening, performance, factsheet, and risk information.
-                    </div>
-                </div>
-                """,
-                unsafe_allow_html=True,
-            )
-
-            (
-                ips_tab,
-                factsheet_tab,
-                fund_facts_tab,
-                returns_tab,
-                mpt_tab,
-                risk_tab,
-            ) = st.tabs(
+                    st.markdown(
+                        """
+                        <div class="section-header">
+                            <div class="section-kicker">Fund Analysis</div>
+                            <div class="section-title">Extracted Fund Details</div>
+                            <div class="section-copy">
+                                Select an analysis category to review the information
+                                extracted from the report.
+                            </div>
+                        </div>
+                        """,
+                        unsafe_allow_html=True,
+                    )
+        
+            analysis_view = st.selectbox(
+                "Analysis Category",
                 [
                     "IPS Screening",
                     "Fund Factsheets",
@@ -2554,21 +2549,22 @@ def run():
                     "Returns",
                     "MPT Statistics",
                     "Risk-Adjusted Returns",
-                ]
+                ],
+                key="fund_review_analysis_view",
             )
-
+        
             # ---------------------------------------------------------
             # IPS SCREENING
             # ---------------------------------------------------------
-
-            with ips_tab:
+        
+            if analysis_view == "IPS Screening":
                 sp = st.session_state.get("scorecard_page")
                 tot = st.session_state.get("total_options")
                 pp = st.session_state.get("performance_page")
                 factsheets_page = st.session_state.get(
                     "factsheets_page"
                 )
-
+        
                 if sp and tot is not None and pp:
                     step3_5_6_scorecard_and_ips(
                         pdf,
@@ -2578,16 +2574,16 @@ def run():
                         tot,
                     )
                 else:
-                    st.error(
-                        "Missing scorecard, performance page, "
-                        "or total options."
+                    st.info(
+                        "IPS screening information was not found "
+                        "in this report."
                     )
-
+        
             # ---------------------------------------------------------
             # FUND FACTSHEETS
             # ---------------------------------------------------------
-
-            with factsheet_tab:
+        
+            elif analysis_view == "Fund Factsheets":
                 names = [
                     block["Fund Name"]
                     for block in st.session_state.get(
@@ -2595,41 +2591,72 @@ def run():
                         [],
                     )
                 ]
-
-                step6_process_factsheets(
-                    pdf,
-                    names,
-                )
-
+        
+                if names:
+                    step6_process_factsheets(
+                        pdf,
+                        names,
+                    )
+                else:
+                    st.info(
+                        "No fund factsheets were found in this report."
+                    )
+        
             # ---------------------------------------------------------
             # FUND FACTS
             # ---------------------------------------------------------
-
-            with fund_facts_tab:
+        
+            elif analysis_view == "Fund Facts":
                 step12_process_fund_facts(pdf)
-
+        
             # ---------------------------------------------------------
             # RETURNS
             # ---------------------------------------------------------
-
-            with returns_tab:
+        
+            elif analysis_view == "Returns":
                 step7_extract_returns(pdf)
                 step8_calendar_returns(pdf)
-
+        
             # ---------------------------------------------------------
             # MPT STATISTICS
             # ---------------------------------------------------------
-
-            with mpt_tab:
-                step9_risk_analysis_3yr(pdf)
-                step10_risk_analysis_5yr(pdf)
-                step11_create_summary()
-
+        
+            elif analysis_view == "MPT Statistics":
+                normalized_toc = " ".join(
+                    toc_text.lower().split()
+                )
+        
+                has_mpt_3yr = (
+                    "mpt statistics (3yr)" in normalized_toc
+                    or "mpt statistics (3 year)" in normalized_toc
+                    or "mpt statistics 3yr" in normalized_toc
+                )
+        
+                has_mpt_5yr = (
+                    "mpt statistics (5yr)" in normalized_toc
+                    or "mpt statistics (5 year)" in normalized_toc
+                    or "mpt statistics 5yr" in normalized_toc
+                )
+        
+                if not has_mpt_3yr and not has_mpt_5yr:
+                    st.info(
+                        "No MPT statistics were included in this report."
+                    )
+        
+                else:
+                    if has_mpt_3yr:
+                        step9_risk_analysis_3yr(pdf)
+        
+                    if has_mpt_5yr:
+                        step10_risk_analysis_5yr(pdf)
+        
+                    step11_create_summary()
+        
             # ---------------------------------------------------------
             # RISK-ADJUSTED RETURNS
             # ---------------------------------------------------------
-
-            with risk_tab:
+        
+            elif analysis_view == "Risk-Adjusted Returns":
                 step13_process_risk_adjusted_returns(pdf)
                 step14_extract_peer_risk_adjusted_return_rank(
                     pdf
@@ -2695,7 +2722,6 @@ def run():
         # =========================================================
         # WRITEUP TAB
         # =========================================================
-
         with writeup_tab:
             st.markdown(
                 """
@@ -2703,45 +2729,31 @@ def run():
                     <div class="section-kicker">Writeup</div>
                     <div class="section-title">Review and Prepare Commentary</div>
                     <div class="section-copy">
-                        Review IPS exceptions, inspect individual fund details,
-                        and prepare the narrative used in the final presentation.
+                        Review exceptions, inspect individual funds, and prepare
+                        the final presentation commentary.
                     </div>
                 </div>
                 """,
                 unsafe_allow_html=True,
             )
-
-            (
-                ips_fail_tab,
-                single_fund_tab,
-                bullet_points_tab,
-            ) = st.tabs(
+        
+            writeup_view = st.selectbox(
+                "Writeup Section",
                 [
                     "IPS Exceptions",
                     "Single Fund",
                     "Bullet Points",
-                ]
+                ],
+                key="fund_review_writeup_view",
             )
-
-            # ---------------------------------------------------------
-            # IPS FAIL TABLE
-            # ---------------------------------------------------------
-
-            with ips_fail_tab:
+        
+            if writeup_view == "IPS Exceptions":
                 step14_5_ips_fail_table()
-
-            # ---------------------------------------------------------
-            # SINGLE FUND WRITEUP
-            # ---------------------------------------------------------
-
-            with single_fund_tab:
+        
+            elif writeup_view == "Single Fund":
                 step15_display_selected_fund()
-
-            # ---------------------------------------------------------
-            # BULLET POINTS
-            # ---------------------------------------------------------
-
-            with bullet_points_tab:
+        
+            elif writeup_view == "Bullet Points":
                 step16_bullet_points()
 
         # =========================================================
