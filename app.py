@@ -46,7 +46,7 @@ PAGE_GROUPS = {
         "Company Lookup": "company_lookup.py",
     },
     "MPI Tools": {
-        "Scorecard Metrics": "fund_scorecard_metrics.py",
+        "Fund Scorecard": "fund_scorecard_metrics.py",
         "IPS Screening": "ips_screening.py",
         "Writeup": "write_up.py",
         "Writeup & Rec": "writeup_&_rec.py",
