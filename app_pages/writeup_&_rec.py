@@ -2804,192 +2804,217 @@ def step17_export_to_ppt():
 
 
     # ───── 6) EXPENSE & RETURN SLIDE: Table 1 ────────────────────────────────────────
-    # Locate the slide by its placeholder
+
+    # Find the Expense & Return slide once
     slide_expense_and_return = None
+
     for sl in prs.slides:
         for shape in sl.shapes:
-            if shape.has_text_frame and "[Category] – Expense & Return" in shape.text_frame.text:
+            if not shape.has_text_frame:
+                continue
+
+            text = shape.text_frame.text or ""
+
+            if "[Category]" in text and "Expense & Return" in text:
                 slide_expense_and_return = sl
                 break
+
         if slide_expense_and_return:
             break
 
     if not slide_expense_and_return:
         st.warning("Couldn't find the Expense and Return slide.")
+        return
+
+    # Get the selected fund's category
+    facts_rec = next(
+        (
+            f for f in facts
+            if f.get("Matched Fund Name") == selected
+        ),
+        {}
+    )
+
+    category = facts_rec.get("Category", "")
+
+    # Replace [Category] in the slide heading
+    fill_text_placeholder_preserving_format(
+        slide_expense_and_return,
+        "[Category]",
+        category
+    )
+
+    # Find all three tables once
+    tables = [
+        shape
+        for shape in slide_expense_and_return.shapes
+        if shape.has_table
+    ]
+
+    if len(tables) < 3:
+        st.warning(
+            f"Expected 3 tables on the Expense and Return slide, "
+            f"but found {len(tables)}."
+        )
+        return
+
+    # ───── TABLE 1: Net Expense Ratio ───────────────────────────────────────────
+
+    tbl1 = tables[0].table
+    tbl1_xml = tbl1._tbl
+
+    if ear_df is None or ear_df.empty:
+        st.warning("No Expense and Return data found for Table 1.")
     else:
-        # Grab all tables, pick the first (top-left)
-        tables = [sh for sh in slide_expense_and_return.shapes if sh.has_table]
-        if not tables:
-            st.warning("No tables found on Expense and Return slide.")
-        else:
-            tbl1 = tables[0].table
-            tbl_xml = tbl1._tbl
+        existing = len(tbl1.rows) - 1
+        needed = len(ear_df) - existing
 
-            # Determine how many body rows to add
-            existing = len(tbl1.rows) - 1  # header excluded
-            needed = len(ear_df) - existing
-            if needed > 0:
-                base_tr = tbl_xml.tr_lst[1]
-                for _ in range(needed):
-                    tbl_xml.append(deepcopy(base_tr))
+        if needed > 0:
+            base_tr = tbl1_xml.tr_lst[1]
 
-            
-            # Fill each DataFrame row into the table
-            for r_idx, df_row in enumerate(ear_df.itertuples(index=False), start=1):
-                for c_idx, val in enumerate(df_row):
-                    cell = tbl1.cell(r_idx, c_idx)
-                    para = cell.text_frame.paragraphs[0]
-            
-                    # get or create the run
-                    if para.runs:
-                        run = para.runs[0]
-                        run.text = val
-                    else:
-                        run = para.add_run()
-                        run.text = val
-            
-                    # if this is the Net Expense Ratio column (column index 1):
-                    if c_idx == 1:
-                        run.font.name = "Cambria"
-                        run.font.size = Pt(11)
-                        run.font.color.rgb = RGBColor(0, 0, 0)
-                    # else: leave the template’s default styling for column 0
-    
-    # ───── 9c) Expense and Return Slide: Table 2 – Returns ─────────────────────────────
+            for _ in range(needed):
+                tbl1_xml.append(deepcopy(base_tr))
 
-    # Locate the Expense and Return slide
-    slide_expense_and_return = None
-    for sl in prs.slides:
-        for shape in sl.shapes:
-            if shape.has_text_frame and "[Category] – Expense & Return" in shape.text_frame.text:
-                slide_expense_and_return = sl
-                break
-        if slide_expense_and_return:
-            break
+        for r_idx, df_row in enumerate(
+            ear_df.itertuples(index=False),
+            start=1
+        ):
+            for c_idx, val in enumerate(df_row):
+                cell = tbl1.cell(r_idx, c_idx)
+                para = cell.text_frame.paragraphs[0]
 
-    if not slide_expense_and_return:
-        st.warning("Couldn't find the Expense and Return slide.")
+                if para.runs:
+                    run = para.runs[0]
+                else:
+                    run = para.add_run()
+
+                run.text = str(val)
+
+                if c_idx == 1:
+                    run.font.name = "Cambria"
+                    run.font.size = Pt(11)
+                    run.font.color.rgb = RGBColor(0, 0, 0)
+
+    # ───── TABLE 2: Returns ─────────────────────────────────────────────────────
+
+    table2 = tables[1].table
+    tbl2_xml = table2._tbl
+
+    df2 = st.session_state.get(
+        "ear_table2_data",
+        pd.DataFrame()
+    )
+
+    if df2.empty:
+        st.warning("No return data found for Table 2.")
     else:
-        # Grab the second table (top‐right)
-        tables = [sh for sh in slide_expense_and_return.shapes if sh.has_table]
-        if len(tables) < 2:
-            st.warning("Couldn't find Table 2 on Expense and Return slide.")
+        # Replace quarter header
+        hdr_cell = table2.cell(0, 1)
+        hdr_para = hdr_cell.text_frame.paragraphs[0]
+
+        if hdr_para.runs:
+            hdr_run = hdr_para.runs[0]
         else:
-            table2 = tables[1].table
-            tbl2_xml = table2._tbl
+            hdr_run = hdr_para.add_run()
 
-            # 1) Replace the header "Q_, 20__" with the actual quarter
-            hdr_cell = table2.cell(0, 1)
-            hdr_para = hdr_cell.text_frame.paragraphs[0]
-            if hdr_para.runs:
-                hdr_para.runs[0].text = date_label
-            else:
-                run = hdr_para.add_run()
-                run.text = date_label
-            # (font/size/color preserved from placeholder)
+        hdr_run.text = str(date_label)
 
-            # 2) Clone extra body rows if needed
-            existing = len(table2.rows) - 1  # exclude header
-            needed = len(df2) - existing
-            if needed > 0:
-                base_tr = tbl2_xml.tr_lst[1]
-                for _ in range(needed):
-                    tbl2_xml.append(deepcopy(base_tr))
+        # Add rows if needed
+        existing = len(table2.rows) - 1
+        needed = len(df2) - existing
 
-            # 3) Fill each row: selected fund, proposals, then benchmark
-            # Determine how many DF rows and which index is the benchmark
-            df2 = st.session_state.get("ear_table2_data", pd.DataFrame())
-            total_rows = len(df2)
-        
-            # 3) Fill each row: selected fund, proposals, then benchmark
-            for r_idx, row in enumerate(df2.itertuples(index=False), start=1):
-                is_benchmark = (r_idx == total_rows)
-                for c_idx, val in enumerate(row):
-                    cell = table2.cell(r_idx, c_idx)
-                    para = cell.text_frame.paragraphs[0]
-        
-                    if para.runs:
-                        run = para.runs[0]
-                        run.text = val
-                    else:
-                        run = para.add_run()
-                        run.text = val
-        
-                    if c_idx == 0:
-                        # Investment Manager: preserve placeholder styling
-                        continue
-                    else:
-                        # Other columns: Cambria 12pt black
-                        run.font.name = "Cambria"
-                        run.font.size = Pt(11)
-                        run.font.color.rgb = RGBColor(0, 0, 0)
-                        # Only bold the benchmark row
-                        run.font.bold = is_benchmark
+        if needed > 0:
+            base_tr = tbl2_xml.tr_lst[1]
 
-    # ───── 9d) Expense and Return Slide: Table 3 – Calendar Returns ────────────────────
-    from copy import deepcopy
-    from pptx.dml.color import RGBColor
-    from pptx.util import Pt
-    import pandas as pd
+            for _ in range(needed):
+                tbl2_xml.append(deepcopy(base_tr))
 
-    # Pull in the DataFrame you saved in Step 15
-    df3 = st.session_state.get("ear_table3_data", pd.DataFrame())
+        total_rows = len(df2)
+
+        for r_idx, row in enumerate(
+            df2.itertuples(index=False),
+            start=1
+        ):
+            is_benchmark = r_idx == total_rows
+
+            for c_idx, val in enumerate(row):
+                cell = table2.cell(r_idx, c_idx)
+                para = cell.text_frame.paragraphs[0]
+
+                if para.runs:
+                    run = para.runs[0]
+                else:
+                    run = para.add_run()
+
+                run.text = str(val)
+
+                if c_idx != 0:
+                    run.font.name = "Cambria"
+                    run.font.size = Pt(11)
+                    run.font.color.rgb = RGBColor(0, 0, 0)
+                    run.font.bold = is_benchmark
+
+    # ───── TABLE 3: Calendar Returns ────────────────────────────────────────────
+
+    table3 = tables[2].table
+    tbl3_xml = table3._tbl
+
+    df3 = st.session_state.get(
+        "ear_table3_data",
+        pd.DataFrame()
+    )
+
     if df3.empty:
         st.warning("No calendar returns data found for Table 3.")
     else:
-        # Locate the 3rd table (under Tables 1 & 2)
-        tables = [sh for sh in slide_expense_and_return.shapes if sh.has_table]
-        if len(tables) < 3:
-            st.warning("Couldn't find Table 3 on the Expense and Return slide.")
-        else:
-            table3 = tables[2].table
-            tbl3_xml = table3._tbl
+        # Replace year headers
+        years = list(df3.columns[1:])
 
-            # --- 1) Update year‐header placeholders ("20__") to actual years ---
-            years = list(df3.columns[1:])  # skip "Investment Manager"
-            for col_idx, year in enumerate(years, start=1):
-                hdr_cell = table3.cell(0, col_idx)
-                p = hdr_cell.text_frame.paragraphs[0]
-                if p.runs:
-                    p.runs[0].text = year
+        for col_idx, year in enumerate(years, start=1):
+            hdr_cell = table3.cell(0, col_idx)
+            para = hdr_cell.text_frame.paragraphs[0]
+
+            if para.runs:
+                run = para.runs[0]
+            else:
+                run = para.add_run()
+
+            run.text = str(year)
+
+        # Add rows if needed
+        existing = len(table3.rows) - 1
+        needed = len(df3) - existing
+
+        if needed > 0:
+            base_tr = tbl3_xml.tr_lst[1]
+
+            for _ in range(needed):
+                tbl3_xml.append(deepcopy(base_tr))
+
+        total_rows = len(df3)
+
+        for r_idx, row in enumerate(
+            df3.itertuples(index=False),
+            start=1
+        ):
+            is_benchmark = r_idx == total_rows
+
+            for c_idx, val in enumerate(row):
+                cell = table3.cell(r_idx, c_idx)
+                para = cell.text_frame.paragraphs[0]
+
+                if para.runs:
+                    run = para.runs[0]
                 else:
-                    run = p.add_run()
-                    run.text = year
-                # font/name/size/color/bold preserved from placeholder
+                    run = para.add_run()
 
-            # --- 2) Ensure enough rows (header + body) ---
-            existing = len(table3.rows) - 1  # exclude header row
-            needed = len(df3) - existing
-            if needed > 0:
-                base_tr = tbl3_xml.tr_lst[1]  # first data row as template
-                for _ in range(needed):
-                    tbl3_xml.append(deepcopy(base_tr))
+                run.text = str(val)
 
-            # --- 3) Fill each row; bottom row (benchmark) bolds all data cols ---
-            total = len(df3)
-            for r_idx, row in enumerate(df3.itertuples(index=False), start=1):
-                is_benchmark = (r_idx == total)
-                for c_idx, val in enumerate(row):
-                    cell = table3.cell(r_idx, c_idx)
-                    p = cell.text_frame.paragraphs[0]
-                    # get or create run
-                    if p.runs:
-                        run = p.runs[0]
-                        run.text = val
-                    else:
-                        run = p.add_run()
-                        run.text = val
-
-                    if c_idx == 0:
-                        # Investment Manager col → preserve placeholder style
-                        continue
-                    else:
-                        # Calendar return cols → Cambria 11 pt black
-                        run.font.name = "Cambria"
-                        run.font.size = Pt(11)
-                        run.font.color.rgb = RGBColor(0, 0, 0)
-                        # Bold entire benchmark row
-                        run.font.bold = is_benchmark
+                if c_idx != 0:
+                    run.font.name = "Cambria"
+                    run.font.size = Pt(11)
+                    run.font.color.rgb = RGBColor(0, 0, 0)
+                    run.font.bold = is_benchmark
 
     # ───── Risk Adjusted Statistics Slide: Locate & Replace ─────────────────────────
     # (Make sure this is placed after you’ve defined `selected`, `facts`, and `fs_rec`)
