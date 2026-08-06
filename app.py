@@ -6,7 +6,6 @@ import importlib.util
 import os
 import random
 import uuid
-from urllib.parse import urlencode
 
 import streamlit as st
 
@@ -326,205 +325,126 @@ st.markdown(
 
         [data-testid="stSidebar"] {
             background-color: #f4f6fa;
-            border-right: 1px solid #d7e0eb;
+            border-right: 2px solid #d7e0eb;
         }
 
         [data-testid="stSidebar"] > div:first-child {
-            padding-top: 0.4rem;
+            padding-top: 0.65rem;
         }
 
-        [data-testid="stSidebar"] [data-testid="stSidebarContent"] {
-            padding-left: 0.85rem;
-            padding-right: 0.85rem;
-            padding-bottom: 0.85rem;
-        }
-
-        [data-testid="stSidebar"] [data-testid="stVerticalBlock"] {
-            gap: 0.25rem;
-        }
-
-        /* Sidebar logo */
+        /* Sidebar logo image */
 
         [data-testid="stSidebar"] [data-testid="stImage"] {
-            margin: 0 auto 0.05rem auto;
+            margin-bottom: 0.15rem;
         }
 
         [data-testid="stSidebar"] [data-testid="stImage"] img {
             display: block;
-            width: 88%;
-            max-width: 220px;
+            max-width: 100%;
             height: auto;
-            margin: 0 auto;
             object-fit: contain;
         }
 
         .sidebar-build-label {
-            margin-top: -0.1rem;
-            margin-bottom: 0.35rem;
+            margin-top: -0.15rem;
+            margin-bottom: 0.8rem;
             color: #718096;
-            font-size: 0.66rem;
-            font-weight: 650;
-            letter-spacing: 0.035rem;
+            font-size: 0.7rem;
+            font-weight: 600;
+            letter-spacing: 0.03rem;
             text-align: center;
         }
 
         .sidebar-logo-divider {
             height: 1px;
-            margin: 0.4rem 0 0.65rem 0;
+            margin: 0.7rem 0 0.95rem 0;
             background-color: #d7e0eb;
         }
 
-        /* Custom navigation */
+        /* Navigation buttons */
 
-        .sidebar-nav-section {
-            margin: 0.9rem 0 0.28rem 0;
+        [data-testid="stSidebar"] .stButton {
+            margin-bottom: 0.25rem;
         }
 
-        .sidebar-nav-section:first-of-type {
-            margin-top: 0.35rem;
+        [data-testid="stSidebar"] .stButton > button {
+            width: 100%;
+            min-height: 2.5rem;
+            justify-content: flex-start;
+            background-color: transparent;
+            color: #334155;
+            border: 1px solid transparent;
+            border-radius: 0.55rem;
+            padding: 0.45rem 0.75rem;
+            font-size: 0.88rem;
+            font-weight: 500;
+            text-align: left;
+            transition:
+                background-color 0.15s ease,
+                border-color 0.15s ease,
+                color 0.15s ease;
         }
 
-        .sidebar-nav-heading {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            margin: 0 0 0.3rem 0.3rem;
-            color: #7b8798;
-            font-size: 0.63rem;
-            font-weight: 750;
-            letter-spacing: 0.085rem;
-            line-height: 1;
+        [data-testid="stSidebar"] .stButton > button:hover {
+            background-color: #e4ebf5;
+            border-color: #cbd7e6;
+            color: #102542;
+        }
+
+        /* Active navigation button */
+
+        [data-testid="stSidebar"] .active-nav .stButton > button {
+            background-color: #dce7f5;
+            border-color: #b8c9df;
+            color: #102542;
+            font-weight: 650;
+        }
+
+        /* ---------- Sidebar section labels ---------- */
+
+        .sidebar-section {
+            margin: 1.6rem 0 0.45rem 0.25rem;
+            color: #7a8798;
+            font-size: 0.7rem;
+            font-weight: 700;
+            letter-spacing: 0.08rem;
             text-transform: uppercase;
         }
 
-        .sidebar-nav-heading::after {
-            content: "";
-            flex: 1;
-            height: 1px;
-            margin-right: 0.2rem;
-            background-color: #dbe3ed;
-        }
-
-        .sidebar-nav-list {
-            display: flex;
-            flex-direction: column;
-            gap: 0.12rem;
-        }
-
-        .sidebar-nav-link {
-            position: relative;
-            display: flex;
-            align-items: center;
-            min-height: 2.05rem;
-            padding: 0.32rem 0.62rem 0.32rem 0.8rem;
-            color: #334155 !important;
-            font-size: 0.83rem;
-            font-weight: 500;
-            line-height: 1.15;
-            text-decoration: none !important;
-            border: 1px solid transparent;
-            border-radius: 0.45rem;
-            background-color: transparent;
-            transition:
-                background-color 0.14s ease,
-                border-color 0.14s ease,
-                color 0.14s ease,
-                transform 0.14s ease;
-        }
-
-        .sidebar-nav-link:hover {
-            color: #102542 !important;
-            background-color: #e7edf5;
-            border-color: #d3ddea;
-            transform: translateX(2px);
-        }
-
-        .sidebar-nav-link.active {
-            color: #102542 !important;
-            background-color: #dce7f5;
-            border-color: #b8c9df;
-            font-weight: 675;
-        }
-
-        .sidebar-nav-link.active::before {
-            content: "";
-            position: absolute;
-            left: 0.28rem;
-            top: 0.38rem;
-            bottom: 0.38rem;
-            width: 3px;
-            border-radius: 999px;
-            background-color: #102542;
-        }
-
-        /* Native controls below navigation */
-
-        [data-testid="stSidebar"] .stButton > button {
-            min-height: 2.15rem;
-            border-radius: 0.48rem;
-            padding: 0.35rem 0.65rem;
-            font-size: 0.8rem;
-            font-weight: 600;
-            box-shadow: none;
-        }
-
         [data-testid="stSidebar"] details {
-            margin-top: 0.75rem;
-            background-color: rgba(255, 255, 255, 0.55);
-            border: 1px solid #d6dfeb;
-            border-radius: 0.5rem;
+            background-color: transparent;
+            border: none;
         }
 
         [data-testid="stSidebar"] details summary {
-            min-height: 2.2rem;
-            padding: 0.32rem 0.62rem;
             color: #334155;
-            font-size: 0.8rem;
+            font-size: 0.88rem;
             font-weight: 600;
-            border-radius: 0.5rem;
         }
 
-        [data-testid="stSidebar"] details summary:hover {
-            background-color: #e7edf5;
-        }
-
-        [data-testid="stSidebar"] details [data-testid="stVerticalBlock"] {
-            gap: 0.25rem;
-            padding: 0.1rem 0.25rem 0.4rem 0.25rem;
-        }
-
-        [data-testid="stSidebar"] hr {
-            margin: 0.55rem 0;
-        }
-
-        [data-testid="stSidebar"] [data-testid="stCaptionContainer"] p {
-            margin: 0.08rem 0;
-            font-size: 0.72rem;
-            line-height: 1.35;
-        }
+        /* ---------- Version panel ---------- */
 
         .version-label {
-            margin-bottom: 0.25rem;
+            margin-bottom: 0.5rem;
             color: #102542;
-            font-size: 0.84rem;
+            font-size: 0.9rem;
             font-weight: 700;
         }
 
         .version-note {
-            margin-bottom: 0.35rem;
             color: #64748b;
-            font-size: 0.73rem;
-            line-height: 1.4;
+            font-size: 0.78rem;
+            line-height: 1.5;
         }
 
         .developer-status {
-            margin-top: 0.4rem;
-            padding: 0.5rem 0.6rem;
+            margin-top: 0.7rem;
+            padding: 0.65rem 0.75rem;
             background-color: #dce7f5;
             border: 1px solid #b8c9df;
-            border-radius: 0.45rem;
+            border-radius: 0.5rem;
             color: #102542;
-            font-size: 0.72rem;
+            font-size: 0.78rem;
             font-weight: 650;
         }
     </style>
@@ -583,29 +503,33 @@ st.sidebar.markdown(
 # Navigation helper
 # =========================================================
 
-def build_page_url(filename: str) -> str:
-    """Build a page URL while preserving developer mode."""
+def nav_button(label: str, filename: str) -> None:
+    """Create a sidebar navigation button with an active-page style."""
 
-    params = {"page": filename}
+    is_active = selected_page == filename
 
-    if st.session_state.app_secret_mode:
-        params["mode"] = "developer"
+    if is_active:
+        st.sidebar.markdown(
+            '<div class="active-nav">',
+            unsafe_allow_html=True,
+        )
 
-    return f"?{urlencode(params)}"
-
-
-def nav_link(label: str, filename: str) -> str:
-    """Return one custom sidebar navigation link."""
-
-    active_class = " active" if selected_page == filename else ""
-    page_url = build_page_url(filename)
-
-    return (
-        f'<a class="sidebar-nav-link{active_class}" '
-        f'href="{page_url}" target="_self">'
-        f"{label}"
-        "</a>"
+    clicked = st.sidebar.button(
+        label,
+        key=f"nav_{filename}",
+        use_container_width=True,
     )
+
+    if is_active:
+        st.sidebar.markdown(
+            "</div>",
+            unsafe_allow_html=True,
+        )
+
+    if clicked:
+        # Preserve other query parameters, such as developer mode.
+        st.query_params["page"] = filename
+        st.rerun()
 
 
 # =========================================================
@@ -613,24 +537,21 @@ def nav_link(label: str, filename: str) -> str:
 # =========================================================
 
 for section_name, pages in PAGE_GROUPS.items():
-    links_html = "".join(
-        nav_link(label, filename)
-        for label, filename in pages.items()
-    )
-
     st.sidebar.markdown(
-        f"""
-        <div class="sidebar-nav-section">
-            <div class="sidebar-nav-heading">
-                {section_name}
-            </div>
-            <div class="sidebar-nav-list">
-                {links_html}
-            </div>
-        </div>
-        """,
+        f'<div class="sidebar-section">{section_name}</div>',
         unsafe_allow_html=True,
     )
+
+    if section_name == "MPI Tools":
+        with st.sidebar.expander(
+            "Open MPI tools",
+            expanded=False,
+        ):
+            for label, filename in pages.items():
+                nav_button(label, filename)
+    else:
+        for label, filename in pages.items():
+            nav_button(label, filename)
 
 
 def open_duck_debugger() -> None:
