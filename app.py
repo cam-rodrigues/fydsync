@@ -329,45 +329,41 @@ st.markdown(
         }
 
         [data-testid="stSidebar"] > div:first-child {
-            padding-top: 0.35rem;
+            padding-top: 0.45rem;
         }
 
         [data-testid="stSidebar"] [data-testid="stSidebarContent"] {
-            padding-left: 0.75rem;
-            padding-right: 0.75rem;
-            padding-bottom: 0.75rem;
+            padding-left: 0.85rem;
+            padding-right: 0.85rem;
+            padding-bottom: 0.85rem;
         }
 
-        /* Reduce Streamlit's default vertical gaps inside the sidebar */
+        /* Compact, but not collapsed */
 
         [data-testid="stSidebar"] [data-testid="stVerticalBlock"] {
-            gap: 0.15rem;
+            gap: 0.32rem;
         }
 
-        [data-testid="stSidebar"] [data-testid="stElementContainer"] {
-            margin-bottom: 0;
-        }
-
-        /* Sidebar logo image */
+        /* Sidebar logo */
 
         [data-testid="stSidebar"] [data-testid="stImage"] {
-            margin: 0 auto -0.1rem auto;
+            margin: 0 auto 0.05rem auto;
         }
 
         [data-testid="stSidebar"] [data-testid="stImage"] img {
             display: block;
-            width: 88%;
-            max-width: 225px;
+            width: 92%;
+            max-width: 235px;
             height: auto;
             margin: 0 auto;
             object-fit: contain;
         }
 
         .sidebar-build-label {
-            margin-top: -0.2rem;
-            margin-bottom: 0.35rem;
-            color: #7b8797;
-            font-size: 0.65rem;
+            margin-top: -0.1rem;
+            margin-bottom: 0.45rem;
+            color: #718096;
+            font-size: 0.67rem;
             font-weight: 650;
             letter-spacing: 0.035rem;
             text-align: center;
@@ -375,7 +371,7 @@ st.markdown(
 
         .sidebar-logo-divider {
             height: 1px;
-            margin: 0.4rem 0 0.5rem 0;
+            margin: 0.45rem 0 0.6rem 0;
             background-color: #d7e0eb;
         }
 
@@ -387,16 +383,16 @@ st.markdown(
 
         [data-testid="stSidebar"] .stButton > button {
             width: 100%;
-            min-height: 2.15rem;
+            min-height: 2.25rem;
             justify-content: flex-start;
-            background-color: transparent;
+            background-color: rgba(255, 255, 255, 0.34);
             color: #334155;
             border: 1px solid transparent;
-            border-radius: 0.45rem;
-            padding: 0.3rem 0.65rem;
+            border-radius: 0.5rem;
+            padding: 0.36rem 0.68rem;
             font-size: 0.84rem;
             font-weight: 500;
-            line-height: 1.15;
+            line-height: 1.2;
             text-align: left;
             box-shadow: none;
             transition:
@@ -407,8 +403,8 @@ st.markdown(
         }
 
         [data-testid="stSidebar"] .stButton > button:hover {
-            background-color: #e7edf5;
-            border-color: #d0dae7;
+            background-color: #e5ecf5;
+            border-color: #cbd7e6;
             color: #102542;
             transform: translateX(2px);
         }
@@ -427,33 +423,34 @@ st.markdown(
             box-shadow: inset 3px 0 0 #102542;
         }
 
-        /* ---------- Sidebar section labels ---------- */
+        /* Section labels */
 
         .sidebar-section {
-            margin: 0.75rem 0 0.18rem 0.55rem;
-            color: #8491a3;
-            font-size: 0.63rem;
+            margin: 0.95rem 0 0.3rem 0.55rem;
+            color: #7b8798;
+            font-size: 0.64rem;
             font-weight: 750;
-            letter-spacing: 0.075rem;
-            line-height: 1;
+            letter-spacing: 0.08rem;
+            line-height: 1.1;
             text-transform: uppercase;
         }
 
-        /* Compact expanders */
+        /* Expanders */
 
         [data-testid="stSidebar"] details {
-            margin: 0.05rem 0;
-            background-color: transparent;
-            border: none;
+            margin: 0.08rem 0;
+            background-color: rgba(255, 255, 255, 0.34);
+            border: 1px solid #dbe3ed;
+            border-radius: 0.5rem;
         }
 
         [data-testid="stSidebar"] details summary {
-            min-height: 2.1rem;
-            padding: 0.25rem 0.55rem;
+            min-height: 2.2rem;
+            padding: 0.3rem 0.6rem;
             color: #334155;
             font-size: 0.82rem;
             font-weight: 600;
-            border-radius: 0.45rem;
+            border-radius: 0.5rem;
         }
 
         [data-testid="stSidebar"] details summary:hover {
@@ -461,13 +458,14 @@ st.markdown(
         }
 
         [data-testid="stSidebar"] details [data-testid="stVerticalBlock"] {
-            gap: 0.1rem;
+            gap: 0.22rem;
+            padding: 0.15rem 0.35rem 0.4rem 0.35rem;
         }
 
-        /* Compact dividers, captions, and bottom panel */
+        /* Supporting elements */
 
         [data-testid="stSidebar"] hr {
-            margin: 0.55rem 0;
+            margin: 0.6rem 0;
         }
 
         [data-testid="stSidebar"] [data-testid="stCaptionContainer"] {
@@ -475,23 +473,23 @@ st.markdown(
         }
 
         [data-testid="stSidebar"] [data-testid="stCaptionContainer"] p {
-            margin: 0.08rem 0;
-            font-size: 0.72rem;
-            line-height: 1.3;
+            margin: 0.1rem 0;
+            font-size: 0.73rem;
+            line-height: 1.35;
         }
 
         .version-label {
-            margin-bottom: 0.2rem;
+            margin-bottom: 0.25rem;
             color: #102542;
             font-size: 0.84rem;
             font-weight: 700;
         }
 
         .version-note {
-            margin-bottom: 0.25rem;
+            margin-bottom: 0.35rem;
             color: #64748b;
-            font-size: 0.72rem;
-            line-height: 1.35;
+            font-size: 0.73rem;
+            line-height: 1.4;
         }
 
         .developer-status {
