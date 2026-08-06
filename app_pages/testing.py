@@ -2817,6 +2817,19 @@ def step17_export_to_ppt():
     if not slide_expense_and_return:
         st.warning("Couldn't find the Expense and Return slide.")
     else:
+        facts_rec = next(
+            (f for f in facts if f.get("Matched Fund Name") == selected),
+            {}
+        )
+        
+        category = facts_rec.get("Category", "")
+        
+        fill_text_placeholder_preserving_format(
+            slide_expense_and_return,
+            "[Category]",
+            category
+        )
+        
         # Grab all tables, pick the first (top-left)
         tables = [sh for sh in slide_expense_and_return.shapes if sh.has_table]
         if not tables:
