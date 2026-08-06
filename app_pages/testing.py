@@ -1551,6 +1551,90 @@ def step14_5_ips_fail_table():
 
 #───Step 15: Single Fund──────────────────────────────────────────────────────────────────
 
+def apply_dropdown_styling():
+    """Apply a cleaner, rounded style to standard Streamlit selectboxes."""
+    st.markdown(
+        """
+        <style>
+        /* Selectbox container */
+        div[data-testid="stSelectbox"] {
+            max-width: 520px;
+            margin-bottom: 1.2rem;
+        }
+
+        /* Selectbox label */
+        div[data-testid="stSelectbox"] label {
+            color: #244369 !important;
+            font-size: 0.92rem !important;
+            font-weight: 650 !important;
+            margin-bottom: 0.35rem !important;
+        }
+
+        /* Main dropdown field */
+        div[data-testid="stSelectbox"] div[data-baseweb="select"] > div {
+            min-height: 48px;
+            background-color: #f8fbff;
+            border: 1px solid #b5d0eb;
+            border-radius: 14px;
+            color: #244369;
+            box-shadow: 0 2px 8px rgba(36, 67, 105, 0.06);
+            transition: border-color 0.2s ease,
+                        box-shadow 0.2s ease,
+                        background-color 0.2s ease;
+        }
+
+        /* Hover and focus appearance */
+        div[data-testid="stSelectbox"] div[data-baseweb="select"] > div:hover,
+        div[data-testid="stSelectbox"] div[data-baseweb="select"] > div:focus-within {
+            background-color: #ffffff;
+            border-color: #7ea8d1;
+            box-shadow: 0 4px 12px rgba(36, 67, 105, 0.10);
+        }
+
+        /* Selected text and placeholder */
+        div[data-testid="stSelectbox"] div[data-baseweb="select"] span {
+            color: #244369;
+            font-weight: 500;
+        }
+
+        div[data-testid="stSelectbox"] div[data-baseweb="select"] input::placeholder {
+            color: #7890aa;
+            opacity: 1;
+        }
+
+        /* Dropdown arrow */
+        div[data-testid="stSelectbox"] svg {
+            fill: #52779d;
+        }
+
+        /* Open dropdown menu */
+        div[data-baseweb="popover"] ul {
+            padding: 0.35rem;
+            background-color: #ffffff;
+            border: 1px solid #d2e1f0;
+            border-radius: 14px;
+            box-shadow: 0 10px 28px rgba(36, 67, 105, 0.14);
+        }
+
+        /* Individual dropdown options */
+        div[data-baseweb="popover"] li {
+            min-height: 42px;
+            margin: 2px 0;
+            padding: 0.55rem 0.75rem;
+            border-radius: 9px;
+            color: #244369;
+        }
+
+        /* Option hover and selected state */
+        div[data-baseweb="popover"] li:hover,
+        div[data-baseweb="popover"] li[aria-selected="true"] {
+            background-color: #eaf3fc;
+        }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
+
 def step15_display_selected_fund():
     import pandas as pd
     import streamlit as st
@@ -1561,8 +1645,24 @@ def step15_display_selected_fund():
         st.info("Run Steps 1–14 to populate data before viewing fund details.")
         return
 
-    fund_names = [f["Matched Fund Name"] for f in facts]
-    selected_fund = st.selectbox("Select a fund to view details:", fund_names)
+    fund_names = sorted({
+        f.get("Matched Fund Name")
+        for f in facts
+        if f.get("Matched Fund Name")
+    })
+
+    selected_fund = st.selectbox(
+        "Fund",
+        options=fund_names,
+        index=None,
+        placeholder="Search or select a fund",
+        key="selected_fund_dropdown",
+    )
+
+    if not selected_fund:
+        st.caption("Choose a fund above to view its performance and details.")
+        return
+
     st.session_state.selected_fund = selected_fund
 
     # --- NEW: pull confirmed proposed funds once, independent of selection ---
@@ -1572,7 +1672,19 @@ def step15_display_selected_fund():
         if not confirmed_proposed_df.empty else []
     )
 
-    st.write(f"Details for: {selected_fund}")
+    st.markdown(
+        f"""
+        <div style="
+            margin: 0.2rem 0 1rem;
+            color: #244369;
+            font-size: 1.1rem;
+            font-weight: 700;
+        ">
+            {selected_fund}
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
     factsheets = st.session_state.get("fund_factsheets_data", [])
     factsheet_rec = next((row for row in factsheets if row["Matched Fund Name"] == selected_fund), None)
     
@@ -3454,6 +3566,7 @@ def render_step16_and_16_5_cards(pdf):
 
 # –– Main App –––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––
 def run():
+    apply_dropdown_styling()
     st.title("Writeup & Rec")
     uploaded = st.file_uploader("Upload MPI PDF to Generate Writup & Rec PPTX", type="pdf")
     if not uploaded:
