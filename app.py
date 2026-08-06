@@ -329,7 +329,7 @@ st.markdown(
         }
 
         [data-testid="stSidebar"] > div:first-child {
-            padding-top: 0.3rem;
+            padding-top: 0.3rem; 
         }
 
         /* Sidebar logo image */
@@ -349,7 +349,7 @@ st.markdown(
             margin-top: -0.15rem;
             margin-bottom: 0.8rem;
             color: #718096;
-            font-size: 0.7rem;
+            font-size: 0.8rem;
             font-weight: 600;
             letter-spacing: 0.03rem;
             text-align: center;
