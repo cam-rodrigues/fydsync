@@ -376,7 +376,7 @@ st.markdown(
             border: 1px solid transparent;
             border-radius: 0.3rem;
             padding: 0.45rem 0.75rem;
-            font-size: 0.88rem;
+            font-size: 0.7rem;
             font-weight: 500;
             text-align: left;
             transition:
