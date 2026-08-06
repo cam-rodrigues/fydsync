@@ -509,21 +509,25 @@ st.sidebar.markdown(
 # Navigation helper
 # =========================================================
 
+def navigate_to_page(filename: str) -> None:
+    """Update the requested page before Streamlit performs its normal rerun."""
+
+    st.query_params["page"] = filename
+
+
 def nav_button(label: str, filename: str) -> None:
     """Create a sidebar navigation button with an active-page style."""
 
     is_active = selected_page == filename
 
-    clicked = st.sidebar.button(
+    st.sidebar.button(
         label,
         key=f"nav_{filename}",
         use_container_width=True,
         type="primary" if is_active else "secondary",
+        on_click=navigate_to_page,
+        args=(filename,),
     )
-
-    if clicked:
-        st.query_params["page"] = filename
-        st.rerun()
 
 # =========================================================
 # Sidebar navigation
