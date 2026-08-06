@@ -50,7 +50,7 @@ PAGE_GROUPS = {
         "Scorecard Metrics": "fund_scorecard_metrics.py",
         "IPS Screening": "ips_screening.py",
         "Writeup": "write_up.py",
-        "Writeup & Recommendation": "writeup_&_rec.py",
+        "Writeup & Rec": "writeup_&_rec.py",
     },
     "Under Construction": {
         "Testing": "testing.py",
