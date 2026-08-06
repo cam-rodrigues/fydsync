@@ -1551,155 +1551,6 @@ def step14_5_ips_fail_table():
 
 #───Step 15: Single Fund──────────────────────────────────────────────────────────────────
 
-def apply_dropdown_styling():
-    """Style the modern fund picker and its searchable popover."""
-    st.markdown(
-        """
-        <style>
-        /* Modern fund-picker wrapper */
-        div[data-testid="stPopover"] {
-            width: 100%;
-            max-width: 620px;
-        }
-
-        div[data-testid="stPopover"] > button {
-            width: 100%;
-            min-height: 52px;
-            justify-content: space-between;
-            padding: 0.72rem 1rem;
-            background: linear-gradient(180deg, #ffffff 0%, #f6faff 100%);
-            border: 1px solid #c4d8ec;
-            border-radius: 15px;
-            color: #244369;
-            font-size: 0.98rem;
-            font-weight: 600;
-            box-shadow: 0 4px 14px rgba(36, 67, 105, 0.07);
-            transition: transform 0.16s ease, border-color 0.16s ease,
-                        box-shadow 0.16s ease, background 0.16s ease;
-        }
-
-        div[data-testid="stPopover"] > button:hover {
-            transform: translateY(-1px);
-            background: #ffffff;
-            border-color: #7fa9d1;
-            box-shadow: 0 7px 20px rgba(36, 67, 105, 0.12);
-        }
-
-        div[data-testid="stPopover"] > button:focus-visible {
-            outline: none;
-            border-color: #5d8fbe;
-            box-shadow: 0 0 0 3px rgba(93, 143, 190, 0.17);
-        }
-
-        /* Popover panel */
-        div[data-baseweb="popover"] > div {
-            border: 1px solid #d5e2ef;
-            border-radius: 16px;
-            box-shadow: 0 16px 42px rgba(36, 67, 105, 0.17);
-            overflow: hidden;
-        }
-
-        /* Search field inside picker */
-        div[data-baseweb="popover"] div[data-testid="stTextInput"] input {
-            min-height: 44px;
-            border-radius: 11px;
-            border: 1px solid #cfdeec;
-            background: #f8fbff;
-            color: #244369;
-        }
-
-        div[data-baseweb="popover"] div[data-testid="stTextInput"] input:focus {
-            border-color: #7fa9d1;
-            box-shadow: 0 0 0 3px rgba(127, 169, 209, 0.14);
-        }
-
-        /* Fund choices */
-        div[data-baseweb="popover"] div[data-testid="stButton"] > button {
-            width: 100%;
-            min-height: 42px;
-            justify-content: flex-start;
-            padding: 0.55rem 0.75rem;
-            background: transparent;
-            border: 0;
-            border-radius: 10px;
-            color: #244369;
-            font-weight: 500;
-            box-shadow: none;
-        }
-
-        div[data-baseweb="popover"] div[data-testid="stButton"] > button:hover {
-            background: #eaf3fc;
-            color: #193a60;
-            border: 0;
-            transform: none;
-        }
-
-        .fund-picker-label {
-            margin: 0 0 0.38rem 0.12rem;
-            color: #244369;
-            font-size: 0.9rem;
-            font-weight: 700;
-            letter-spacing: 0.01em;
-        }
-
-        .fund-picker-help {
-            margin-top: 0.45rem;
-            color: #71869b;
-            font-size: 0.86rem;
-        }
-        </style>
-        """,
-        unsafe_allow_html=True,
-    )
-
-
-def modern_fund_picker(fund_names):
-    """A cleaner searchable alternative to Streamlit's native selectbox."""
-    selected = st.session_state.get("selected_fund")
-    button_text = selected if selected else "Select a fund"
-
-    st.markdown('<div class="fund-picker-label">Fund</div>', unsafe_allow_html=True)
-
-    with st.popover(button_text, use_container_width=True):
-        search = st.text_input(
-            "Search funds",
-            placeholder="Type a fund name or ticker...",
-            label_visibility="collapsed",
-            key="fund_picker_search",
-        )
-
-        query = search.strip().lower()
-        filtered = [name for name in fund_names if query in name.lower()]
-
-        if selected:
-            if st.button("Clear selection", key="clear_fund_picker", use_container_width=True):
-                st.session_state.pop("selected_fund", None)
-                st.session_state["fund_picker_search"] = ""
-                st.rerun()
-
-        if not filtered:
-            st.caption("No matching funds found.")
-        else:
-            for index, fund_name in enumerate(filtered):
-                label = f"✓  {fund_name}" if fund_name == selected else fund_name
-                if st.button(
-                    label,
-                    key=f"fund_picker_option_{index}_{abs(hash(fund_name))}",
-                    use_container_width=True,
-                ):
-                    st.session_state["selected_fund"] = fund_name
-                    st.session_state["fund_picker_search"] = ""
-                    st.rerun()
-
-    if not selected:
-        st.markdown(
-            '<div class="fund-picker-help">Choose a fund to view its performance and details.</div>',
-            unsafe_allow_html=True,
-        )
-
-    return selected
-
-
 def step15_display_selected_fund():
     import pandas as pd
     import streamlit as st
@@ -1710,16 +1561,9 @@ def step15_display_selected_fund():
         st.info("Run Steps 1–14 to populate data before viewing fund details.")
         return
 
-    fund_names = sorted({
-        f.get("Matched Fund Name")
-        for f in facts
-        if f.get("Matched Fund Name")
-    })
-
-    selected_fund = modern_fund_picker(fund_names)
-
-    if not selected_fund:
-        return
+    fund_names = [f["Matched Fund Name"] for f in facts]
+    selected_fund = st.selectbox("Select a fund to view details:", fund_names)
+    st.session_state.selected_fund = selected_fund
 
     # --- NEW: pull confirmed proposed funds once, independent of selection ---
     confirmed_proposed_df = st.session_state.get("proposed_funds_confirmed_df", pd.DataFrame())
@@ -1728,19 +1572,7 @@ def step15_display_selected_fund():
         if not confirmed_proposed_df.empty else []
     )
 
-    st.markdown(
-        f"""
-        <div style="
-            margin: 0.2rem 0 1rem;
-            color: #244369;
-            font-size: 1.1rem;
-            font-weight: 700;
-        ">
-            {selected_fund}
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
+    st.write(f"Details for: {selected_fund}")
     factsheets = st.session_state.get("fund_factsheets_data", [])
     factsheet_rec = next((row for row in factsheets if row["Matched Fund Name"] == selected_fund), None)
     
@@ -3622,7 +3454,6 @@ def render_step16_and_16_5_cards(pdf):
 
 # –– Main App –––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––
 def run():
-    apply_dropdown_styling()
     st.title("Writeup & Rec")
     uploaded = st.file_uploader("Upload MPI PDF to Generate Writup & Rec PPTX", type="pdf")
     if not uploaded:
