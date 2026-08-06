@@ -1,6 +1,7 @@
 # app.py
 
 from datetime import datetime
+from zoneinfo import ZoneInfo
 import importlib.util
 import os
 import random
@@ -187,7 +188,7 @@ def show_time_greeting() -> None:
         return
 
     # FIX: Explicitly use datetime.datetime.now() to avoid naming collisions
-    now = datetime.now()
+    now = datetime.now(ZoneInfo("America/New_York"))
 
     if now.weekday() == 4:
         message_group = "friday"
