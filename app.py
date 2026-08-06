@@ -349,7 +349,7 @@ st.markdown(
             margin-top: -0.15rem;
             margin-bottom: 0.8rem;
             color: #718096;
-            font-size: 0.8rem;
+            font-size: 0.7rem;
             font-weight: 600;
             letter-spacing: 0.03rem;
             text-align: center;
@@ -374,7 +374,7 @@ st.markdown(
             background-color: transparent;
             color: #334155;
             border: 1px solid transparent;
-            border-radius: 0.55rem;
+            border-radius: 0.3rem;
             padding: 0.45rem 0.75rem;
             font-size: 0.88rem;
             font-weight: 500;
