@@ -2559,7 +2559,7 @@ def step17_export_to_ppt():
     prs = Presentation("assets/writeup&rec_templates.pptx")
     selected = st.session_state.get("selected_fund", "")
     confirmed_df = st.session_state.get("proposed_funds_confirmed_df", pd.DataFrame())
-    proposal_names = confirmed_df["Fund Scorecard Name"].dropna().unique().tolist()
+    proposal_names = confirmed_df["Fund Name"].dropna().unique().tolist()
     
     # ───── 2) Pull in session data ──────────────────────────────────────────────────────
     selected = st.session_state.get("selected_fund", "")
