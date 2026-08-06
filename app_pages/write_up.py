@@ -1593,22 +1593,45 @@ def step15_display_selected_fund():
     else:
         st.warning("IPS screening table not found. Run earlier steps first.")
 
-    # --- Slide 2 Table 1 ---
-    st.markdown("**Net Expense Ratio**")
-    perf_data = st.session_state.get("fund_performance_data", [])
-    perf_item = next((p for p in perf_data if p.get("Fund Scorecard Name") == selected_fund), {})
-    inv_mgr = f"{selected_fund} ({perf_item.get('Ticker','')})"
-    net_exp = perf_item.get("Net Expense Ratio", "")
+    # --- Slide 2 Table 1: Net Expense Ratio ---
+    perf_data = st.session_state.get(
+        "fund_performance_data",
+        [],
+    )
+
+    perf_item = next(
+        (
+            p
+            for p in perf_data
+            if p.get("Fund Scorecard Name") == selected_fund
+        ),
+        {},
+    )
+
+    inv_mgr = (
+        f"{selected_fund} "
+        f"({perf_item.get('Ticker', '')})"
+    )
+
+    net_exp = perf_item.get(
+        "Net Expense Ratio",
+        "",
+    )
+
     if net_exp and not str(net_exp).endswith("%"):
         net_exp = f"{net_exp}%"
-    df_slide2 = pd.DataFrame([{
-        "Investment Manager": inv_mgr,
-        "Net Expense Ratio":  net_exp
-    }])
 
-    # Save this dataframe for Step 17
+    df_slide2 = pd.DataFrame(
+        [
+            {
+                "Fund": inv_mgr,
+                "Net Expense Ratio": net_exp,
+            }
+        ]
+    )
+
+  # Save this dataframe for Step 17
     st.session_state["slide2_table1_data"] = df_slide2
-    st.dataframe(df_slide2, use_container_width=True)
 
     # --- Slide 2 Table 2 ---
     st.markdown("**Returns**")
@@ -1740,32 +1763,86 @@ def step15_display_selected_fund():
         "5 Year Information Ratio / Peer Ranking %": frac("Information Ratio", "5Yr"),
     }
     df_slide3_2 = pd.DataFrame([row])
-        
+
     # Save for Step 17 to use
     st.session_state["slide3_table2_data"] = df_slide3_2
-    st.dataframe(df_slide3_2, use_container_width=True)
 
-    # --- Slide 4 Table 1 ---
-    st.markdown("**Manager Tenure**")
-    blocks      = st.session_state.get("fund_blocks", [])
-    block       = next((b for b in blocks if b["Fund Name"] == selected_fund), {})
-    raw_tenure  = next((m["Info"] for m in block.get("Metrics", []) if m["Metric"] == "Manager Tenure"), "")
-    m = re.search(r"(\d+(\.\d+)?)", raw_tenure)
-    tenure = f"{m.group(1)} years" if m else raw_tenure
-    perf_data = st.session_state.get("fund_performance_data", [])
-    perf_item = next((p for p in perf_data if p.get("Fund Scorecard Name") == selected_fund), {})
-    inv_mgr   = f"{selected_fund} ({perf_item.get('Ticker','')})"
-    df_slide4 = pd.DataFrame([{
-        "Investment Manager": inv_mgr,
-        "Manager Tenure":     tenure
-    }])
+    st.dataframe(
+        df_slide3_2,
+        use_container_width=True,
+        hide_index=True,
+    )
+    # --- Slide 4 Table 1: Manager Tenure ---
+    blocks = st.session_state.get(
+        "fund_blocks",
+        [],
+    )
 
-    # Save for Step 17 to use
+    block = next(
+        (
+            b
+            for b in blocks
+            if b["Fund Name"] == selected_fund
+        ),
+        {},
+    )
+
+    raw_tenure = next(
+        (
+            metric["Info"]
+            for metric in block.get("Metrics", [])
+            if metric["Metric"] == "Manager Tenure"
+        ),
+        "",
+    )
+
+    tenure_match = re.search(
+        r"(\d+(?:\.\d+)?)",
+        raw_tenure,
+    )
+
+    tenure = (
+        f"{tenure_match.group(1)} years"
+        if tenure_match
+        else raw_tenure
+    )
+
+    perf_data = st.session_state.get(
+        "fund_performance_data",
+        [],
+    )
+
+    perf_item = next(
+        (
+            p
+            for p in perf_data
+            if p.get("Fund Scorecard Name") == selected_fund
+        ),
+        {},
+    )
+
+    inv_mgr = (
+        f"{selected_fund} "
+        f"({perf_item.get('Ticker', '')})"
+    )
+
+    df_slide4 = pd.DataFrame(
+        [
+            {
+                "Investment Manager": inv_mgr,
+                "Manager Tenure": tenure,
+            }
+        ]
+    )
+
+    # Keep this unchanged for PowerPoint export.
     st.session_state["slide4"] = df_slide4
-    st.dataframe(df_slide4, use_container_width=True)
-    
-    # --- Slide 4 Table 2 ---
-    st.markdown("**Assets**")
+
+    # Net Expense Ratio and Manager Tenure are already shown in
+    # the summary cards above. Their DataFrames remain saved in
+    # session state for PowerPoint export, but are not displayed here.
+
+    # --- Slide 4 Table 2: Assets ---
     facts = st.session_state.get("fund_factsheets_data", [])
     fs_rec = next((f for f in facts if f["Matched Fund Name"] == selected_fund), None)
     perf_data = st.session_state.get("fund_performance_data", [])
@@ -1779,9 +1856,10 @@ def step15_display_selected_fund():
         "Average Market Capitalization":  avg_cap
     }])
 
-    # Save for Step 17 to use
+    # Save for Step 17 to use.
+    # Assets are already shown in the Fund Overview card, so this
+    # table is kept for PowerPoint export but not displayed here.
     st.session_state["slide4_table2_data"] = df_slide4_2
-    st.dataframe(df_slide4_2, use_container_width=True)
 
 #───Bullet Points──────────────────────────────────────────────────────────────────
 
