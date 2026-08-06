@@ -179,135 +179,37 @@ def infer_fund_type_guess(ticker):
     except Exception:
         return ""
 
-def extract_scorecard_blocks(pdf, scorecard_page, end_page=None):
+def extract_scorecard_blocks(pdf, scorecard_page):
     metric_labels = [
-        "Manager Tenure",
-        "Excess Performance (3Yr)",
-        "Excess Performance (5Yr)",
-        "Peer Return Rank (3Yr)",
-        "Peer Return Rank (5Yr)",
-        "Expense Ratio Rank",
-        "Sharpe Ratio Rank (3Yr)",
-        "Sharpe Ratio Rank (5Yr)",
-        "R-Squared (3Yr)",
-        "R-Squared (5Yr)",
-        "Sortino Ratio Rank (3Yr)",
-        "Sortino Ratio Rank (5Yr)",
-        "Tracking Error Rank (3Yr)",
-        "Tracking Error Rank (5Yr)",
+        "Manager Tenure", "Excess Performance (3Yr)", "Excess Performance (5Yr)",
+        "Peer Return Rank (3Yr)", "Peer Return Rank (5Yr)", "Expense Ratio Rank",
+        "Sharpe Ratio Rank (3Yr)", "Sharpe Ratio Rank (5Yr)", "R-Squared (3Yr)",
+        "R-Squared (5Yr)", "Sortino Ratio Rank (3Yr)", "Sortino Ratio Rank (5Yr)",
+        "Tracking Error Rank (3Yr)", "Tracking Error Rank (5Yr)"
     ]
-
-    if not scorecard_page:
-        return []
-
-    start_index = scorecard_page - 1
-
-    if end_page:
-        end_index = max(start_index + 1, end_page - 1)
-    else:
-        end_index = len(pdf.pages)
-
-    section_text = "\n".join(
-        pdf.pages[i].extract_text() or ""
-        for i in range(start_index, end_index)
-    )
-
-    # Each new fund block begins where the PDF gives its fund-level
-    # watchlist conclusion.
-    blocks = re.split(
-        r"\n(?=[^\n]*?(?:Fund\s+)?"
-        r"(?:Meets Watchlist Criteria|"
-        r"has been placed on watchlist))",
-        section_text,
-        flags=re.IGNORECASE,
-    )
-
-    fund_blocks = []
-
-    for block in blocks:
-        if not block.strip():
-            continue
-
-        metrics = []
-
-        for raw_line in block.splitlines():
-            line = re.sub(r"\s+", " ", raw_line).strip()
-
-            for metric_label in metric_labels:
-                if not line.lower().startswith(metric_label.lower()):
-                    continue
-
-                status_match = re.search(
-                    r"\b(Pass|Review|Fail)\b",
-                    line,
-                    flags=re.IGNORECASE,
-                )
-
-                if status_match:
-                    metrics.append({
-                        "Metric": metric_label,
-                        "Status": status_match.group(1).title(),
-                        "Info": line[status_match.end():].strip(),
-                    })
-
-                break
-
-        if not metrics:
-            continue
-
-        lines = [
-            re.sub(r"\s+", " ", line).strip()
-            for line in block.splitlines()
-            if line.strip()
-        ]
-
-        fund_name = ""
-
-        # Usually the fund name appears before the sentence describing
-        # whether it meets the watchlist criteria.
-        for line in lines[:10]:
-            cleaned = re.sub(
-                r"(?:This\s+)?Fund\s+"
-                r"(?:Meets Watchlist Criteria|"
-                r"has been placed on watchlist.*)$",
+    pages, fund_blocks, fund_name, metrics = [], [], None, []
+    for p in pdf.pages[scorecard_page-1:]:
+        pages.append(p.extract_text() or "")
+    lines = "\n".join(pages).splitlines()
+    for line in lines:
+        if not any(metric in line for metric in metric_labels) and line.strip():
+            if fund_name and metrics:
+                fund_blocks.append({"Fund Name": fund_name, "Metrics": metrics})
+            fund_name = re.sub(
+                r"Fund (Meets Watchlist Criteria|has been placed on watchlist for not meeting .* out of 14 criteria)",
                 "",
-                line,
-                flags=re.IGNORECASE,
-            ).strip(" -:")
-
-            if cleaned and not any(
-                cleaned.lower().startswith(metric.lower())
-                for metric in metric_labels
-            ):
-                fund_name = cleaned
-                break
-
-        if not fund_name:
-            fund_name = "UNKNOWN FUND"
-
-        fund_blocks.append({
-            "Fund Name": fund_name,
-            "Metrics": metrics,
-        })
-
-    # Remove duplicate blocks that may appear from repeated headers/pages.
-    unique_blocks = []
-    seen = set()
-
-    for fund in fund_blocks:
-        signature = (
-            fund["Fund Name"],
-            tuple(
-                (metric["Metric"], metric["Status"])
-                for metric in fund["Metrics"]
-            ),
-        )
-
-        if signature not in seen:
-            seen.add(signature)
-            unique_blocks.append(fund)
-
-    return unique_blocks
+                line.strip()
+            ).strip()
+            metrics = []
+        for metric in metric_labels:
+            if metric in line:
+                m = re.match(r"^(.*?)\s+(Pass|Review|Fail)\s*(.*)", line.strip())
+                if m:
+                    metric_name, status, info = m.groups()
+                    metrics.append({"Metric": metric_name, "Status": status, "Info": info.strip()})
+    if fund_name and metrics:
+        fund_blocks.append({"Fund Name": fund_name, "Metrics": metrics})
+    return fund_blocks
 
 def extract_fund_tickers(pdf, performance_page, fund_names, factsheets_page=None):
     def normalize_name(name):
