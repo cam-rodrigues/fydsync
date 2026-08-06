@@ -476,52 +476,7 @@ def run():
                 unsafe_allow_html=True,
             )
 
-        st.markdown("### Potential development priorities")
 
-        priority_options = [
-            "Benchmark comparison tools",
-            "Portfolio diagnostics",
-            "Platform integrations",
-            "Enterprise administration",
-            "Workflow automation",
-            "Assisted recommendations",
-        ]
-
-        selected_priority = st.selectbox(
-            "Select an area to review",
-            options=priority_options,
-            key="development_priority",
-        )
-        
-        priority_details = {
-            "Benchmark comparison tools": (
-                "This would likely be one of the most practical next additions "
-                "because it builds directly on existing scorecard and fund data."
-            ),
-            "Portfolio diagnostics": (
-                "This would broaden the platform beyond individual fund review "
-                "and support portfolio-level analysis."
-            ),
-            "Platform integrations": (
-                "Integrations could reduce manual uploads, but they would require "
-                "security review, data access approval, and API support."
-            ),
-            "Enterprise administration": (
-                "Administrative tools would become more important if FidSync were "
-                "used by multiple teams or users."
-            ),
-            "Workflow automation": (
-                "Workflow features could help standardize recurring reviews, "
-                "approvals, and follow-up responsibilities."
-            ),
-            "Assisted recommendations": (
-                "Recommendation support should remain review-based and should not "
-                "replace advisor judgment or compliance oversight."
-            ),
-        }
-        
-        st.markdown(f"#### {selected_priority}")
-        st.info(priority_details[selected_priority])
 
     # =====================================================
     # Roadmap tab
