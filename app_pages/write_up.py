@@ -2063,8 +2063,106 @@ def step17_export_to_ppt():
 
 def run():
     import re
+
+    st.set_page_config(
+        page_title="Writeup Generator",
+        layout="wide",
+    )
+
+    st.markdown(
+        """
+        <style>
+            .block-container {
+                max-width: 1450px;
+                padding-top: 2rem;
+                padding-bottom: 3rem;
+            }
+
+            h1 {
+                color: #16243A;
+                letter-spacing: -0.03em;
+                margin-bottom: 0.3rem;
+            }
+
+            .app-subtitle {
+                color: #667085;
+                font-size: 1rem;
+                line-height: 1.55;
+                margin-bottom: 1.35rem;
+                max-width: 860px;
+            }
+
+            .section-label {
+                color: #475467;
+                font-size: 0.77rem;
+                font-weight: 700;
+                letter-spacing: 0.08em;
+                text-transform: uppercase;
+                margin-top: 1.3rem;
+                margin-bottom: 0.5rem;
+            }
+
+            div[data-testid="stFileUploader"] {
+                border: 1px solid #D0D5DD;
+                border-radius: 14px;
+                background: #FFFFFF;
+                padding: 0.4rem;
+            }
+
+            div[data-testid="stMetric"] {
+                background: #FFFFFF;
+                border: 1px solid #E4E7EC;
+                border-radius: 12px;
+                padding: 0.85rem 1rem;
+                box-shadow: 0 3px 12px rgba(16, 24, 40, 0.04);
+            }
+
+            div[data-testid="stDataFrame"] {
+                border: 1px solid #E4E7EC;
+                border-radius: 12px;
+                overflow: hidden;
+            }
+
+            .stDownloadButton > button {
+                border-radius: 9px;
+                font-weight: 600;
+            }
+
+            div[data-testid="stExpander"] {
+                border: 1px solid #E4E7EC;
+                border-radius: 12px;
+                overflow: hidden;
+            }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
+
     st.title("Writeup Generator")
-    uploaded = st.file_uploader("Upload MPI PDF to Generate Writup PPTX", type="pdf")
+
+    st.markdown(
+        """
+        <div class="app-subtitle">
+            Upload an MPI-style PDF report. The app will review the report,
+            organize the relevant fund information, generate the writeup content,
+            and prepare the results for PowerPoint export.
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    st.markdown(
+        '<div class="section-label">Report Upload</div>',
+        unsafe_allow_html=True,
+    )
+
+    uploaded = st.file_uploader(
+        "Upload MPI PDF",
+        type=["pdf"],
+        help="Upload a text-based MPI report PDF to generate the writeup.",
+        key="writeup_generator_pdf_uploader",
+    )
+
     if not uploaded:
         return
 
@@ -2075,52 +2173,111 @@ def run():
         show_report_summary()
 
         # Step 2
-        with st.expander("Table of Contents", expanded=False):
-            toc_text = "".join((pdf.pages[i].extract_text() or "") for i in range(min(3, len(pdf.pages))))
+        with st.expander(
+            "Table of Contents",
+            expanded=False,
+        ):
+            toc_text = "".join(
+                (pdf.pages[i].extract_text() or "")
+                for i in range(min(3, len(pdf.pages)))
+            )
             process_toc(toc_text)
 
-        # --- Combined core details grouped ---
-        with st.expander("All Fund Details", expanded=True):
+        # Combined core details grouped
+        with st.expander(
+            "All Fund Details",
+            expanded=True,
+        ):
             # 1. IPS Investment Screening
-            with st.expander("IPS Investment Screening", expanded=True):
-                sp = st.session_state.get('scorecard_page')
-                tot = st.session_state.get('total_options')
-                pp = st.session_state.get('performance_page')
-                factsheets_page = st.session_state.get('factsheets_page')
+            with st.expander(
+                "IPS Investment Screening",
+                expanded=True,
+            ):
+                sp = st.session_state.get("scorecard_page")
+                tot = st.session_state.get("total_options")
+                pp = st.session_state.get("performance_page")
+                factsheets_page = st.session_state.get(
+                    "factsheets_page"
+                )
+
                 if sp and tot is not None and pp:
-                    step3_5_6_scorecard_and_ips(pdf, sp, pp, factsheets_page, tot)
+                    step3_5_6_scorecard_and_ips(
+                        pdf,
+                        sp,
+                        pp,
+                        factsheets_page,
+                        tot,
+                    )
                 else:
-                    st.error("Missing scorecard, performance page, or total options")
+                    st.error(
+                        "Missing scorecard, performance page, "
+                        "or total options."
+                    )
 
             # 2. Fund Factsheets
-            with st.expander("Fund Factsheets", expanded=True):
-                names = [b['Fund Name'] for b in st.session_state.get('fund_blocks', [])]
-                step6_process_factsheets(pdf, names)
-                
-            # 3. Extract Fund Facts sub-headings (Step 12) so Step 15 has data
-            with st.expander("Fund Facts (sub-headings)", expanded=False):
+            with st.expander(
+                "Fund Factsheets",
+                expanded=True,
+            ):
+                names = [
+                    block["Fund Name"]
+                    for block in st.session_state.get(
+                        "fund_blocks",
+                        [],
+                    )
+                ]
+
+                step6_process_factsheets(
+                    pdf,
+                    names,
+                )
+
+            # 3. Extract Fund Facts sub-headings
+            # so the later writeup step has data.
+            with st.expander(
+                "Fund Facts",
+                expanded=False,
+            ):
                 step12_process_fund_facts(pdf)
-                
-            with st.expander("Returns", expanded=False):
+
+            with st.expander(
+                "Returns",
+                expanded=False,
+            ):
                 step7_extract_returns(pdf)
                 step8_calendar_returns(pdf)
-    
-            with st.expander("MPT Statistics Summary", expanded=False):
+
+            with st.expander(
+                "MPT Statistics Summary",
+                expanded=False,
+            ):
                 step9_risk_analysis_3yr(pdf)
                 step10_risk_analysis_5yr(pdf)
                 step11_create_summary()
 
             # 5. Risk-Adjusted Returns and Peer Rank
-            with st.expander("Risk-Adjusted Returns", expanded=False):
+            with st.expander(
+                "Risk-Adjusted Returns",
+                expanded=False,
+            ):
                 step13_process_risk_adjusted_returns(pdf)
-                step14_extract_peer_risk_adjusted_return_rank(pdf)
+                step14_extract_peer_risk_adjusted_return_rank(
+                    pdf
+                )
 
-        # Data prep for bullet points (unchanged)
-        report_date = st.session_state.get("report_date", "")
-        m = re.match(r"(\d)(?:st|nd|rd|th)\s+QTR,\s*(\d{4})", report_date)
-        quarter = m.group(1) if m else ""
-        year = m.group(2) if m else ""
+        # Data preparation for bullet points
+        report_date = st.session_state.get(
+            "report_date",
+            "",
+        )
 
+        match = re.match(
+            r"(\d)(?:st|nd|rd|th)\s+QTR,\s*(\d{4})",
+            report_date,
+        )
+
+        quarter = match.group(1) if match else ""
+        year = match.group(2) if match else ""
         for itm in st.session_state.get("fund_performance_data", []):
             qtd = float(itm.get("QTD") or 0)
             bench_qtd = float(itm.get("Bench QTD") or 0)
