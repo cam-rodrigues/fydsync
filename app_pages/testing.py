@@ -1483,22 +1483,19 @@ def step14_extract_peer_risk_adjusted_return_rank(pdf):
 #───Step 14.5: IPS Fail Table──────────────────────────────────────────────────────────────────
 
 def step14_5_ips_fail_table():
-    import pandas as pd
     import streamlit as st
 
     df = st.session_state.get("ips_icon_table")
 
+    st.markdown("#### Funds on Watch")
+
     if df is None or df.empty:
+        st.info("No watch-status data was found.")
         return
 
     fail_df = df[
         df["IPS Watch Status"].isin(["FW", "IW"])
-    ][
-        [
-            "Fund Name",
-            "IPS Watch Status",
-        ]
-    ].copy()
+    ][["Fund Name", "IPS Watch Status"]].copy()
 
     if fail_df.empty:
         st.success("No funds are currently on watch.")
@@ -1516,41 +1513,24 @@ def step14_5_ips_fail_table():
     informal_count = int(
         (fail_df["IPS Watch Status"] == "IW").sum()
     )
-
     formal_count = int(
         (fail_df["IPS Watch Status"] == "FW").sum()
     )
 
-    total_count = len(fail_df)
-
-    st.markdown("### Funds on Watch")
-    st.caption(
-        "Funds that failed five or more IPS criteria "
-        "and require additional review."
-    )
-
-    total_col, informal_col, formal_col = st.columns(
-        3,
-        gap="small",
-    )
+    total_col, informal_col, formal_col = st.columns(3, gap="small")
 
     with total_col:
-        st.metric("Total on Watch", total_count)
+        st.metric("Total", len(fail_df))
 
     with informal_col:
-        st.metric("Informal Watch", informal_count)
+        st.metric("Informal", informal_count)
 
     with formal_col:
-        st.metric("Formal Watch", formal_count)
+        st.metric("Formal", formal_count)
 
     display_df = fail_df.rename(
         columns={"Fund Name": "Fund"}
-    )[
-        [
-            "Fund",
-            "Watch Status",
-        ]
-    ]
+    )[["Fund", "Watch Status"]]
 
     def style_watch_status(value):
         if value == "Formal Watch":
@@ -1559,14 +1539,12 @@ def step14_5_ips_fail_table():
                 "color: #B42318; "
                 "font-weight: 700;"
             )
-
         if value == "Informal Watch":
             return (
                 "background-color: #FFF6DB; "
                 "color: #8A6100; "
                 "font-weight: 700;"
             )
-
         return ""
 
     styled_df = display_df.style.map(
@@ -1578,13 +1556,14 @@ def step14_5_ips_fail_table():
         styled_df,
         use_container_width=True,
         hide_index=True,
+        height=214,
         column_config={
             "Fund": st.column_config.TextColumn(
                 "Fund",
                 width="large",
             ),
             "Watch Status": st.column_config.TextColumn(
-                "Watch Status",
+                "Status",
                 width="medium",
             ),
         },
@@ -1600,13 +1579,10 @@ def render_confirmed_proposed_funds_overview():
         pd.DataFrame(),
     )
 
-    st.markdown("### Confirmed Proposed Funds")
-    st.caption(
-        "Funds identified in the Proposed Funds section of the report."
-    )
+    st.markdown("#### Confirmed Proposed Funds")
 
     if proposed_df is None or proposed_df.empty:
-        st.info("No confirmed proposed funds were found in this report.")
+        st.info("No confirmed proposed funds were found.")
         return
 
     available_columns = [
@@ -1616,30 +1592,23 @@ def render_confirmed_proposed_funds_overview():
     ]
 
     if not available_columns:
-        st.info("No confirmed proposed funds were found in this report.")
+        st.info("No confirmed proposed funds were found.")
         return
 
     display_df = (
         proposed_df[available_columns]
         .copy()
         .drop_duplicates()
+        .rename(columns={"Fund Scorecard Name": "Fund"})
     )
 
-    display_df = display_df.rename(
-        columns={
-            "Fund Scorecard Name": "Fund",
-        }
-    )
-
-    st.metric(
-        "Confirmed Proposed Funds",
-        len(display_df),
-    )
+    st.metric("Confirmed", len(display_df))
 
     st.dataframe(
         display_df,
         use_container_width=True,
         hide_index=True,
+        height=214,
         column_config={
             "Fund": st.column_config.TextColumn(
                 "Fund",
@@ -4115,9 +4084,6 @@ def run():
                 <div class="section-header">
                     <div class="section-label">Report Overview</div>
                     <div class="section-title">Report Information</div>
-                    <div class="section-description">
-                        Review the report details, watch status, and proposed funds.
-                    </div>
                 </div>
                 """,
                 unsafe_allow_html=True,
@@ -4125,38 +4091,15 @@ def run():
 
             show_report_summary()
 
-            step14_5_ips_fail_table()
+            watch_col, proposed_col = st.columns(2, gap="medium")
 
-            st.markdown("---")
+            with watch_col:
+                with st.container(border=True):
+                    step14_5_ips_fail_table()
 
-            render_confirmed_proposed_funds_overview()
-
-            with st.expander("Table of Contents", expanded=False):
-                toc_details = {
-                    "Fund Scorecard Page": st.session_state.get(
-                        "scorecard_page"
-                    ),
-                    "Proposed Scorecard Page": st.session_state.get(
-                        "scorecard_proposed_page"
-                    ),
-                    "Performance Page": st.session_state.get(
-                        "performance_page"
-                    ),
-                    "Calendar Returns Page": st.session_state.get(
-                        "calendar_year_page"
-                    ),
-                    "3-Year MPT Page": st.session_state.get("r3yr_page"),
-                    "5-Year MPT Page": st.session_state.get("r5yr_page"),
-                    "Factsheets Page": st.session_state.get(
-                        "factsheets_page"
-                    ),
-                }
-
-                for label, page_number in toc_details.items():
-                    st.write(
-                        f"**{label}:** "
-                        f"{page_number if page_number is not None else 'Not included'}"
-                    )
+            with proposed_col:
+                with st.container(border=True):
+                    render_confirmed_proposed_funds_overview()
 
         with recommendation_tab:
             st.markdown(
