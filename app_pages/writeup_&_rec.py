@@ -2558,8 +2558,25 @@ def step17_export_to_ppt():
     # ───── 1) Load template ────────────────────────────────────────────────────────────
     prs = Presentation("assets/writeup&rec_templates.pptx")
     selected = st.session_state.get("selected_fund", "")
-    confirmed_df = st.session_state.get("proposed_funds_confirmed_df", pd.DataFrame())
-    proposal_names = confirmed_df["Fund Scorecard Name"].dropna().unique().tolist()
+    
+    confirmed_df = st.session_state.get(
+        "proposed_funds_confirmed_df",
+        pd.DataFrame(),
+    )
+    
+    if (
+        confirmed_df.empty
+        or "Fund Scorecard Name" not in confirmed_df.columns
+    ):
+        proposal_names = []
+    else:
+        proposal_names = (
+            confirmed_df["Fund Scorecard Name"]
+            .dropna()
+            .astype(str)
+            .unique()
+            .tolist()
+        )
     
     # ───── 2) Pull in session data ──────────────────────────────────────────────────────
     selected = st.session_state.get("selected_fund", "")
