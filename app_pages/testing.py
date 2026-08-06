@@ -529,34 +529,99 @@ def extract_proposed_scorecard_blocks(pdf, *, fuzzy_threshold=78, min_token_over
                        for it in perf_data }
 
     # --- 4) name-only matching within proposed sections ----------------------
+    # --- 4) Match proposed funds using exact tickers first ----------------------
+    
+    def normalize_fund_name(value):
+        value = (value or "").upper()
+        value = re.sub(r"[^A-Z0-9]+", " ", value)
+        return " ".join(value.split())
+    
+    
+    # Combine only the text from confirmed Proposed Funds sections
+    proposed_lines = [
+        line
+        for section in sections
+        for line in section["lines"]
+    ]
+    
     results = []
-    for it in perf_data:
-        fund_name = (it.get("Fund Scorecard Name") or "").strip()
+    
+    for item in perf_data:
+        fund_name = (item.get("Fund Scorecard Name") or "").strip()
+        ticker = (item.get("Ticker") or "").strip().upper()
+    
         if not fund_name:
             continue
-
-        name_tok = tokens(fund_name)
-        best_score, best_page, best_line = 0, None, ""
-
-        for sec in sections:
-            for ln in sec["lines"]:
-                # quick token overlap guard to reduce false hits
-                if len(name_tok.intersection(tokens(ln))) < min_token_overlap:
-                    continue
-                score = fuzz.token_set_ratio(fund_name.lower(), ln.lower())
-                if score > best_score:
-                    best_score, best_page, best_line = score, sec["start"], ln
-
-        if best_score >= fuzzy_threshold:
+    
+        matched_line = None
+        matched_page = None
+        match_method = None
+    
+        # 1) Preferred method: exact ticker match
+        if ticker:
+            ticker_pattern = re.compile(
+                rf"(?<![A-Z0-9]){re.escape(ticker)}(?![A-Z0-9])",
+                re.IGNORECASE,
+            )
+    
+            for section in sections:
+                for line in section["lines"]:
+                    if ticker_pattern.search(line):
+                        matched_line = line
+                        matched_page = section["start"]
+                        match_method = "Exact ticker"
+                        break
+    
+                if matched_line:
+                    break
+    
+        # 2) Fallback: exact normalized fund-name match
+        if not matched_line:
+            normalized_name = normalize_fund_name(fund_name)
+    
+            for section in sections:
+                for line in section["lines"]:
+                    normalized_line = normalize_fund_name(line)
+    
+                    if normalized_name == normalized_line:
+                        matched_line = line
+                        matched_page = section["start"]
+                        match_method = "Exact name"
+                        break
+    
+                    # Allow the line to contain additional scorecard text,
+                    # but require the complete fund name as one phrase.
+                    name_pattern = re.compile(
+                        rf"(?<![A-Z0-9]){re.escape(normalized_name)}(?![A-Z0-9])"
+                    )
+    
+                    if name_pattern.search(normalized_line):
+                        matched_line = line
+                        matched_page = section["start"]
+                        match_method = "Full name"
+                        break
+    
+                if matched_line:
+                    break
+    
+        # Only add funds with an exact confirmed match
+        if matched_line:
             results.append({
                 "Fund Scorecard Name": fund_name,
-                "Ticker": name_to_ticker.get(fund_name, ""),  # backfill ticker here
-                "Proposed Section Start Page": best_page,
-                "Match Score": best_score,
-                "Matched Line": best_line
+                "Ticker": ticker,
+                "Proposed Section Start Page": matched_page,
+                "Match Method": match_method,
+                "Matched Line": matched_line,
             })
-
-    df = pd.DataFrame(results).drop_duplicates(subset=["Fund Scorecard Name"])
+    
+    
+    df = pd.DataFrame(results)
+    
+    if not df.empty:
+        df = df.drop_duplicates(
+            subset=["Fund Scorecard Name", "Ticker"]
+        )
+    
     st.session_state["proposed_funds_confirmed_df"] = df
     return df
 
