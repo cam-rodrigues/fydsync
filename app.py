@@ -6,6 +6,7 @@ import importlib.util
 import os
 import random
 import uuid
+from urllib.parse import urlencode
 
 import streamlit as st
 
@@ -329,7 +330,7 @@ st.markdown(
         }
 
         [data-testid="stSidebar"] > div:first-child {
-            padding-top: 0.45rem;
+            padding-top: 0.4rem;
         }
 
         [data-testid="stSidebar"] [data-testid="stSidebarContent"] {
@@ -338,10 +339,8 @@ st.markdown(
             padding-bottom: 0.85rem;
         }
 
-        /* Compact, but not collapsed */
-
         [data-testid="stSidebar"] [data-testid="stVerticalBlock"] {
-            gap: 0.32rem;
+            gap: 0.25rem;
         }
 
         /* Sidebar logo */
@@ -352,8 +351,8 @@ st.markdown(
 
         [data-testid="stSidebar"] [data-testid="stImage"] img {
             display: block;
-            width: 92%;
-            max-width: 235px;
+            width: 88%;
+            max-width: 220px;
             height: auto;
             margin: 0 auto;
             object-fit: contain;
@@ -361,9 +360,9 @@ st.markdown(
 
         .sidebar-build-label {
             margin-top: -0.1rem;
-            margin-bottom: 0.45rem;
+            margin-bottom: 0.35rem;
             color: #718096;
-            font-size: 0.67rem;
+            font-size: 0.66rem;
             font-weight: 650;
             letter-spacing: 0.035rem;
             text-align: center;
@@ -371,84 +370,116 @@ st.markdown(
 
         .sidebar-logo-divider {
             height: 1px;
-            margin: 0.45rem 0 0.6rem 0;
+            margin: 0.4rem 0 0.65rem 0;
             background-color: #d7e0eb;
         }
 
-        /* Navigation buttons */
+        /* Custom navigation */
 
-        [data-testid="stSidebar"] .stButton {
-            margin: 0;
+        .sidebar-nav-section {
+            margin: 0.9rem 0 0.28rem 0;
         }
 
-        [data-testid="stSidebar"] .stButton > button {
-            width: 100%;
-            min-height: 2.25rem;
-            justify-content: flex-start;
-            background-color: rgba(255, 255, 255, 0.34);
-            color: #334155;
-            border: 1px solid transparent;
-            border-radius: 0.5rem;
-            padding: 0.36rem 0.68rem;
-            font-size: 0.84rem;
-            font-weight: 500;
-            line-height: 1.2;
-            text-align: left;
-            box-shadow: none;
-            transition:
-                background-color 0.15s ease,
-                border-color 0.15s ease,
-                color 0.15s ease,
-                transform 0.15s ease;
+        .sidebar-nav-section:first-of-type {
+            margin-top: 0.35rem;
         }
 
-        [data-testid="stSidebar"] .stButton > button:hover {
-            background-color: #e5ecf5;
-            border-color: #cbd7e6;
-            color: #102542;
-            transform: translateX(2px);
-        }
-
-        [data-testid="stSidebar"] .stButton > button:focus {
-            box-shadow: 0 0 0 2px rgba(16, 37, 66, 0.10);
-        }
-
-        /* Active navigation button */
-
-        [data-testid="stSidebar"] .active-nav .stButton > button {
-            background-color: #dce7f5;
-            border-color: #b8c9df;
-            color: #102542;
-            font-weight: 675;
-            box-shadow: inset 3px 0 0 #102542;
-        }
-
-        /* Section labels */
-
-        .sidebar-section {
-            margin: 0.95rem 0 0.3rem 0.55rem;
+        .sidebar-nav-heading {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin: 0 0 0.3rem 0.3rem;
             color: #7b8798;
-            font-size: 0.64rem;
+            font-size: 0.63rem;
             font-weight: 750;
-            letter-spacing: 0.08rem;
-            line-height: 1.1;
+            letter-spacing: 0.085rem;
+            line-height: 1;
             text-transform: uppercase;
         }
 
-        /* Expanders */
+        .sidebar-nav-heading::after {
+            content: "";
+            flex: 1;
+            height: 1px;
+            margin-right: 0.2rem;
+            background-color: #dbe3ed;
+        }
+
+        .sidebar-nav-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.12rem;
+        }
+
+        .sidebar-nav-link {
+            position: relative;
+            display: flex;
+            align-items: center;
+            min-height: 2.05rem;
+            padding: 0.32rem 0.62rem 0.32rem 0.8rem;
+            color: #334155 !important;
+            font-size: 0.83rem;
+            font-weight: 500;
+            line-height: 1.15;
+            text-decoration: none !important;
+            border: 1px solid transparent;
+            border-radius: 0.45rem;
+            background-color: transparent;
+            transition:
+                background-color 0.14s ease,
+                border-color 0.14s ease,
+                color 0.14s ease,
+                transform 0.14s ease;
+        }
+
+        .sidebar-nav-link:hover {
+            color: #102542 !important;
+            background-color: #e7edf5;
+            border-color: #d3ddea;
+            transform: translateX(2px);
+        }
+
+        .sidebar-nav-link.active {
+            color: #102542 !important;
+            background-color: #dce7f5;
+            border-color: #b8c9df;
+            font-weight: 675;
+        }
+
+        .sidebar-nav-link.active::before {
+            content: "";
+            position: absolute;
+            left: 0.28rem;
+            top: 0.38rem;
+            bottom: 0.38rem;
+            width: 3px;
+            border-radius: 999px;
+            background-color: #102542;
+        }
+
+        /* Native controls below navigation */
+
+        [data-testid="stSidebar"] .stButton > button {
+            min-height: 2.15rem;
+            border-radius: 0.48rem;
+            padding: 0.35rem 0.65rem;
+            font-size: 0.8rem;
+            font-weight: 600;
+            box-shadow: none;
+        }
 
         [data-testid="stSidebar"] details {
-            margin: 0.08rem 0;
-            background-color: rgba(255, 255, 255, 0.34);
-            border: 1px solid #dbe3ed;
+            margin-top: 0.75rem;
+            background-color: rgba(255, 255, 255, 0.55);
+            border: 1px solid #d6dfeb;
             border-radius: 0.5rem;
         }
 
         [data-testid="stSidebar"] details summary {
             min-height: 2.2rem;
-            padding: 0.3rem 0.6rem;
+            padding: 0.32rem 0.62rem;
             color: #334155;
-            font-size: 0.82rem;
+            font-size: 0.8rem;
             font-weight: 600;
             border-radius: 0.5rem;
         }
@@ -458,23 +489,17 @@ st.markdown(
         }
 
         [data-testid="stSidebar"] details [data-testid="stVerticalBlock"] {
-            gap: 0.22rem;
-            padding: 0.15rem 0.35rem 0.4rem 0.35rem;
+            gap: 0.25rem;
+            padding: 0.1rem 0.25rem 0.4rem 0.25rem;
         }
-
-        /* Supporting elements */
 
         [data-testid="stSidebar"] hr {
-            margin: 0.6rem 0;
-        }
-
-        [data-testid="stSidebar"] [data-testid="stCaptionContainer"] {
-            margin: 0;
+            margin: 0.55rem 0;
         }
 
         [data-testid="stSidebar"] [data-testid="stCaptionContainer"] p {
-            margin: 0.1rem 0;
-            font-size: 0.73rem;
+            margin: 0.08rem 0;
+            font-size: 0.72rem;
             line-height: 1.35;
         }
 
@@ -558,33 +583,29 @@ st.sidebar.markdown(
 # Navigation helper
 # =========================================================
 
-def nav_button(label: str, filename: str) -> None:
-    """Create a sidebar navigation button with an active-page style."""
+def build_page_url(filename: str) -> str:
+    """Build a page URL while preserving developer mode."""
 
-    is_active = selected_page == filename
+    params = {"page": filename}
 
-    if is_active:
-        st.sidebar.markdown(
-            '<div class="active-nav">',
-            unsafe_allow_html=True,
-        )
+    if st.session_state.app_secret_mode:
+        params["mode"] = "developer"
 
-    clicked = st.sidebar.button(
-        label,
-        key=f"nav_{filename}",
-        use_container_width=True,
+    return f"?{urlencode(params)}"
+
+
+def nav_link(label: str, filename: str) -> str:
+    """Return one custom sidebar navigation link."""
+
+    active_class = " active" if selected_page == filename else ""
+    page_url = build_page_url(filename)
+
+    return (
+        f'<a class="sidebar-nav-link{active_class}" '
+        f'href="{page_url}" target="_self">'
+        f"{label}"
+        "</a>"
     )
-
-    if is_active:
-        st.sidebar.markdown(
-            "</div>",
-            unsafe_allow_html=True,
-        )
-
-    if clicked:
-        # Preserve other query parameters, such as developer mode.
-        st.query_params["page"] = filename
-        st.rerun()
 
 
 # =========================================================
@@ -592,21 +613,24 @@ def nav_button(label: str, filename: str) -> None:
 # =========================================================
 
 for section_name, pages in PAGE_GROUPS.items():
-    st.sidebar.markdown(
-        f'<div class="sidebar-section">{section_name}</div>',
-        unsafe_allow_html=True,
+    links_html = "".join(
+        nav_link(label, filename)
+        for label, filename in pages.items()
     )
 
-    if section_name == "MPI Tools":
-        with st.sidebar.expander(
-            "Open MPI tools",
-            expanded=False,
-        ):
-            for label, filename in pages.items():
-                nav_button(label, filename)
-    else:
-        for label, filename in pages.items():
-            nav_button(label, filename)
+    st.sidebar.markdown(
+        f"""
+        <div class="sidebar-nav-section">
+            <div class="sidebar-nav-heading">
+                {section_name}
+            </div>
+            <div class="sidebar-nav-list">
+                {links_html}
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
 
 
 def open_duck_debugger() -> None:
