@@ -369,13 +369,13 @@ st.markdown(
 
         [data-testid="stSidebar"] .stButton > button {
             width: 100%;
-            min-height: 2.5rem;
+            min-height: 1.8rem;
             justify-content: flex-start;
             background-color: transparent;
             color: #334155;
             border: 1px solid transparent;
             border-radius: 0.3rem;
-            padding: 0.45rem 0.75rem;
+            padding: 0.02rem 0.75rem;
             font-size: 0.7rem;
             font-weight: 500;
             text-align: left;
@@ -403,7 +403,7 @@ st.markdown(
         /* ---------- Sidebar section labels ---------- */
 
         .sidebar-section {
-            margin: 1.6rem 0 0.45rem 0.25rem;
+            margin: 0.9rem 0 0.25rem 0.25rem;
             color: #7a8798;
             font-size: 0.7rem;
             font-weight: 700;
