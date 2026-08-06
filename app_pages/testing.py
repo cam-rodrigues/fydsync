@@ -1624,7 +1624,7 @@ def step15_display_selected_fund():
     df_slide2 = pd.DataFrame(
         [
             {
-                "Investment Manager": inv_mgr,
+                "Fund": inv_mgr,
                 "Net Expense Ratio": net_exp,
             }
         ]
@@ -1632,7 +1632,6 @@ def step15_display_selected_fund():
 
   # Save this dataframe for Step 17
     st.session_state["slide2_table1_data"] = df_slide2
-    st.dataframe(df_slide2, use_container_width=True)
 
     # --- Slide 2 Table 2 ---
     st.markdown("**Returns**")
@@ -1839,35 +1838,11 @@ def step15_display_selected_fund():
     # Keep this unchanged for PowerPoint export.
     st.session_state["slide4"] = df_slide4
 
-    # =========================================================
-    # COMPACT FUND METRICS
-    # =========================================================
+    # Net Expense Ratio and Manager Tenure are already shown in
+    # the summary cards above. Their DataFrames remain saved in
+    # session state for PowerPoint export, but are not displayed here.
 
-    expense_col, tenure_col = st.columns(
-        2,
-        gap="medium",
-    )
-
-    with expense_col:
-        st.markdown("**Net Expense Ratio**")
-
-        st.dataframe(
-            df_slide2,
-            use_container_width=True,
-            hide_index=True,
-        )
-
-    with tenure_col:
-        st.markdown("**Manager Tenure**")
-
-        st.dataframe(
-            df_slide4,
-            use_container_width=True,
-            hide_index=True,
-        )
-
-    # --- Slide 4 Table 2 ---
-    st.markdown("**Assets**")
+    # --- Slide 4 Table 2: Assets ---
     facts = st.session_state.get("fund_factsheets_data", [])
     fs_rec = next((f for f in facts if f["Matched Fund Name"] == selected_fund), None)
     perf_data = st.session_state.get("fund_performance_data", [])
@@ -1881,9 +1856,10 @@ def step15_display_selected_fund():
         "Average Market Capitalization":  avg_cap
     }])
 
-    # Save for Step 17 to use
+    # Save for Step 17 to use.
+    # Assets are already shown in the Fund Overview card, so this
+    # table is kept for PowerPoint export but not displayed here.
     st.session_state["slide4_table2_data"] = df_slide4_2
-    st.dataframe(df_slide4_2, use_container_width=True)
 
 #───Bullet Points──────────────────────────────────────────────────────────────────
 
