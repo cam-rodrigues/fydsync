@@ -668,6 +668,48 @@ with st.sidebar.expander(
 # Page loader
 # =========================================================
 
+@st.cache_resource(show_spinner=False)
+def import_page_module(
+    filename: str,
+    modified_time_ns: int,
+):
+    """
+    Import and cache a page module.
+
+    modified_time_ns is part of the cache key, so Streamlit automatically
+    reloads the module whenever that page file is edited.
+    """
+
+    page_path = os.path.abspath(
+        os.path.join(
+            PAGES_DIR,
+            filename,
+        )
+    )
+
+    module_name = (
+        f"fidsync_page_"
+        f"{os.path.splitext(filename)[0]}_"
+        f"{modified_time_ns}"
+    )
+
+    spec = importlib.util.spec_from_file_location(
+        module_name,
+        page_path,
+    )
+
+    if spec is None or spec.loader is None:
+        raise ImportError(
+            "Unable to create an import specification "
+            f"for {filename}."
+        )
+
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+
+    return module
+
+
 def load_page(filename: str) -> None:
     """Import and run one registered page."""
 
@@ -702,24 +744,12 @@ def load_page(filename: str) -> None:
         st.rerun()
 
     try:
-        module_name = (
-            f"fidsync_page_"
-            f"{os.path.splitext(filename)[0]}"
+        modified_time_ns = os.stat(page_path).st_mtime_ns
+
+        module = import_page_module(
+            filename,
+            modified_time_ns,
         )
-
-        spec = importlib.util.spec_from_file_location(
-            module_name,
-            page_path,
-        )
-
-        if spec is None or spec.loader is None:
-            raise ImportError(
-                "Unable to create an import specification "
-                f"for {filename}."
-            )
-
-        module = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(module)
 
         if not hasattr(module, "run"):
             raise AttributeError(
