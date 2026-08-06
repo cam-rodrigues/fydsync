@@ -746,8 +746,7 @@ def run():
         unsafe_allow_html=True,
     )
 
-    section_label("Upload")
-    uploaded = st.file_uploader(
+    pdf_file = st.file_uploader(
         "Upload MPI PDF",
         type=["pdf"],
         help="Upload a text-based MPI fund scorecard PDF.",
