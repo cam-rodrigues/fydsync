@@ -1764,10 +1764,15 @@ def step15_display_selected_fund():
         "5 Year Information Ratio / Peer Ranking %": frac("Information Ratio", "5Yr"),
     }
     df_slide3_2 = pd.DataFrame([row])
-        
+
     # Save for Step 17 to use
     st.session_state["slide3_table2_data"] = df_slide3_2
 
+    st.dataframe(
+        df_slide3_2,
+        use_container_width=True,
+        hide_index=True,
+    )
     # --- Slide 4 Table 1: Manager Tenure ---
     blocks = st.session_state.get(
         "fund_blocks",
